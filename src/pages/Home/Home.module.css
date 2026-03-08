@@ -1,20 +1,1051 @@
-.container {
+.page {
+  width: 100%;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  height: 540px;
+  overflow: hidden;
+}
+
+/* Left-edge vignette */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(12, 10, 8, 0.38) 0%,
+    rgba(12, 10, 8, 0.18) 35%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.heroImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ── Floating card ── */
+.heroCard {
+  position: absolute;
+  top: 52%;
+  left: 12%;
+  transform: translateY(-50%);
+  width: min(370px, 88%);
+  background: linear-gradient(
+    160deg,
+    rgba(250, 246, 237, 0.94) 0%,
+    rgba(243, 236, 220, 0.90) 100%
+  );
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.72);
+  border-left: 1px solid rgba(255, 255, 255, 0.52);
+  border-right: 1px solid rgba(200, 185, 160, 0.28);
+  border-bottom: 1px solid rgba(200, 185, 160, 0.28);
+  border-radius: 1rem;
+  padding: 1.75rem 2rem;
+  z-index: 1;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 8px 24px rgba(30, 20, 10, 0.14),
+    0 2px 6px rgba(30, 20, 10, 0.08),
+    0 32px 64px rgba(10, 8, 4, 0.10);
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+/* ── Card typography ── */
+.heroCardEyebrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #B75A4A;
+  margin: 0 0 0.7rem;
+}
+
+.heroCardTitle {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+  color: #1F2A44;
+  margin: 0 0 0.8rem;
+}
+
+.heroCardBody {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #4e4e4e;
+  margin: 0 0 1.35rem;
+}
+
+/* ── Buttons ── */
+.heroCardActions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  padding: 0.55rem 1.25rem;
+  background: #B75A4A;
+  color: #fff;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0 1px 3px rgba(183, 90, 74, 0.3);
+}
+
+.btnPrimary:hover {
+  background: #9F4B3E;
+  box-shadow: 0 2px 8px rgba(183, 90, 74, 0.35);
+}
+
+.btnGhost {
+  padding: 0.55rem 1.25rem;
+  background: transparent;
+  color: #1F2A44;
+  border: 1.5px solid rgba(31, 42, 68, 0.22);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.btnGhost:hover {
+  border-color: #1F2A44;
+  color: #1F2A44;
+  background: rgba(31, 42, 68, 0.05);
+}
+
+/* ── Featured Books ── */
+.featured {
+  /* Break out of the content column to span the full viewport */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  overflow: hidden; /* contain .booksTrack (width: max-content, ~5600px) — clip-path on
+                       .booksViewport is a paint-only clip and does not prevent layout overflow */
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  /* Track the content grid's left edge up to ~1264px, then cap at 3rem.
+     Without the cap, zoomed-out / ultrawide viewports show hundreds of px of
+     empty parchment before the first book (the 1200px grid's margin grows
+     unboundedly). clamp pins the maximum at 3rem so the shelf always starts
+     close to the left edge while still matching the grid on standard screens. */
+  padding-left: clamp(var(--spacing-4), calc((100vw - var(--container-max)) / 2 + var(--spacing-4)), 3rem);
+  padding-right: 2.5rem;
+  position: relative;
+  /* Warm parchment borders — use the same tonal value as the hero card borders */
+  border-top: 1px solid rgba(200, 185, 160, 0.28);
+  border-bottom: 1px solid rgba(200, 185, 160, 0.22);
+  /* Slightly denser overlay so the section reads as its own zone against #F6F1E7 */
+  background: linear-gradient(
+    180deg,
+    rgba(228, 218, 200, 0.38) 0%,
+    rgba(222, 210, 190, 0.54) 100%
+  );
+}
+
+/* Warm ambient centre-glow — like candlelight on parchment */
+.featured::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 65% 55% at 50% 75%,
+    rgba(183, 90, 74, 0.038) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.featuredHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.featuredTitle {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  color: #1F2A44;
+  margin: 0 0 0.35rem;
+}
+
+.featuredTitle::before {
+  content: '';
+  display: block;
+  width: 2rem;
+  height: 2px;
+  background: linear-gradient(to right, #B75A4A, rgba(183, 90, 74, 0.35));
+  border-radius: 2px;
+  margin-bottom: 0.85rem;
+}
+
+.featuredSubtitle {
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: #6a6a6a;
+  margin: 0;
+  max-width: 52ch;
+}
+
+.featuredViewAll {
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: #B75A4A;
+  text-decoration: none;
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  opacity: 0.72;
+  transition: opacity 200ms ease-out;
+  flex-shrink: 0;
+}
+
+.featuredViewAll:hover {
+  opacity: 1;
+}
+
+/* Carousel prev / next controls — grouped with the view-all link */
+.carouselControls {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-shrink: 0;
+}
+
+.carouselNav {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.carouselBtn {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-4);
-  padding: var(--spacing-12) var(--spacing-4);
-  text-align: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  /* Warm parchment base — anchored to the page's #F6F1E7 background */
+  background: rgba(246, 241, 231, 0.80);
+  border: 1px solid rgba(200, 185, 160, 0.38);
+  border-radius: 50%;
+  color: #3a4e6e;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72) inset,
+    0 1px 4px rgba(31, 42, 68, 0.09);
+  transition:
+    background 200ms ease-out,
+    border-color 200ms ease-out,
+    box-shadow 200ms ease-out,
+    color 200ms ease-out;
 }
 
-.title {
-  font-size: var(--text-3xl);
+.carouselBtn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.carouselBtn:hover {
+  background: rgba(252, 248, 241, 0.98);
+  border-color: rgba(200, 185, 160, 0.60);
+  color: #B75A4A;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 2px 8px rgba(31, 42, 68, 0.11);
+}
+
+.carouselBtn:active {
+  background: rgba(238, 230, 216, 1);
+  box-shadow: 0 1px 2px rgba(31, 42, 68, 0.06);
+  transition-duration: 60ms;
+}
+
+.carouselBtn:focus-visible {
+  outline: 2px solid rgba(183, 90, 74, 0.42);
+  outline-offset: 2px;
+}
+
+/* Carousel track — clip horizontally for the slide, leave vertical open for hover scale */
+.booksViewport {
+  position: relative;
+  /* Clip at left/right viewport edges; allow 40px vertical overflow so the
+     hover lift (translateY -4px) + scale never gets cropped at the top */
+  clip-path: inset(-40px 0px);
+}
+
+/* Right-edge fade — signals more books beyond the visible area.
+   No left fade: the carousel starts at the content grid line so
+   nothing is hidden to the left, and a left fade would visually
+   push the first book away from the section heading. */
+.booksViewport::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3rem;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(222, 210, 190, 0.7) 0%, transparent 100%);
+}
+
+.booksTrack {
+  display: flex;
+  gap: 2rem; /* must match GAP_PX in JS (2rem × 16px = 32px) */
+  width: max-content; /* track owns its full content width; items don't wrap or compress */
+  will-change: transform;
+  user-select: none;
+}
+
+.bookCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  transform-origin: center bottom;
+  transition: transform 360ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.bookCard:hover {
+  transform: translateY(-6px) scale(1.04);
+}
+
+.bookCover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 3px 7px 7px 3px;
+  overflow: hidden;
+  box-shadow:
+    -3px 0 5px rgba(0, 0, 0, 0.20),
+    0 2px 0 rgba(0, 0, 0, 0.10),
+    0 5px 16px rgba(31, 42, 68, 0.18),
+    0 1px 3px rgba(31, 42, 68, 0.09);
+  transition: box-shadow 260ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  margin-bottom: 0.75rem;
+}
+
+.bookCoverImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Specular highlight — simulates light catching the cover surface */
+.bookCover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.bookCard:hover .bookCover {
+  box-shadow:
+    -6px 0 14px rgba(0, 0, 0, 0.32),
+    0 2px 0 rgba(0, 0, 0, 0.16),
+    0 22px 52px rgba(31, 42, 68, 0.32),
+    0 6px 16px rgba(31, 42, 68, 0.18);
+}
+
+/* Spine — shadow on left edge, thinner light line to separate from page */
+.bookSpine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 9px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.08));
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Cover color variants — rich directional gradients, each with a distinct palette */
+.bookCover[data-color="terracotta"] {
+  background: linear-gradient(155deg, #C97A68 0%, #8C3E2F 55%, #6E2B1E 100%);
+}
+.bookCover[data-color="navy"] {
+  background: linear-gradient(155deg, #334E80 0%, #1D3258 55%, #131E38 100%);
+}
+.bookCover[data-color="sage"] {
+  background: linear-gradient(155deg, #628F74 0%, #3D6B52 55%, #284838 100%);
+}
+.bookCover[data-color="gold"] {
+  background: linear-gradient(155deg, #C8A045 0%, #956C18 55%, #6E4E0C 100%);
+}
+.bookCover[data-color="slate"] {
+  background: linear-gradient(155deg, #667BA8 0%, #3E5480 55%, #28385C 100%);
+}
+.bookCover[data-color="burgundy"] {
+  background: linear-gradient(155deg, #B05878 0%, #742A48 55%, #541830 100%);
+}
+.bookCover[data-color="forest"] {
+  background: linear-gradient(155deg, #52926A 0%, #2E6044 55%, #1C4030 100%);
+}
+.bookCover[data-color="copper"] {
+  background: linear-gradient(155deg, #C07848 0%, #8C4C24 55%, #643010 100%);
+}
+.bookCover[data-color="indigo"] {
+  background: linear-gradient(155deg, #5860A8 0%, #323878 55%, #1E2258 100%);
+}
+.bookCover[data-color="rose"] {
+  background: linear-gradient(155deg, #B87090 0%, #803858 55%, #5C2038 100%);
+}
+.bookCover[data-color="amber"] {
+  background: linear-gradient(155deg, #D0A040 0%, #9C6C14 55%, #724C08 100%);
+}
+.bookCover[data-color="teal"] {
+  background: linear-gradient(155deg, #4AA0B8 0%, #286E84 55%, #184C5C 100%);
+}
+.bookCover[data-color="plum"] {
+  background: linear-gradient(155deg, #8858B0 0%, #582880 55%, #38145E 100%);
+}
+.bookCover[data-color="olive"] {
+  background: linear-gradient(155deg, #8A9A48 0%, #5C6C1C 55%, #3C4A0A 100%);
+}
+.bookCover[data-color="crimson"] {
+  background: linear-gradient(155deg, #BC4848 0%, #841A1A 55%, #600808 100%);
+}
+
+.bookMeta {
+  display: flex;
+  flex-direction: column;
+  /* Uniform gap between genre / title / author */
+  gap: 0.28rem;
+}
+
+.bookGenre {
+  font-size: 0.58rem;
   font-weight: 700;
-  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  opacity: 0.8;
+  /* No extra margin — gap on parent handles spacing */
+  transition: opacity 200ms ease-out;
 }
 
-.subtitle {
-  font-size: var(--text-lg);
-  color: var(--color-text-muted);
+/* Genre colour is set inline per-book (colour lives in the BOOKS data array) */
+
+.bookCard:hover .bookGenre { opacity: 1; }
+
+.bookTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1F2A44;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  transition: color 200ms ease-out;
+}
+
+.bookCard:hover .bookTitle { color: #141d30; }
+
+.bookAuthor {
+  font-size: 0.66rem;
+  color: #8a8a8a;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.bookDescription {
+  display: none;
+}
+
+/* Curator label — sits inside the cover, top-right corner */
+.bookBadge {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.6rem;
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+  padding: 0.22rem 0.48rem 0.2rem;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+
+/* ── Quick actions ── */
+.actions {
+  padding: 6.5rem 0 6rem;
+  position: relative;
+}
+
+/* Subtle multi-tonal ambient wash — reflects the four card palettes */
+.actions::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 38% 50% at 14% 65%, rgba(183, 90, 74, 0.055) 0%, transparent 70%),
+    radial-gradient(ellipse 38% 50% at 38% 65%, rgba(74, 110, 163, 0.045) 0%, transparent 70%),
+    radial-gradient(ellipse 38% 50% at 62% 65%, rgba(68, 124, 96, 0.040) 0%, transparent 70%),
+    radial-gradient(ellipse 38% 50% at 86% 65%, rgba(152, 118, 52, 0.045) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.actionsHeader {
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.actionsTitle {
+  font-size: clamp(1.45rem, 2.8vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.032em;
+  color: #1F2A44;
+  margin: 0 0 0.65rem;
+}
+
+.actionsTitle::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  background: linear-gradient(to right, #B75A4A, rgba(183, 90, 74, 0.35));
+  border-radius: 2px;
+  margin-bottom: 1.15rem;
+}
+
+.actionsSubtitle {
+  font-size: 0.9rem;
+  line-height: 1.72;
+  color: #595959;
+  margin: 0;
+  max-width: 52ch;
+}
+
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.4rem;
+  align-items: stretch;
+  position: relative;
+}
+
+.actionCard {
+  position: relative;
+  background: linear-gradient(
+    150deg,
+    rgba(253, 250, 244, 1) 0%,
+    rgba(247, 242, 232, 1) 100%
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-left: 1px solid rgba(255, 255, 255, 0.75);
+  border-right: 1px solid rgba(31, 42, 68, 0.08);
+  border-bottom: 1px solid rgba(31, 42, 68, 0.08);
+  border-radius: 14px;
+  padding: 2rem 2rem 1.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  cursor: pointer;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 2px 5px rgba(31, 42, 68, 0.07),
+    0 8px 20px rgba(31, 42, 68, 0.07),
+    0 1px 2px rgba(183, 90, 74, 0.04);
+  transition:
+    box-shadow 200ms ease-out,
+    transform 200ms ease-out,
+    border-color 200ms ease-out,
+    background 240ms ease;
+}
+
+/* Accent stripe — full width, top-rounded to match card corners */
+.actionCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    rgba(183, 90, 74, 0.28),
+    rgba(183, 90, 74, 0.07)
+  );
+  border-radius: 14px 14px 0 0;
+  transition: background 240ms ease;
+}
+
+.actionCard:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(
+    150deg,
+    rgba(255, 253, 248, 1) 0%,
+    rgba(251, 247, 239, 1) 100%
+  );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 2px 8px rgba(31, 42, 68, 0.08),
+    0 14px 36px rgba(31, 42, 68, 0.12),
+    0 2px 4px rgba(183, 90, 74, 0.06);
+  border-top-color: rgba(255, 255, 255, 1);
+  border-left-color: rgba(255, 255, 255, 0.9);
+  border-right-color: rgba(31, 42, 68, 0.13);
+  border-bottom-color: rgba(31, 42, 68, 0.13);
+}
+
+.actionCard:hover::before {
+  background: linear-gradient(
+    to right,
+    rgba(183, 90, 74, 0.38),
+    rgba(183, 90, 74, 0.10)
+  );
+}
+
+.actionCard:active {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 1px 4px rgba(31, 42, 68, 0.08),
+    0 4px 12px rgba(31, 42, 68, 0.07);
+  transition-duration: 80ms;
+}
+
+.actionIcon {
+  width: 26px;
+  height: 26px;
+  color: #B75A4A;
+  flex-shrink: 0;
+  margin-bottom: 1.85rem;
+  padding: 13px;
+  background: rgba(183, 90, 74, 0.09);
+  border: 1px solid rgba(183, 90, 74, 0.14);
+  border-radius: 14px;
+  box-sizing: content-box;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 2px 6px rgba(183, 90, 74, 0.12),
+    0 1px 2px rgba(183, 90, 74, 0.06);
+  transition: background 240ms ease, box-shadow 240ms ease;
+}
+
+.actionCard:hover .actionIcon {
+  background: rgba(183, 90, 74, 0.14);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 3px 10px rgba(183, 90, 74, 0.18),
+    0 1px 3px rgba(183, 90, 74, 0.08);
+}
+
+.actionCardEyebrow {
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #B75A4A;
+  opacity: 0.9;
+  margin: 0 0 0.6rem;
+}
+
+.actionCard:hover .actionCardEyebrow {
+  opacity: 1;
+}
+
+.actionCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.actionCardTitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1F2A44;
+  margin: 0;
+  letter-spacing: -0.022em;
+  line-height: 1.25;
+  flex: 1;
+  transition: color 200ms ease-out;
+}
+
+.actionCard:hover .actionCardTitle {
+  color: #141d30;
+}
+
+.actionCardBody {
+  font-size: 0.8rem;
+  line-height: 1.72;
+  color: #5a5a5a;
+  margin: 0;
+  flex: 1;
+}
+
+.actionCardDetail {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #B75A4A;
+  opacity: 0.7;
+  margin: 1rem 0 0;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  border-top: 1px solid rgba(31, 42, 68, 0.07);
+  padding-top: 0.8rem;
+  transition: opacity 200ms ease-out;
+}
+
+.actionCard:hover .actionCardDetail {
+  opacity: 1;
+}
+
+.actionArrow {
+  font-size: 0.82rem;
+  color: #B75A4A;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+  display: inline-block;
+  opacity: 0.55;
+  transition: transform 200ms ease-out, opacity 200ms ease-out;
+}
+
+.actionCard:hover .actionArrow {
+  transform: translateX(5px);
+  opacity: 1;
+}
+
+/* ── Card color variants ── */
+
+/* Card 1 · Browse Catalog — primary / featured (dark navy) */
+.actionsGrid .actionCard:nth-child(1) {
+  background: linear-gradient(150deg, #243352 0%, #1B2840 100%);
+  border-top-color: rgba(255, 255, 255, 0.10);
+  border-left-color: rgba(255, 255, 255, 0.07);
+  border-right-color: rgba(0, 0, 0, 0.18);
+  border-bottom-color: rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 4px 14px rgba(10, 16, 30, 0.28),
+    0 1px 4px rgba(10, 16, 30, 0.18);
+}
+.actionsGrid .actionCard:nth-child(1)::before {
+  background: linear-gradient(to right, rgba(196, 112, 95, 0.55), rgba(196, 112, 95, 0.10));
+}
+.actionsGrid .actionCard:nth-child(1) .actionIcon {
+  color: #C4705F;
+  background: rgba(196, 112, 95, 0.15);
+  border-color: rgba(196, 112, 95, 0.22);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 2px 6px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.actionsGrid .actionCard:nth-child(1) .actionCardEyebrow {
+  color: #C4705F;
+}
+.actionsGrid .actionCard:nth-child(1) .actionCardTitle {
+  color: rgba(246, 241, 231, 0.95);
+}
+.actionsGrid .actionCard:nth-child(1) .actionCardBody {
+  color: rgba(246, 241, 231, 0.58);
+}
+.actionsGrid .actionCard:nth-child(1) .actionCardDetail {
+  color: #C4705F;
+  opacity: 0.6;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+.actionsGrid .actionCard:nth-child(1) .actionArrow {
+  color: #C4705F;
+  opacity: 0.45;
+}
+.actionsGrid .actionCard:nth-child(1):hover {
+  background: linear-gradient(150deg, #293D60 0%, #1F2E49 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 8px 28px rgba(10, 16, 30, 0.36),
+    0 2px 6px rgba(10, 16, 30, 0.22);
+  border-right-color: rgba(0, 0, 0, 0.24);
+  border-bottom-color: rgba(0, 0, 0, 0.24);
+}
+.actionsGrid .actionCard:nth-child(1):hover .actionCardTitle {
+  color: rgba(246, 241, 231, 1);
+}
+.actionsGrid .actionCard:nth-child(1):hover .actionCardBody {
+  color: rgba(246, 241, 231, 0.6);
+}
+.actionsGrid .actionCard:nth-child(1):hover::before {
+  background: linear-gradient(to right, rgba(196, 112, 95, 0.65), rgba(196, 112, 95, 0.12));
+}
+.actionsGrid .actionCard:nth-child(1):hover .actionIcon {
+  background: rgba(196, 112, 95, 0.22);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 3px 10px rgba(0, 0, 0, 0.30), 0 1px 3px rgba(0, 0, 0, 0.14);
+}
+.actionsGrid .actionCard:nth-child(1):hover .actionArrow {
+  opacity: 1;
+}
+.actionsGrid .actionCard:nth-child(1):hover .actionCardBody {
+  color: rgba(246, 241, 231, 0.68);
+}
+.actionsGrid .actionCard:nth-child(1):hover .actionCardDetail {
+  opacity: 1;
+}
+
+/* Card 2 · Events & Programs — dusty slate blue */
+.actionsGrid .actionCard:nth-child(2) {
+  background: linear-gradient(150deg, rgba(246, 249, 255, 1) 0%, rgba(236, 243, 253, 1) 100%);
+}
+.actionsGrid .actionCard:nth-child(2)::before {
+  background: linear-gradient(to right, rgba(74, 110, 163, 0.28), rgba(74, 110, 163, 0.06));
+}
+.actionsGrid .actionCard:nth-child(2) .actionIcon {
+  color: #4A6EA3;
+  background: rgba(74, 110, 163, 0.09);
+  border-color: rgba(74, 110, 163, 0.14);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 2px 6px rgba(74, 110, 163, 0.14), 0 1px 2px rgba(74, 110, 163, 0.07);
+}
+.actionsGrid .actionCard:nth-child(2) .actionCardEyebrow {
+  color: #4A6EA3;
+}
+.actionsGrid .actionCard:nth-child(2) .actionCardDetail {
+  color: #4A6EA3;
+  border-top-color: rgba(74, 110, 163, 0.10);
+}
+.actionsGrid .actionCard:nth-child(2) .actionArrow {
+  color: #4A6EA3;
+}
+.actionsGrid .actionCard:nth-child(2):hover {
+  background: linear-gradient(150deg, rgba(248, 251, 255, 1) 0%, rgba(239, 246, 255, 1) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 2px 6px rgba(31, 42, 68, 0.07),
+    0 12px 32px rgba(31, 42, 68, 0.09),
+    0 2px 4px rgba(74, 110, 163, 0.08);
+}
+.actionsGrid .actionCard:nth-child(2):hover::before {
+  background: linear-gradient(to right, rgba(74, 110, 163, 0.44), rgba(74, 110, 163, 0.10));
+}
+.actionsGrid .actionCard:nth-child(2):hover .actionIcon {
+  background: rgba(74, 110, 163, 0.15);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 3px 10px rgba(74, 110, 163, 0.20), 0 1px 3px rgba(74, 110, 163, 0.08);
+}
+
+/* Card 3 · Study Spaces — muted sage green */
+.actionsGrid .actionCard:nth-child(3) {
+  background: linear-gradient(150deg, rgba(245, 249, 246, 1) 0%, rgba(237, 245, 240, 1) 100%);
+}
+.actionsGrid .actionCard:nth-child(3)::before {
+  background: linear-gradient(to right, rgba(68, 124, 96, 0.28), rgba(68, 124, 96, 0.06));
+}
+.actionsGrid .actionCard:nth-child(3) .actionIcon {
+  color: #44785E;
+  background: rgba(68, 124, 96, 0.09);
+  border-color: rgba(68, 124, 96, 0.14);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 2px 6px rgba(68, 124, 96, 0.14), 0 1px 2px rgba(68, 124, 96, 0.07);
+}
+.actionsGrid .actionCard:nth-child(3) .actionCardEyebrow {
+  color: #44785E;
+}
+.actionsGrid .actionCard:nth-child(3) .actionCardDetail {
+  color: #44785E;
+  border-top-color: rgba(68, 124, 96, 0.10);
+}
+.actionsGrid .actionCard:nth-child(3) .actionArrow {
+  color: #44785E;
+}
+.actionsGrid .actionCard:nth-child(3):hover {
+  background: linear-gradient(150deg, rgba(247, 251, 248, 1) 0%, rgba(240, 248, 243, 1) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 2px 6px rgba(31, 42, 68, 0.07),
+    0 12px 32px rgba(31, 42, 68, 0.09),
+    0 2px 4px rgba(68, 124, 96, 0.08);
+}
+.actionsGrid .actionCard:nth-child(3):hover::before {
+  background: linear-gradient(to right, rgba(68, 124, 96, 0.44), rgba(68, 124, 96, 0.10));
+}
+.actionsGrid .actionCard:nth-child(3):hover .actionIcon {
+  background: rgba(68, 124, 96, 0.15);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 3px 10px rgba(68, 124, 96, 0.20), 0 1px 3px rgba(68, 124, 96, 0.08);
+}
+
+/* Card 4 · Plan Your Visit — warm antique gold */
+.actionsGrid .actionCard:nth-child(4) {
+  background: linear-gradient(150deg, rgba(255, 252, 243, 1) 0%, rgba(250, 243, 226, 1) 100%);
+}
+.actionsGrid .actionCard:nth-child(4)::before {
+  background: linear-gradient(to right, rgba(152, 118, 52, 0.30), rgba(152, 118, 52, 0.06));
+}
+.actionsGrid .actionCard:nth-child(4) .actionIcon {
+  color: #987432;
+  background: rgba(152, 118, 52, 0.09);
+  border-color: rgba(152, 118, 52, 0.14);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 2px 6px rgba(152, 118, 52, 0.14), 0 1px 2px rgba(152, 118, 52, 0.07);
+}
+.actionsGrid .actionCard:nth-child(4) .actionCardEyebrow {
+  color: #987432;
+}
+.actionsGrid .actionCard:nth-child(4) .actionCardDetail {
+  color: #987432;
+  border-top-color: rgba(152, 118, 52, 0.10);
+}
+.actionsGrid .actionCard:nth-child(4) .actionArrow {
+  color: #987432;
+}
+.actionsGrid .actionCard:nth-child(4):hover {
+  background: linear-gradient(150deg, rgba(255, 253, 245, 1) 0%, rgba(252, 246, 231, 1) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 2px 6px rgba(31, 42, 68, 0.07),
+    0 12px 32px rgba(31, 42, 68, 0.09),
+    0 2px 4px rgba(152, 118, 52, 0.08);
+}
+.actionsGrid .actionCard:nth-child(4):hover::before {
+  background: linear-gradient(to right, rgba(152, 118, 52, 0.46), rgba(152, 118, 52, 0.10));
+}
+.actionsGrid .actionCard:nth-child(4):hover .actionIcon {
+  background: rgba(152, 118, 52, 0.15);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 3px 10px rgba(152, 118, 52, 0.20), 0 1px 3px rgba(152, 118, 52, 0.08);
+}
+
+/* ── Responsive ── */
+@media (max-width: 960px) {
+  .featured {
+    padding-top: 1.75rem;
+    padding-bottom: 2.25rem;
+  }
+
+  .featuredHeader {
+    margin-bottom: 1.25rem;
+  }
+
+  .actionsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.1rem;
+  }
+
+  .actions {
+    padding: 5.5rem 0 4.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .featured {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .featuredHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Spread "View all" and nav buttons to opposite edges of the row */
+  .carouselControls {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Minimum 44px touch target for thumb navigation */
+  .carouselBtn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .carouselBtn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Slightly tighten the metadata area when cards are narrower */
+  .bookMeta {
+    gap: 0.15rem;
+  }
+
+  .bookDescription {
+    font-size: 0.68rem;
+    line-height: 1.52;
+    margin-top: 0.45rem;
+    padding-top: 0.45rem;
+  }
+
+  .bookBadge {
+    font-size: 0.46rem;
+    padding: 0.18rem 0.4rem 0.16rem;
+  }
+
+  .bookCard:hover {
+    transform: none;
+  }
+
+  .hero {
+    height: 520px;
+  }
+
+  .heroCard {
+    left: 50%;
+    top: auto;
+    bottom: 2rem;
+    transform: translateX(-50%);
+    width: calc(100% - 2rem);
+    padding: 1.5rem 1.75rem;
+  }
+
+  .actionsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .actions {
+    padding: 4rem 0 3.5rem;
+  }
+
+  .actionsHeader {
+    margin-bottom: 2rem;
+  }
+
+  .actionCard {
+    padding: 1.6rem 1.6rem 1.5rem;
+  }
+
+  .actionCard:hover {
+    transform: none;
+  }
+
+  .actionCard:active {
+    transform: translateY(-1px);
+  }
 }
