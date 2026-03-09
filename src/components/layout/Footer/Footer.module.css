@@ -1,7 +1,7 @@
 .footer {
-  background-color: #1A2438;
+  background-color: #0C1F16;
   margin-top: 5rem;
-  border-top: 2px solid #B75A4A;
+  border-top: 2px solid #006751;
 }
 
 /* Main grid */
@@ -23,17 +23,32 @@
 }
 
 .logo {
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(246, 241, 231, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   text-decoration: none;
-  transition: color 150ms ease;
+  color: rgba(246, 241, 231, 0.88);
+  transition: opacity 150ms ease;
 }
 
 .logo:hover {
-  color: #F6F1E7;
+  opacity: 0.78;
+}
+
+.logoIcon {
+  width: auto;
+  height: 28px;
+  flex-shrink: 0;
+  color: #00AB8E;
+}
+
+.logoName {
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 231, 0.92);
+  line-height: 1;
 }
 
 .tagline {

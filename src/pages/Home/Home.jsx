@@ -1,6 +1,17 @@
-import heroImg from '@/assets/HistoricalLondon.jpg'
 import styles from './Home.module.css'
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef, useState, useEffect } from 'react'
+
+import slide1 from '@/assets/LAU-Byblos-campus-1024x538.jpg'
+import slide2 from '@/assets/cf397e0b7df3c83133f5a7dd3a851391_105939.png.webp'
+import slide3 from '@/assets/research.jpg'
+import slide4 from '@/assets/services.jpg'
+
+const HERO_SLIDES = [
+  { src: slide1, alt: 'LAU Byblos Campus' },
+  { src: slide2, alt: 'LAU Library space' },
+  { src: slide3, alt: 'LAU research facilities' },
+  { src: slide4, alt: 'LAU library services' },
+]
 
 // cover: Open Library public covers API — falls back to the gradient if the image 404s.
 // Swap any URL for local artwork: import img from '@/assets/...' and reference it here.
@@ -109,6 +120,13 @@ function Home() {
   const trackRef    = useRef(null)
   const animRef     = useRef(null) // Web Animations API Animation object
 
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => setCurrentSlide(c => (c + 1) % HERO_SLIDES.length), 7000)
+    return () => clearInterval(id)
+  }, [])
+
   useLayoutEffect(() => {
     const viewport = viewportRef.current
     const track    = trackRef.current
@@ -151,23 +169,109 @@ function Home() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <img src={heroImg} alt="Historical London" className={styles.heroImage} />
+        {HERO_SLIDES.map((slide, i) => (
+          <img
+            key={slide.src}
+            src={slide.src}
+            alt={slide.alt}
+            className={`${styles.heroImage} ${i === currentSlide ? styles.heroImageActive : ''}`}
+          />
+        ))}
+
+        {/* Upcoming event chip — right side */}
+        <div className={styles.heroEvent}>
+          <div className={styles.heroEventHeader}>
+            <svg className={styles.heroEventIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <span className={styles.heroEventLabel}>Upcoming Event</span>
+          </div>
+          <p className={styles.heroEventTitle}>Research Skills Workshop</p>
+          <p className={styles.heroEventMeta}>Wed, Mar 12 &nbsp;·&nbsp; 2:00 – 4:00 PM</p>
+          <p className={styles.heroEventLocation}>Riyad Nassar Library, Beirut</p>
+        </div>
 
         {/* Floating card overlay */}
         <div className={styles.heroCard}>
-          <p className={styles.heroCardEyebrow}> Welcome </p>
+          <p className={styles.heroCardEyebrow}>Riyad Nassar Library</p>
           <h1 className={styles.heroCardTitle}>
            Your Next Discovery Starts Here!
           </h1>
           <p className={styles.heroCardBody}>
            Spend time with a great book, join events, and share ideas with your community.
           </p>
+
+          <div className={styles.heroSearch}>
+            <svg className={styles.heroSearchIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M16.5 16.5 L21 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+            </svg>
+            <input
+              className={styles.heroSearchInput}
+              type="search"
+              placeholder="Search books, authors, or subjects…"
+              aria-label="Search the library catalog"
+            />
+          </div>
+
           <div className={styles.heroCardActions}>
             <button className={styles.btnPrimary}>Get Started</button>
             <button className={styles.btnGhost}>Learn More</button>
           </div>
         </div>
       </section>
+
+      {/* ── Community stats — real LAU figures from Academic Catalog 2025–26 ── */}
+      <div className={styles.stats}>
+        <div className={styles.statBlock}>
+          {/* Book icon */}
+          <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M4 19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M4 19a2 2 0 0 1 2-2h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M9 8h6M9 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          <span className={styles.statValue}>1.1M+</span>
+          <span className={styles.statLabel}>Library Resources</span>
+        </div>
+        <span className={styles.statDivider} />
+        <div className={styles.statBlock}>
+          {/* Database/stack icon */}
+          <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M4 6v4c0 1.657 3.582 3 8 3s8-1.343 8-3V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M4 10v4c0 1.657 3.582 3 8 3s8-1.343 8-3v-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          <span className={styles.statValue}>185</span>
+          <span className={styles.statLabel}>Online Databases</span>
+        </div>
+        <span className={styles.statDivider} />
+        <div className={styles.statBlock}>
+          {/* Users icon */}
+          <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 20c0-2.21-2.239-4-5-4s-5 1.79-5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M23 20c0-1.863-1.571-3.45-3.75-3.875" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M18 6.25A3 3 0 0 1 18 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          <span className={styles.statValue}>8,000+</span>
+          <span className={styles.statLabel}>Students Served</span>
+        </div>
+        <span className={styles.statDivider} />
+        <div className={styles.statBlock}>
+          {/* Desk/chair icon */}
+          <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 14h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M5 14V9a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M6 14v3M18 14v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M9 8V6M15 8V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          <span className={styles.statValue}>517+</span>
+          <span className={styles.statLabel}>Reading Seats</span>
+        </div>
+      </div>
 
       {/* ── Quick actions ── */}
       <section className={styles.actions}>
