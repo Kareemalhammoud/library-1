@@ -1,16 +1,14 @@
 import styles from './Home.module.css'
 import { useLayoutEffect, useRef, useState, useEffect } from 'react'
 
-import slide1 from '@/assets/LAU-Byblos-campus-1024x538.jpg'
-import slide2 from '@/assets/cf397e0b7df3c83133f5a7dd3a851391_105939.png.webp'
-import slide3 from '@/assets/research.jpg'
-import slide4 from '@/assets/services.jpg'
+import slideCampusGarden from '@/assets/0.jpg'
+import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
+import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
 
 const HERO_SLIDES = [
-  { src: slide1, alt: 'LAU Byblos Campus' },
-  { src: slide2, alt: 'LAU Library space' },
-  { src: slide3, alt: 'LAU research facilities' },
-  { src: slide4, alt: 'LAU library services' },
+  { src: slideCampusGarden, alt: 'LAU Beirut campus historic stone buildings and gardens' },
+  { src: slideCampusBench, alt: 'Students under the old banyan tree on LAU Beirut campus' },
+  { src: slideCampusFountain, alt: 'LAU Beirut campus fountain and palm trees' },
 ]
 
 // cover: Open Library public covers API — falls back to the gradient if the image 404s.
