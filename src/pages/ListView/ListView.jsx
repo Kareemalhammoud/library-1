@@ -73,6 +73,13 @@ export default function ListView() {
           >
             <span className={styles.countNum}>{filtered.length}</span> books
           </p>
+          <button
+  className={styles.addBtn}
+  onClick={() => navigate('/books/add')}
+  aria-label="Add a new book"
+>
+  + Add Book
+</button>
         </div>
       </header>
 

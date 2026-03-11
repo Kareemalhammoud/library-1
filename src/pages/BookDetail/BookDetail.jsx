@@ -86,6 +86,13 @@ const handleProgress = (val) => {
     >
       Share
     </button>
+    <button
+  className={styles.editBtn}
+  aria-label={`Edit ${book.title}`}
+  onClick={() => navigate(`/books/${book.id}/edit`)}
+>
+  Edit Book
+</button>
   </div>
 </aside>
 
