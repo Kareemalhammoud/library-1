@@ -30,6 +30,7 @@ const relatedTitle = sameGenre.length >= 2 ? `More in ${book.genre}` : 'You migh
 const storageKey = `reading-progress-${book.id}`
 const [progress, setProgress] = useState(0)
 
+
 useEffect(() => {
   setProgress(Number(localStorage.getItem(storageKey) ?? 0))
 }, [storageKey])
