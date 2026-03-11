@@ -1,4 +1,5 @@
 import styles from './Home.module.css'
+
 import { useLayoutEffect, useRef, useState, useEffect } from 'react'
 import { BOOKS } from '@/data/bookData'
 import slideCampusGarden from '@/assets/0.jpg'
@@ -136,7 +137,9 @@ function Home() {
           </form>
 
           <div className={styles.heroCardActions}>
-            <button type="button" className={styles.btnPrimary}>Get Started</button>
+            <button type="button" className={styles.btnPrimary} onClick={() => navigate('/books')}> Get Started
+</button>
+
             <button type="button" className={styles.btnGhost}>Learn More</button>
           </div>
         </div>
@@ -200,7 +203,7 @@ function Home() {
         </div>
         <div className={styles.actionsGrid}>
 
-          <a href="#" className={styles.actionCard}>
+          <a href="/books" className={styles.actionCard}>
             <svg className={styles.actionIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <path d="M4 19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -273,7 +276,7 @@ function Home() {
             <p className={styles.featuredSubtitle}>Discover a selection of titles to inspire your next visit.</p>
           </div>
           <div className={styles.carouselControls}>
-            <a className={styles.featuredViewAll} href="#">View all collections</a>
+            <a className={styles.featuredViewAll} href="/books">View All</a>
           </div>
         </div>
 
