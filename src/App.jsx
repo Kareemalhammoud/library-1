@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Header, Footer } from '@components/layout'
 import { Home } from '@pages'
 import BookDetail from '@/pages/BookDetail/BookDetail'
+import ListView from '@/pages/ListView/ListView'
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/books" element={<ListView />} />
           <Route path="/books/:id" element={<BookDetail />} />
         </Routes>
       </main>

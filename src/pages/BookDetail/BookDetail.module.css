@@ -116,7 +116,7 @@
 .availability {
   margin-top: 1rem;
   padding: 1rem;
-  background: #fff;
+  background: #2d7a4f;
   border-radius: 8px;
   border: 1px solid #e5e2dc;
 }
@@ -153,7 +153,7 @@
   padding: 0.85rem;
   border-radius: 8px;
   border: none;
-  background: #1a1a1a;
+  background: #1a4a3a;
   color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
@@ -162,7 +162,7 @@
 }
 
 .borrowBtn:hover:not(:disabled) {
-  background: #333;
+  background: #2d7a4f;
 }
 
 .borrowBtn:disabled {
@@ -291,7 +291,7 @@
 .progressBarFill {
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, #555 0%, #1a1a1a 100%);
+  background: linear-gradient(90deg, #2d7a4f 0%, #1a4a3a 100%);
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
@@ -318,6 +318,7 @@
   height: 4px;
   background: transparent;
   outline: none;
+  accent-color: #1a4a3a;
 }
 
 .progressSlider::-webkit-slider-thumb {
@@ -326,7 +327,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #1a1a1a;
+  background: #1a4a3a;
   cursor: pointer;
   border: 3px solid #fff;
   box-shadow: 0 0 0 1px #ccc, 0 2px 6px rgba(0,0,0,0.2);
@@ -342,7 +343,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #1a1a1a;
+  background: #1a4a3a;
   cursor: pointer;
   border: 3px solid #fff;
   box-shadow: 0 0 0 1px #ccc, 0 2px 6px rgba(0,0,0,0.2);

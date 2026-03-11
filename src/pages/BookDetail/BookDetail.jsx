@@ -2,16 +2,16 @@ import styles from './BookDetail.module.css'
 import { useParams, useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import { useState, useEffect } from 'react'
+import { getCampus, getCopies } from '@/utils/bookUtils'
 
 export default function BookDetail() {
   const { id } = useParams()
 const navigate = useNavigate()
 const book = BOOKS.find(b => b.id === parseInt(id))
 
-const totalCopies = 3 + (book?.id % 4)
-const borrowedCopies = book?.id % 3
-const availableCopies = totalCopies - borrowedCopies
+const { total: totalCopies, available: availableCopies } = getCopies(book?.id ?? 0)
 const isAvailable = availableCopies > 0
+const bookCampus = getCampus(book?.id ?? 0)
 
 if (!book) {
   return (
