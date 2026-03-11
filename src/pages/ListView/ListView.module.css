@@ -386,3 +386,20 @@ search.filterBar {
 .emptyBtn:hover {
   background: #2d7a4f;
 }
+
+.addBtn {
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  background: #1a4a3a;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.addBtn:hover {
+  background: #2d7a4f;
+}

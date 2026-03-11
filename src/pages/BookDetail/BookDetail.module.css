@@ -116,7 +116,7 @@
 .availability {
   margin-top: 1rem;
   padding: 1rem;
-  background: #2d7a4f;
+  background: #e5e2dc;
   border-radius: 8px;
   border: 1px solid #e5e2dc;
 }
@@ -354,4 +354,21 @@
   color: #bbb;
   margin: 0;
   font-style: italic;
+}
+.editBtn {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 8px;
+  border: 1.5px solid #1a4a3a;
+  background: transparent;
+  color: #1a4a3a;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editBtn:hover {
+  background: #1a4a3a;
+  color: #fff;
 }
