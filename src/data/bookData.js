@@ -302,7 +302,7 @@ export const BOOKS = [
     language: 'EN', year: 1996, rating: 4.4, pages: 214,
     publisher: 'Warner Books', isbn: '978-0-446-52318-2',
     description: 'In the summer of 1946, a young man named Noah Calhoun falls in love with Allie Nelson in the small town of New Bern, North Carolina. She is seventeen, wealthy, and due to leave at the end of summer. He is a poor local boy with a talent for restoring old houses and a directness of feeling that Allie has never encountered before. Their summer together is interrupted by her parents, by class, and by the world\'s refusal to make room for love that crosses the lines it has drawn.\n\nNicholas Sparks frames the story as a reading — an old man in a nursing home reads from a notebook to a woman with dementia. The identity of the reader and the woman he reads to is the novel\'s central tender revelation, saved for its final pages. It is a structural choice that transforms what might otherwise be a conventional romance into a meditation on memory, loyalty, and what it means to love someone through every version of themselves.\n\nSparks is sometimes dismissed as a producer of reliable tearjerkers, but The Notebook — his debut — has a sincerity and an emotional precision that transcends the genre\'s limitations. It is a novel about the particular quality of a first love that is also, somehow, the love of a lifetime, and about the cost and the beauty of keeping faith with a person across the whole arc of a long life.',
-    cover: 'https://covers.openlibrary.org/b/isbn/9780446523182-L.jpg',
+    cover: 'https://covers.openlibrary.org/b/isbn/9780446605236-L.jpg',
   },
   {
     id: 36, color: 'burgundy', genreColor: '#8B3A52',
@@ -336,7 +336,7 @@ export const BOOKS = [
     language: 'EN', year: 1999, rating: 4.5, pages: 213,
     publisher: 'Pocket Books', isbn: '978-1-4516-2133-1',
     description: 'Charlie is fifteen, starting high school, and writing letters to someone he doesn\'t know — "someone who won\'t try to sleep with people they say they love" — about everything: his first year of high school, his English teacher who gives him extra books to read, Sam and Patrick, the older students who adopt him and introduce him to Rocky Horror and mix tapes and what it feels like to belong somewhere. And, gradually, a darkness in his past that he is not yet fully able to see.\n\nChbosky wrote the novel in the late 1990s drawing on his own adolescence, and it carries the rawness of genuine recollection. Charlie\'s voice — earnest, observant, alternately funny and devastating — is one of the most convincing teenage narrative voices in contemporary fiction. He notices everything. He feels everything. He does not yet have the language for some of what he feels, and those gaps are as important as the words.\n\nThe novel\'s great subject is what it costs to be someone who feels too much in a world that rewards those who feel the right amount. It is also a book about friendship as rescue — about the way that being truly seen by even two or three people can make survival possible. And it is, finally, a book about trauma and the way it shapes experience before it is consciously understood. It is never preachy about any of this. It is simply honest.',
-    cover: 'https://covers.openlibrary.org/b/isbn/9781451621331-L.jpg',
+    cover: 'https://books.google.com/books/content?id=xFNG764pnOgC&printsec=frontcover&img=1&zoom=1',
   },
 
   // ── History ──
