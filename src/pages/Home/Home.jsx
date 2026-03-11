@@ -4,6 +4,7 @@ import { BOOKS } from '@/data/bookData'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
+import { useNavigate } from 'react-router-dom'
 
 const HERO_SLIDES = [
   { src: slideCampusGarden, alt: 'LAU Beirut campus historic stone buildings and gardens' },
@@ -36,7 +37,7 @@ function Home() {
   const viewportRef = useRef(null)
   const trackRef    = useRef(null)
   const animRef     = useRef(null) // Web Animations API Animation object
-
+  const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
 
   useEffect(() => {
@@ -280,9 +281,12 @@ function Home() {
           <div className={styles.booksTrack} ref={trackRef}>
             {TRACK.map((book, i) => (
               <article
-                key={`${book.id}-${i}`}
-                className={styles.bookCard}
-              >
+                  key={`${book.id}-${i}`}
+                  className={styles.bookCard}
+                  onClick={() => navigate(`/books/${book.id}`)}
+                  style={{ cursor: 'pointer' }}
+                  aria-label={`View details for ${book.title} by ${book.author}`}
+                >
                 <div className={styles.bookCover} data-color={book.color}>
                   {book.cover && (
                     <img
