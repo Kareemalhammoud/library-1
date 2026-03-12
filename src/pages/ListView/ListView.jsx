@@ -1,8 +1,9 @@
 import styles from './ListView.module.css'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS, GENRES } from '@/data/bookData'
+import { GENRES } from '@/data/bookData'
 import { getCampus, getAvailability } from '@/utils/bookUtils'
+import { useBooks } from '@/context/BooksContext'
 
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS   = ['All Languages', 'English', 'French']
@@ -10,6 +11,7 @@ const AVAIL_OPTIONS  = ['All', 'Available', 'Unavailable']
 
 export default function ListView() {
   const navigate = useNavigate()
+  const { books } = useBooks()
 
   const [search,   setSearch]   = useState('')
   const [genre,    setGenre]    = useState('All')
@@ -40,7 +42,7 @@ export default function ListView() {
   }
 
   const filtered = useMemo(() => {
-    return BOOKS.filter(book => {
+    return books.filter(book => {
       const bookCampus = getCampus(book.id)
       const bookAvail  = getAvailability(book.id)
       const bookLang   = book.language === 'FR' ? 'French' : 'English'
@@ -54,7 +56,7 @@ export default function ListView() {
       if (avail    === 'Unavailable'   && bookAvail)                                      return false
       return true
     })
-  }, [search, genre, language, campus, avail])
+  }, [books, search, genre, language, campus, avail])
 
   return (
     <div className={styles.page}>
@@ -66,20 +68,22 @@ export default function ListView() {
             <p className={styles.eyebrow}>Riyad Nassar Library</p>
             <h1 className={styles.heading}>Browse the Collection</h1>
           </div>
-          <p
-            className={styles.count}
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <span className={styles.countNum}>{filtered.length}</span> books
-          </p>
-          <button
-  className={styles.addBtn}
-  onClick={() => navigate('/books/add')}
-  aria-label="Add a new book"
->
-  + Add Book
-</button>
+          <div className={styles.headerRight}>
+            <p
+              className={styles.count}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <span className={styles.countNum}>{filtered.length}</span> books
+            </p>
+            <button
+              className={styles.addBtn}
+              onClick={() => navigate('/books/add')}
+              aria-label="Add a new book"
+            >
+              + Add Book
+            </button>
+          </div>
         </div>
       </header>
 

@@ -403,3 +403,9 @@ search.filterBar {
 .addBtn:hover {
   background: #2d7a4f;
 }
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
