@@ -5,6 +5,7 @@ import { Home } from '@pages'
 import BookDetail from '@/pages/BookDetail/BookDetail'
 import ListView from '@/pages/ListView/ListView'
 import Catalog from '@/pages/Catalog/Catalog'
+import AddEditBook from '@/pages/AddEditBook/AddEditBook'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -29,6 +30,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/books" element={<ListView />} />
+          <Route path="/books/add" element={<AddEditBook />} />
           <Route path="/books/:id" element={<BookDetail />} />
         </Routes>
       </main>
