@@ -1,4 +1,5 @@
-import { useState } from "react";
+import {useState} from "react";
+import {Link} from "react-router-dom";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -42,6 +43,10 @@ function Login() {
 
         <button type="submit">Login</button>
         </form>
+      
+        <p>
+            Don&apos;t have an account? <Link to="/register">Register</Link>
+        </p>
     </div>
   );
 }
