@@ -5,6 +5,8 @@ import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
 
+import {Link} from "react-router-dom"
+
 const HERO_SLIDES = [
   { src: slideCampusGarden, alt: 'LAU Beirut campus historic stone buildings and gardens' },
   { src: slideCampusBench, alt: 'Students under the old banyan tree on LAU Beirut campus' },
@@ -215,7 +217,9 @@ function Home() {
           </div>
 
           <div className={styles.heroCardActions}>
-            <button className={styles.btnPrimary}>Get Started</button>
+            <Link to="/register">
+              <button className={styles.btnPrimary}>Get Started</button>
+            </Link>
             <button className={styles.btnGhost}>Learn More</button>
           </div>
         </div>
