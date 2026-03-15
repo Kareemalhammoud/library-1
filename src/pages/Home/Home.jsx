@@ -1,6 +1,7 @@
 import styles from './Home.module.css'
 
 import { useLayoutEffect, useRef, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
@@ -136,7 +137,13 @@ function Home() {
           </form>
 
           <div className={styles.heroCardActions}>
-            <button className={styles.btnPrimary}>Get Started</button>
+            <button
+              type="button"
+              className={styles.btnPrimary}
+              onClick={() => navigate('/register')}
+            >
+              Get Started
+            </button>
             <button className={styles.btnGhost}>Learn More</button>
           </div>
         </div>
@@ -211,7 +218,7 @@ function Home() {
             <div className={styles.actionCardHeader}>
               <h3 className={styles.actionCardTitle}>Find Your Next Book</h3>
               <span className={styles.actionArrow}>→</span>
-            </div>
+            </div>  
             <p className={styles.actionCardBody}>Search thousands of titles and discover something new to read.</p>
             <p className={styles.actionCardDetail}>500,000+ items available</p>
           </a>
@@ -223,13 +230,13 @@ function Home() {
               <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <path d="M7 14h2M11 14h2M15 14h2M7 17.5h2M11 17.5h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
-            <p className={styles.actionCardEyebrow}>What's On</p>
+            <p className={styles.actionCardEyebrow}>What&apos;s On</p>
             <div className={styles.actionCardHeader}>
               <h3 className={styles.actionCardTitle}>Join an Event</h3>
               <span className={styles.actionArrow}>→</span>
             </div>
             <p className={styles.actionCardBody}>Attend talks, workshops, and activities happening at the library.</p>
-            <p className={styles.actionCardDetail}>View this week's schedule</p>
+            <p className={styles.actionCardDetail}>View this week&apos;s schedule</p>
           </a>
 
           <a href="#" className={styles.actionCard}>
