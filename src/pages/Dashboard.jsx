@@ -112,7 +112,7 @@ function Dashboard() {
 							</>
 						) : (
 							<>
-								<span>{user.username}</span>
+								<span className={styles.value}>{user.username}</span>
 
 								<span
 									className={styles.changeLink}
@@ -125,11 +125,24 @@ function Dashboard() {
 
 					</div>
 
-					<p><strong>Email:</strong> {user.email}</p>
-					<p><strong>Date Joined:</strong> {new Date().toLocaleDateString()}</p>
-					<p><strong>Account Status:</strong> Active</p>
+					<p>
+						<strong>Email:</strong>
+						<span className={styles.value}> {user.email}</span>
+					</p>
+
+					<p>
+						<strong>Date Joined:</strong>
+						<span className={styles.value}> {new Date().toLocaleDateString()}</span>
+					</p>
+
+					<p>
+						<strong>Account Status:</strong>
+						<span className={styles.value}> Active</span>
+					</p>
 
 				</div>
+
+				{/* Profile Picture */}
 
 				<div className={styles.profilePicture}>
 
@@ -148,7 +161,6 @@ function Dashboard() {
 						Edit Profile Picture
 					</button>
 
-
 					<input
 						type="file"
 						accept="image/*"
@@ -161,7 +173,7 @@ function Dashboard() {
 
 			</div>
 
-			{/* Books Section */}
+			{/* Library Section */}
 
 			<div className={styles.bookSection}>
 
@@ -177,12 +189,12 @@ function Dashboard() {
 				<h3>Reserved Books</h3>
 
 				<ul>
-					<li>No reserved books</li>
+					<li className={styles.value}>No reserved books</li>
 				</ul>
 
 				<h3>Overdue Books & Fines</h3>
 
-				<p>No overdue books</p>
+				<p className={styles.value}>No overdue books</p>
 
 			</div>
 
