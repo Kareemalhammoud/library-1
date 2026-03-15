@@ -1,9 +1,9 @@
-import {useState} from "react"
-import {Link, useNavigate} from "react-router-dom"
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 
 function Register() {
 
-    const navigate = useNavigate()
+	const navigate = useNavigate()
 
 	const [username, setUsername] = useState("")
 	const [email, setEmail] = useState("")
@@ -11,15 +11,32 @@ function Register() {
 	const [confirmPassword, setConfirmPassword] = useState("")
 
 	const handleSubmit = (e) => {
-		e.preventDefault()
 
+		e.preventDefault()
 		if (!username || !email || !password || !confirmPassword) {
 			alert("Please fill in all fields")
 			return
 		}
 
+		const passwordRegex =
+		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[.@$!%*?&]).{8,}$/
+
+		if (!passwordRegex.test(password)) {
+			alert(
+				"Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+			)
+			return
+		}
+
 		if (password !== confirmPassword) {
 			alert("Passwords do not match")
+			return
+		}
+
+		const existingUser = JSON.parse(localStorage.getItem("user"))
+
+		if (existingUser && existingUser.email === email) {
+			alert("An account with this email already exists")
 			return
 		}
 
@@ -29,11 +46,12 @@ function Register() {
 
 		alert("Account created successfully")
 
-		navigate("/login")
+		navigate("/dashboard")
 	}
 
 	return (
 		<div style={{ maxWidth: "400px", margin: "50px auto" }}>
+
 			<h1>Register</h1>
 
 			<form onSubmit={handleSubmit}>
