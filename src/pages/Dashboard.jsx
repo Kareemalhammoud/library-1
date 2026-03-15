@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
+import styles from "../styles/dashboard.module.css"
 import defaultPic from "../assets/default-profile.png"
 
 function Dashboard() {
@@ -40,7 +41,7 @@ function Dashboard() {
 		localStorage.setItem("user", JSON.stringify(updatedUser))
 		setUser(updatedUser)
 
-		alert("Username updated")
+		setEditingUsername(false)
 
 	}
 
@@ -77,66 +78,48 @@ function Dashboard() {
 
 	return (
 
-		<div style={{ maxWidth: "900px", margin: "40px auto" }}>
+		<div className={styles.container}>
 
-			<h1>User Account</h1>
+			<h1 className={styles.header}>User Account</h1>
 
-			<hr />
+			{/* Profile Section */}
 
-			<div style={{
-				display: "flex",
-				justifyContent: "space-between",
-				alignItems: "center"
-			}}>
+			<div className={styles.profileSection}>
 
-				{/* Profile Information */}
-
-				<div>
+				<div className={styles.profileInfo}>
 
 					<h2>Profile Information</h2>
 
-					{/* Username Section */}
-
-					<div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+					<div className={styles.usernameRow}>
 
 						<strong>Username:</strong>
 
 						{editingUsername ? (
 							<>
-
 								<input
+									className={styles.input}
 									type="text"
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
 								/>
 
 								<button
-									onClick={() => {
-										handleUsernameUpdate()
-										setEditingUsername(false)
-									}}
+									className={styles.button}
+									onClick={handleUsernameUpdate}
 								>
 									Save
 								</button>
-
 							</>
 						) : (
 							<>
-
 								<span>{user.username}</span>
 
 								<span
+									className={styles.changeLink}
 									onClick={() => setEditingUsername(true)}
-									style={{
-										color: "#2e7d32",
-										textDecoration: "underline",
-										cursor: "pointer",
-										fontSize: "14px"
-									}}
 								>
 									Change Username
 								</span>
-
 							</>
 						)}
 
@@ -148,27 +131,23 @@ function Dashboard() {
 
 				</div>
 
-				{/* Profile Picture */}
-
-				<div style={{ textAlign: "center" }}>
+				<div className={styles.profilePicture}>
 
 					<img
 						src={profilePic}
 						alt="Profile"
 						width="140"
 						height="140"
-						style={{
-							borderRadius: "50%",
-							objectFit: "cover",
-							border: "2px solid #ccc"
-						}}
+						className={styles.profilePic}
 					/>
 
-					<br /><br />
-
-					<button onClick={openFilePicker}>
+					<button
+						className={styles.smallButton}
+						onClick={openFilePicker}
+					>
 						Edit Profile Picture
 					</button>
+
 
 					<input
 						type="file"
@@ -182,31 +161,46 @@ function Dashboard() {
 
 			</div>
 
-			<hr />
+			{/* Books Section */}
 
-			<h2>Books</h2>
+			<div className={styles.bookSection}>
 
-			<h3>Checked Out Books</h3>
-			<ul>
-				<li>Example Book 1</li>
-				<li>Example Book 2</li>
-			</ul>
+				<h2>Library Activity</h2>
 
-			<h3>Reserved Books</h3>
-			<ul>
-				<li>No reserved books</li>
-			</ul>
+				<h3>Checked Out Books</h3>
 
-			<h3>Overdue Books & Fines</h3>
-			<p>No overdue books</p>
+				<ul>
+					<li>Example Book 1</li>
+					<li>Example Book 2</li>
+				</ul>
 
-			<hr />
+				<h3>Reserved Books</h3>
 
-			<div style={{ display: "flex", gap: "10px" }}>
+				<ul>
+					<li>No reserved books</li>
+				</ul>
 
-				<button>Search Books</button>
-				<button>Reserve Book</button>
-				<button>Renew Book</button>
+				<h3>Overdue Books & Fines</h3>
+
+				<p>No overdue books</p>
+
+			</div>
+
+			{/* Actions */}
+
+			<div className={styles.actions}>
+
+				<button className={styles.button}>
+					Search Books
+				</button>
+
+				<button className={styles.button}>
+					Reserve Book
+				</button>
+
+				<button className={styles.button}>
+					Renew Book
+				</button>
 
 			</div>
 
