@@ -57,6 +57,7 @@ function Header() {
             <NavLink to="/visit"    className={({ isActive }) => isActive ? styles.active : ''}>Visit</NavLink>
             <NavLink to="/events"   className={({ isActive }) => isActive ? styles.active : ''}>Events</NavLink>
             <NavLink to="/services" className={({ isActive }) => isActive ? styles.active : ''}>Services</NavLink>
+            <NavLink to="/dashboard" className={({ isActive }) => isActive ? styles.active : ''}>User Profile</NavLink>
           </nav>
         </div>
 
