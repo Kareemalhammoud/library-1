@@ -1,0 +1,68 @@
+.container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 80vh;
+	margin-top: var(--spacing-8);
+	font-family: var(--font-sans);
+}
+
+.card {
+	background: white;
+	padding: var(--spacing-8);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+	width: 350px;
+	border: 1px solid var(--color-border);
+}
+
+.title {
+	text-align: center;
+	margin-bottom: var(--spacing-6);
+	font-size: var(--text-2xl);
+	color: var(--color-text);
+}
+
+.formGroup {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: var(--spacing-4);
+}
+
+.input {
+	padding: var(--spacing-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	font-size: var(--text-base);
+	transition: border var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input:focus {
+	outline: none;
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 2px rgba(0, 103, 81, 0.15);
+}
+
+.button {
+	margin-top: var(--spacing-3);
+	padding: var(--spacing-3);
+	border: none;
+	border-radius: var(--radius-md);
+	background: var(--color-primary);
+	color: white;
+	cursor: pointer;
+	font-weight: bold;
+	font-size: var(--text-base);
+	transition: background var(--transition-fast);
+}
+
+.button:hover {
+	background: var(--color-primary-dark);
+}
+
+.linkText {
+	text-align: center;
+	margin-top: var(--spacing-5);
+	font-size: var(--text-sm);
+	color: var(--color-text-muted);
+}
