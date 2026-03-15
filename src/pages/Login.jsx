@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import styles from "../styles/auth.module.css"
+
 
 function Login() {
 
@@ -32,38 +34,45 @@ function Login() {
 	}
 
 	return (
-		<div style={{ maxWidth: "400px", margin: "50px auto" }}>
-			<h1>Login</h1>
+		<div className={styles.container}>
 
-			<form onSubmit={handleSubmit}>
+			<div className={styles.card}>
 
-				<label>Email</label>
-				<input
-					type="email"
-					placeholder="Enter email"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-				/>
+				<h1 className={styles.title}>Login</h1>
 
-				<br /><br />
+				<form onSubmit={handleSubmit}>
 
-				<label>Password</label>
-				<input
-					type="password"
-					placeholder="Enter password"
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-				/>
+					<div className={styles.formGroup}>
+						<label>Email</label>
+						<input
+							className={styles.input}
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+						/>
+					</div>
 
-				<br /><br />
+					<div className={styles.formGroup}>
+						<label>Password</label>
+						<input
+							className={styles.input}
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+						/>
+					</div>
 
-				<button type="submit">Login</button>
+					<button className={styles.button}>
+						Login
+					</button>
 
-			</form>
+				</form>
 
-			<p>
-				Don&apos;t have an account? <Link to="/register">Register</Link>
-			</p>
+				<p className={styles.linkText}>
+					Don&apos;t have an account? <Link to="/register">Register</Link>
+				</p>
+
+			</div>
 
 		</div>
 	)
