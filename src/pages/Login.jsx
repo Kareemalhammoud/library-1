@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { FaEye, FaEyeSlash } from "react-icons/fa"
 import styles from "../styles/auth.module.css"
-
 
 function Login() {
 
@@ -9,31 +9,35 @@ function Login() {
 
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
+	const [showPassword, setShowPassword] = useState(false)
+	const [errorMessage, setErrorMessage] = useState("")
 
 	const handleSubmit = (e) => {
+
 		e.preventDefault()
 
 		if (!email || !password) {
-			alert("Please fill in all fields")
+			setErrorMessage("Please fill in all fields")
 			return
 		}
 
 		const savedUser = JSON.parse(localStorage.getItem("user"))
 
 		if (!savedUser) {
-			alert("No account found. Please register first.")
+			setErrorMessage("No account found. Please register first.")
 			return
 		}
 
 		if (email === savedUser.email && password === savedUser.password) {
-			alert("Login successful")
+			setErrorMessage("")
 			navigate("/dashboard")
 		} else {
-			alert("Invalid email or password")
+			setErrorMessage("Invalid email or password")
 		}
 	}
 
 	return (
+
 		<div className={styles.container}>
 
 			<div className={styles.card}>
@@ -47,6 +51,7 @@ function Login() {
 						<input
 							className={styles.input}
 							type="email"
+							placeholder="Enter email"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 						/>
@@ -54,13 +59,31 @@ function Login() {
 
 					<div className={styles.formGroup}>
 						<label>Password</label>
-						<input
-							className={styles.input}
-							type="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-						/>
+
+						<div className={styles.passwordWrapper}>
+
+							<input
+								className={styles.input}
+								type={showPassword ? "text" : "password"}
+								placeholder="Enter password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+							/>
+
+							<span
+								className={styles.eyeIcon}
+								onClick={() => setShowPassword(!showPassword)}
+							>
+								{showPassword ? <FaEye /> : <FaEyeSlash />}
+							</span>
+
+						</div>
+
 					</div>
+
+					{errorMessage && (
+						<p className={styles.errorText}>{errorMessage}</p>
+					)}
 
 					<button className={styles.button}>
 						Login
