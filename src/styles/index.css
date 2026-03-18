@@ -27,3 +27,10 @@ body {
   margin: 0 auto;
   width: 100%;
 }
+body.dark {
+  background: #1a1a1a;
+}
+
+body.dark .main-content {
+  background: #1a1a1a;
+}
