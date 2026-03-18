@@ -200,7 +200,12 @@ export default function ListView() {
           <section className={styles.empty} aria-label="No results">
             <p className={styles.emptyTitle}>No books found</p>
             <p className={styles.emptyBody}>Try adjusting your filters or search term.</p>
-            <button className={styles.emptyBtn} onClick={clearAll}>Clear filters</button>
+            <button className={styles.emptyBtn} onClick={clearAll} aria-label="Clear all filters">
+              Clear filters
+            </button>
+            <button className={styles.addBtn} onClick={() => navigate('/books/add')} aria-label="Add a new book">
+              + Add Book
+            </button>
           </section>
         ) : (
           <ul className={styles.grid} aria-label={`${filtered.length} books found`}>
