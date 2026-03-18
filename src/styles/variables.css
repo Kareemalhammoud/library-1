@@ -47,3 +47,8 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
 }
+
+body.dark {
+  --color-bg: #1a1a1a;
+  --color-text: #f0ede8;
+}
