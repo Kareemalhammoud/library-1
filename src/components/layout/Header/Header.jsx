@@ -9,6 +9,10 @@ function isOpenNow() {
   return false
 }
 
+function toggleDark() {
+  document.body.classList.toggle('dark')
+}
+
 function Header() {
   const open = isOpenNow()
 
@@ -53,17 +57,26 @@ function Header() {
         {/* Nav pill */}
         <div className={styles.inner}>
           <nav className={styles.nav}>
-            <NavLink to="/catalog"  className={({ isActive }) => isActive ? styles.active : ''}>Catalog</NavLink>
-            <NavLink to="/visit"    className={({ isActive }) => isActive ? styles.active : ''}>Visit</NavLink>
-            <NavLink to="/events"   className={({ isActive }) => isActive ? styles.active : ''}>Events</NavLink>
-            <NavLink to="/services" className={({ isActive }) => isActive ? styles.active : ''}>Services</NavLink>
+            <NavLink to="/catalog"   className={({ isActive }) => isActive ? styles.active : ''}>Catalog</NavLink>
+            <NavLink to="/visit"     className={({ isActive }) => isActive ? styles.active : ''}>Visit</NavLink>
+            <NavLink to="/events"    className={({ isActive }) => isActive ? styles.active : ''}>Events</NavLink>
+            <NavLink to="/services"  className={({ isActive }) => isActive ? styles.active : ''}>Services</NavLink>
             <NavLink to="/dashboard" className={({ isActive }) => isActive ? styles.active : ''}>User Profile</NavLink>
           </nav>
         </div>
+
+        {/* Dark mode toggle */}
+        <button
+          className={styles.themeToggle}
+          onClick={toggleDark}
+          aria-label="Toggle dark mode"
+        >
+          🌙
+        </button>
 
       </div>
     </header>
   )
 }
 
-export default Header
+export default Header 

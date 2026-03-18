@@ -1,3 +1,16 @@
+.themeToggle {
+  background: none;
+  border: 1px solid #e0ddd8;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.15s;
+}
+
+.themeToggle:hover {
+  background: #f0ede8;
+}
 .header {
   background: transparent;
   position: relative;

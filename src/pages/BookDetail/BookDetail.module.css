@@ -372,3 +372,52 @@
   background: #1a4a3a;
   color: #fff;
 }
+
+/*Dark mode*/
+/* Page & topbar */
+:global(.dark) .page          { background: #1a1a1a; }
+:global(.dark) .topbar        { background: #1a1a1a; border-bottom-color: #2e2e2e; }
+:global(.dark) .breadcrumb    { color: #555; }
+
+/* Back button */
+:global(.dark) .backBtn       { border-color: #3a3a3a; color: #aaa; }
+:global(.dark) .backBtn:hover { background: #2a2a2a; }
+
+/* Info section */
+:global(.dark) .genre         { color: #666; }
+:global(.dark) .title         { color: #f0ede8; }
+:global(.dark) .author        { color: #888; }
+:global(.dark) .description   { color: #999; }
+
+/* Meta table */
+:global(.dark) .meta          { border-top-color: #2e2e2e; }
+:global(.dark) .meta li       { color: #555; }
+:global(.dark) .meta li strong { color: #d0cdc8; }
+
+/* Availability box */
+:global(.dark) .availability  { background: #252525; border-color: #2e2e2e; }
+:global(.dark) .copies        { color: #555; }
+
+/* Buttons */
+:global(.dark) .shareBtn {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #aaa;
+}
+:global(.dark) .shareBtn:hover { background: #333; }
+
+/* Related section */
+:global(.dark) .related          { border-top-color: #2e2e2e; }
+:global(.dark) .relatedTitle     { color: #f0ede8; }
+:global(.dark) .relatedBookTitle { color: #f0ede8; }
+:global(.dark) .relatedAuthor    { color: #666; }
+
+/* Progress tracker */
+:global(.dark) .progressTracker  { background: #222; border-color: #2e2e2e; }
+:global(.dark) .progressLabel    { color: #555; }
+:global(.dark) .progressValue    { color: #f0ede8; }
+:global(.dark) .progressBarTrack { background: #2a2a2a; }
+:global(.dark) .progressHint     { color: #555; }
+:global(.dark) .progressSlider   { accent-color: #2d7a4f; }
+:global(.dark) .progressSlider::-webkit-slider-thumb { border-color: #1a1a1a; }
+:global(.dark) .progressSlider::-moz-range-thumb     { border-color: #1a1a1a; }
