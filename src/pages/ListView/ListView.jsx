@@ -5,11 +5,15 @@ import { GENRES } from '@/data/bookData'
 import { getCampus, getAvailability } from '@/utils/bookUtils'
 import { useBooks } from '@/context/BooksContext'
 
+// ── Filter & sort option constants ────────────────────────────────────────────
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS   = ['All Languages', 'English', 'French']
 const AVAIL_OPTIONS  = ['All', 'Available', 'Unavailable']
-const PAGE_SIZE      = 12
 
+// Number of book cards to display per page
+const PAGE_SIZE = 12
+
+// Sort options shown in the "Sort by" dropdown
 const SORT_OPTIONS = [
   { value: 'default',    label: 'Default'      },
   { value: 'title-asc',  label: 'Title: A → Z' },
@@ -21,25 +25,37 @@ const SORT_OPTIONS = [
 
 export default function ListView() {
   const navigate = useNavigate()
+
+  // Pull the books array from the shared BooksContext (includes any added books)
   const { books } = useBooks()
 
+  // ── Filter & sort state ───────────────────────────────────────────────────────
   const [search,   setSearch]   = useState('')
   const [genre,    setGenre]    = useState('All')
   const [language, setLanguage] = useState('All Languages')
   const [campus,   setCampus]   = useState('All Campuses')
   const [avail,    setAvail]    = useState('All')
   const [sort,     setSort]     = useState('default')
-  const [page,     setPage]     = useState(1)
+
+  // ── Pagination state ──────────────────────────────────────────────────────────
+  const [page,    setPage]    = useState(1)
+
+  // ── Skeleton loading state ────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false)
 
-  // Reset to page 1 whenever any filter or sort changes
+  // Reset to page 1 whenever any filter or sort value changes
   useEffect(() => { setPage(1) }, [search, genre, language, campus, avail, sort])
-  useEffect(() => {
-  setLoading(true)
-  const timer = setTimeout(() => setLoading(false), 400)
-  return () => clearTimeout(timer)
-}, [search, genre, language, campus, avail, sort, page])
 
+  // Show skeleton loading screen for 400ms on every filter, sort, or page change
+  // Returns a cleanup function to cancel the timer if state changes again quickly
+  useEffect(() => {
+    setLoading(true)
+    const timer = setTimeout(() => setLoading(false), 400)
+    return () => clearTimeout(timer)
+  }, [search, genre, language, campus, avail, sort, page])
+
+  // ── Active filter chips ───────────────────────────────────────────────────────
+  // Builds an array of active filters to display as removable chips below the bar
   const activeFilters = [
     genre    !== 'All'           && { key: 'genre',    label: genre },
     language !== 'All Languages' && { key: 'language', label: language },
@@ -47,6 +63,7 @@ export default function ListView() {
     avail    !== 'All'           && { key: 'avail',    label: avail },
   ].filter(Boolean)
 
+  /** Removes a single filter chip by resetting its corresponding state */
   function removeFilter(key) {
     if (key === 'genre')    setGenre('All')
     if (key === 'language') setLanguage('All Languages')
@@ -54,6 +71,7 @@ export default function ListView() {
     if (key === 'avail')    setAvail('All')
   }
 
+  /** Resets all filters, search, sort, and pagination to their default values */
   function clearAll() {
     setGenre('All')
     setLanguage('All Languages')
@@ -64,7 +82,10 @@ export default function ListView() {
     setPage(1)
   }
 
-  // 1. Filter then sort — returns the full filtered+sorted array
+  // ── Filter → Sort pipeline ────────────────────────────────────────────────────
+  // useMemo prevents re-running this expensive operation on every render.
+  // Step 1: filter books against all active criteria
+  // Step 2: sort the filtered result on a shallow copy (never mutates original array)
   const filtered = useMemo(() => {
     const result = books.filter(book => {
       const bookCampus = getCampus(book.id)
@@ -81,6 +102,7 @@ export default function ListView() {
       return true
     })
 
+    // Shallow copy so the original books array is never mutated by sort()
     const sorted = [...result]
     switch (sort) {
       case 'title-asc':  sorted.sort((a, b) => a.title.localeCompare(b.title)); break
@@ -93,7 +115,8 @@ export default function ListView() {
     return sorted
   }, [books, search, genre, language, campus, avail, sort])
 
-  // 2. Pagination — slice the filtered array for the current page
+  // ── Pagination slice ──────────────────────────────────────────────────────────
+  // Calculate total pages and slice the filtered array to show only the current page
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
@@ -108,6 +131,7 @@ export default function ListView() {
             <h1 className={styles.heading}>Browse the Collection</h1>
           </div>
           <div className={styles.headerRight}>
+            {/* Live region announces count changes to screen readers */}
             <p className={styles.count} aria-live="polite" aria-atomic="true">
               <span className={styles.countNum}>{filtered.length}</span> books
             </p>
@@ -122,11 +146,11 @@ export default function ListView() {
         </div>
       </header>
 
-      {/* ── Filter + sort bar ── */}
+      {/* ── Filter + sort bar — sticky so it stays visible while scrolling ── */}
       <search className={styles.filterBar} aria-label="Filter and sort books">
         <div className={styles.filterBarInner}>
 
-          {/* Search */}
+          {/* Search input — filters by title or author */}
           <div className={styles.searchWrap}>
             <svg className={styles.searchIcon} viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6"/>
@@ -142,7 +166,7 @@ export default function ListView() {
             />
           </div>
 
-          {/* Genre */}
+          {/* Genre filter */}
           <label className={styles.selectLabel}>
             <span className={styles.selectLabelText}>Genre</span>
             <select className={styles.select} value={genre} onChange={e => setGenre(e.target.value)}>
@@ -153,7 +177,7 @@ export default function ListView() {
             </select>
           </label>
 
-          {/* Language */}
+          {/* Language filter */}
           <label className={styles.selectLabel}>
             <span className={styles.selectLabelText}>Language</span>
             <select className={styles.select} value={language} onChange={e => setLanguage(e.target.value)}>
@@ -161,7 +185,7 @@ export default function ListView() {
             </select>
           </label>
 
-          {/* Campus */}
+          {/* Campus filter */}
           <label className={styles.selectLabel}>
             <span className={styles.selectLabelText}>Campus</span>
             <select className={styles.select} value={campus} onChange={e => setCampus(e.target.value)}>
@@ -169,7 +193,7 @@ export default function ListView() {
             </select>
           </label>
 
-          {/* Availability */}
+          {/* Availability filter */}
           <label className={styles.selectLabel}>
             <span className={styles.selectLabelText}>Availability</span>
             <select className={styles.select} value={avail} onChange={e => setAvail(e.target.value)}>
@@ -177,7 +201,7 @@ export default function ListView() {
             </select>
           </label>
 
-          {/* Sort — visually separated with a left border */}
+          {/* Sort control — visually separated from filters with a left border */}
           <label className={`${styles.selectLabel} ${styles.sortLabel}`}>
             <span className={styles.selectLabelText}>Sort by</span>
             <select
@@ -194,7 +218,7 @@ export default function ListView() {
 
         </div>
 
-        {/* Active filter chips */}
+        {/* Active filter chips — only rendered when at least one filter is active */}
         {(activeFilters.length > 0 || search) && (
           <div className={styles.chips} role="group" aria-label="Active filters">
             {search && (
@@ -214,9 +238,11 @@ export default function ListView() {
         )}
       </search>
 
-      {/* ── Grid ── */}
+      {/* ── Book grid ── */}
       <main className={styles.main}>
         {filtered.length === 0 ? (
+
+          /* Empty state — shown when no books match the current filters */
           <section className={styles.empty} aria-label="No results">
             <p className={styles.emptyTitle}>No books found</p>
             <p className={styles.emptyBody}>Try adjusting your filters or search term.</p>
@@ -227,67 +253,73 @@ export default function ListView() {
               + Add Book
             </button>
           </section>
+
         ) : (
           <>
+            {/* Show skeleton placeholders while loading, real cards otherwise */}
             {loading ? (
-  <ul className={styles.grid} aria-label="Loading books">
-    {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-      <li key={i}>
-        <div className={styles.skeletonCover} />
-        <div className={styles.skeletonLine} />
-        <div className={styles.skeletonLineShort} />
-      </li>
-    ))}
-  </ul>
-) : (
-<ul className={styles.grid} aria-label={`${filtered.length} books found`}>
-  {paginated.map(book => {
-                const isAvailable = getAvailability(book.id)
-                const bookCampus  = getCampus(book.id)
-                return (
-                  <li key={book.id}>
-                    <a
-                      className={styles.card}
-                      href={`/books/${book.id}`}
-                      onClick={e => { e.preventDefault(); navigate(`/books/${book.id}`) }}
-                      aria-label={`${book.title} by ${book.author}, ${isAvailable ? 'available' : 'unavailable'}`}
-                    >
-                      <div className={styles.coverWrap} data-color={book.color}>
-                        <img
-                          src={book.cover}
-                          alt={`Cover of ${book.title}`}
-                          className={styles.coverImg}
-                          onError={e => { e.currentTarget.style.display = 'none' }}
-                        />
-                        <span className={styles.availDot} data-available={isAvailable} aria-hidden="true" />
-                        {book.badge && (
-                          <span className={styles.badge} aria-label={book.badge}>{book.badge}</span>
-                        )}
-                      </div>
-
-                      <div className={styles.cardBody}>
-                        <span className={styles.cardGenre} style={{ color: book.genreColor }}>
-                          {book.genre}
-                        </span>
-                        <h2 className={styles.cardTitle}>{book.title}</h2>
-                        <p className={styles.cardAuthor}>{book.author}</p>
-
-                        <div className={styles.cardFooter}>
-                          <span className={styles.cardCampus}>
-                            {bookCampus === 'both' ? '📍 Beirut · Byblos' : `📍 ${bookCampus}`}
-                          </span>
-                          <span className={styles.cardAvail} data-available={isAvailable} aria-hidden="true">
-                            {isAvailable ? 'Available' : 'Borrowed'}
-                          </span>
-                        </div>
-                      </div>
-                    </a>
+              <ul className={styles.grid} aria-label="Loading books">
+                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                  <li key={i}>
+                    <div className={styles.skeletonCover} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLineShort} />
                   </li>
-                )
-              })}
-            </ul>)}
+                ))}
+              </ul>
+            ) : (
+              <ul className={styles.grid} aria-label={`${filtered.length} books found`}>
+                {paginated.map(book => {
+                  const isAvailable = getAvailability(book.id)
+                  const bookCampus  = getCampus(book.id)
+                  return (
+                    <li key={book.id}>
+                      {/* Each card is an anchor for semantics; navigation handled via React Router */}
+                      <a
+                        className={styles.card}
+                        href={`/books/${book.id}`}
+                        onClick={e => { e.preventDefault(); navigate(`/books/${book.id}`) }}
+                        aria-label={`${book.title} by ${book.author}, ${isAvailable ? 'available' : 'unavailable'}`}
+                      >
+                        <div className={styles.coverWrap} data-color={book.color}>
+                          <img
+                            src={book.cover}
+                            alt={`Cover of ${book.title}`}
+                            className={styles.coverImg}
+                            onError={e => { e.currentTarget.style.display = 'none' }}
+                          />
+                          {/* Colored dot indicator for availability */}
+                          <span className={styles.availDot} data-available={isAvailable} aria-hidden="true" />
+                          {book.badge && (
+                            <span className={styles.badge} aria-label={book.badge}>{book.badge}</span>
+                          )}
+                        </div>
 
-            
+                        <div className={styles.cardBody}>
+                          {/* Genre color comes from book data, applied inline */}
+                          <span className={styles.cardGenre} style={{ color: book.genreColor }}>
+                            {book.genre}
+                          </span>
+                          <h2 className={styles.cardTitle}>{book.title}</h2>
+                          <p className={styles.cardAuthor}>{book.author}</p>
+
+                          <div className={styles.cardFooter}>
+                            <span className={styles.cardCampus}>
+                              {bookCampus === 'both' ? '📍 Beirut · Byblos' : `📍 ${bookCampus}`}
+                            </span>
+                            <span className={styles.cardAvail} data-available={isAvailable} aria-hidden="true">
+                              {isAvailable ? 'Available' : 'Borrowed'}
+                            </span>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+
+            {/* ── Pagination controls — only shown when there is more than one page ── */}
             {totalPages > 1 && (
               <nav className={styles.pagination} aria-label="Pagination">
                 <button
@@ -299,7 +331,6 @@ export default function ListView() {
                   ← Prev
                 </button>
                 <span className={styles.pageInfo}>{page} / {totalPages}</span>
-
                 <button
                   className={styles.pageBtn}
                   onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
