@@ -15,7 +15,6 @@ const HERO_SLIDES = [
 
 // cover: Open Library public covers API — falls back to the gradient if the image 404s.
 // Swap any URL for local artwork: import img from '@/assets/...' and reference it here.
-
 // Gap in px — must match CSS .booksTrack gap (2rem at 16px root = 32px)
 const GAP_PX = 32
 const N = BOOKS.length
