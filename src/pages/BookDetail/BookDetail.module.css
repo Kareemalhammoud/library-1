@@ -421,3 +421,124 @@
 :global(.dark) .progressSlider   { accent-color: #2d7a4f; }
 :global(.dark) .progressSlider::-webkit-slider-thumb { border-color: #1a1a1a; }
 :global(.dark) .progressSlider::-moz-range-thumb     { border-color: #1a1a1a; }
+
+/* ── Borrow Modal ─────────────────────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modalCover {
+  width: 100px;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modalIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2d7a4f;
+  color: #fff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.modalBody {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.modalMeta {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.modalCancelBtn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e0ddd8;
+  background: #fff;
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modalCancelBtn:hover {
+  background: #f5f3ef;
+}
+
+.modalConfirmBtn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: none;
+  background: #1a4a3a;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modalConfirmBtn:hover {
+  background: #2d7a4f;
+}
+
+/* ── Modal dark mode ── */
+:global(body.dark) .modalOverlay { background: rgba(0, 0, 0, 0.7); }
+:global(body.dark) .modal        { background: #222; }
+:global(body.dark) .modalTitle   { color: #f0ede8; }
+:global(body.dark) .modalBody    { color: #999; }
+:global(body.dark) .modalCancelBtn {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #aaa;
+}
+:global(body.dark) .modalCancelBtn:hover { background: #333; }

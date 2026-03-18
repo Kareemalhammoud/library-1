@@ -46,6 +46,9 @@ function App() {
           <Route path="/books/add" element={<AddEditBook />} />
           <Route path="/books/:id" element={<BookDetail />} />
 
+         {/*Add/Edit book*/} 
+          <Route path="/books/:id/edit" element={<AddEditBook />} />
+
         </Routes>
       </main>
 
