@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { FaEye, FaEyeSlash } from "react-icons/fa"
-import styles from "../styles/auth.module.css"
+import FormInput from "../components/FormInput"
 
 function Login() {
 
@@ -38,61 +37,56 @@ function Login() {
 
 	return (
 
-		<div className={styles.container}>
+		<div className="flex justify-center items-center min-h-[80vh] mt-8 font-sans bg-gray-100">
 
-			<div className={styles.card}>
+			<div className="bg-white p-8 rounded-lg shadow-md border border-gray-200 w-[350px]">
 
-				<h1 className={styles.title}>Login</h1>
+				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800">
+					Login
+				</h1>
 
-				<form onSubmit={handleSubmit}>
+				<form onSubmit={handleSubmit} className="space-y-4">
 
-					<div className={styles.formGroup}>
-						<label>Email</label>
-						<input
-							className={styles.input}
-							type="email"
-							placeholder="Enter email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-						/>
-					</div>
+					<FormInput
+						label="Email"
+						type="email"
+						id="email"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						placeholder="Enter email"
+					/>
 
-					<div className={styles.formGroup}>
-						<label>Password</label>
-
-						<div className={styles.passwordWrapper}>
-
-							<input
-								className={styles.input}
-								type={showPassword ? "text" : "password"}
-								placeholder="Enter password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-							/>
-
-							<span
-								className={styles.eyeIcon}
-								onClick={() => setShowPassword(!showPassword)}
-							>
-								{showPassword ? <FaEye /> : <FaEyeSlash />}
-							</span>
-
-						</div>
-
-					</div>
+					<FormInput
+						label="Password"
+						id="password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						placeholder="Enter password"
+						showToggle={true}
+						showPassword={showPassword}
+						setShowPassword={setShowPassword}
+					/>
 
 					{errorMessage && (
-						<p className={styles.errorText}>{errorMessage}</p>
+						<p className="text-red-600 text-sm mb-2" role="alert">
+							{errorMessage}
+						</p>
 					)}
 
-					<button className={styles.button}>
+					<button
+						type="submit"
+						className="w-full bg-[#006751] text-white py-3 rounded-md font-semibold text-base transition hover:bg-[#005040]"
+					>
 						Login
 					</button>
 
 				</form>
 
-				<p className={styles.linkText}>
-					Don&apos;t have an account? <Link to="/register">Register</Link>
+				<p className="text-center text-sm mt-5 text-gray-500">
+					Don&apos;t have an account?{" "}
+					<Link to="/register" className="text-[#006751] underline hover:text-[#005040]">
+						Register
+					</Link>
 				</p>
 
 			</div>
