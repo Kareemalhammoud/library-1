@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { FaEye, FaEyeSlash } from "react-icons/fa"
-import styles from "../styles/auth.module.css"
+import FormInput from "../components/FormInput"
 
 function Register() {
 
@@ -16,6 +15,7 @@ function Register() {
 	const [errorMessage, setErrorMessage] = useState("")
 
 	const handleSubmit = (e) => {
+
 		e.preventDefault()
 
 		if (!username || !email || !password || !confirmPassword) {
@@ -55,91 +55,78 @@ function Register() {
 
 	return (
 
-		<div className={styles.container}>
+		<div className="flex justify-center items-center min-h-[80vh] mt-8 font-sans bg-gray-100">
 
-			<div className={styles.card}>
+			<div className="bg-white p-8 rounded-lg shadow-md border border-gray-200 w-[350px]">
 
-				<h1 className={styles.title}>Register</h1>
+				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800">
+					Register
+				</h1>
 
-				<form onSubmit={handleSubmit}>
+				<form onSubmit={handleSubmit} className="space-y-4">
 
-					<div className={styles.formGroup}>
-						<label>Username</label>
-						<input
-							className={styles.input}
-							type="text"
-							placeholder="Enter username"
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
-						/>
-					</div>
+					<FormInput
+						label="Username"
+						id="username"
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
+						placeholder="Enter username"
+					/>
 
-					<div className={styles.formGroup}>
-						<label>Email</label>
-						<input
-							className={styles.input}
-							type="email"
-							placeholder="Enter email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-						/>
-					</div>
+					<FormInput
+						label="Email"
+						type="email"
+						id="email"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						placeholder="Enter email"
+					/>
 
-					<div className={styles.formGroup}>
-						<label>Password</label>
+					<FormInput
+						label="Password"
+						id="password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						placeholder="Enter password"
+						showToggle={true}
+						showPassword={showPassword}
+						setShowPassword={setShowPassword}
+					/>
 
-						<div className={styles.passwordWrapper}>
-
-							<input
-								className={styles.input}
-								type={showPassword ? "text" : "password"}
-								placeholder="Enter password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-							/>
-
-							<span
-								className={styles.eyeIcon}
-								onClick={() => setShowPassword(!showPassword)}
-							>
-								{showPassword ? <FaEye /> : <FaEyeSlash />}
-							</span>
-
-						</div>
-
-					</div>
-
-					<div className={styles.formGroup}>
-						<label>Confirm Password</label>
-
-						<input
-							className={styles.input}
-							type={showPassword ? "text" : "password"}
-							placeholder="Confirm password"
-							value={confirmPassword}
-							onChange={(e) => setConfirmPassword(e.target.value)}
-						/>
-
-					</div>
+					<FormInput
+						label="Confirm Password"
+						type="password"
+						id="confirmPassword"
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+						placeholder="Confirm password"
+					/>
 
 					{errorMessage && (
-						<p className={styles.errorText}>{errorMessage}</p>
+						<p className="text-red-600 text-sm mb-2">
+							{errorMessage}
+						</p>
 					)}
 
-					<button className={styles.button} type="submit">
+					<button
+						type="submit"
+						className="w-full bg-[#006751] text-white py-3 rounded-md font-semibold text-base transition hover:bg-[#005040]"
+					>
 						Register
 					</button>
 
 				</form>
 
-				<p className={styles.linkText}>
-					Already have an account? <Link to="/login">Login</Link>
+				<p className="text-center text-sm mt-5 text-gray-500">
+					Already have an account?{" "}
+					<Link to="/login" className="text-[#006751] underline hover:text-[#005040]">
+						Login
+					</Link>
 				</p>
 
 			</div>
 
 		</div>
-
 	)
 }
 
