@@ -46,7 +46,12 @@ function Register() {
 
 		setErrorMessage("")
 
-		const user = { username, email, password }
+		const user = {
+			username,
+			email,
+			password,
+			createdAt: new Date().toISOString()
+		}
 
 		localStorage.setItem("user", JSON.stringify(user))
 
