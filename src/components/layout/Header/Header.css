@@ -1,0 +1,22 @@
+/* Nav link underline animation — ::after pseudo-element, can't be done in Tailwind */
+.header-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 0.65rem;
+  right: 0.65rem;
+  height: 1px;
+  background: #00AB8E;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms ease;
+}
+
+.header-nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.header-nav-active::after {
+  transform: scaleX(1);
+  background: #006751;
+} 
