@@ -37,11 +37,11 @@ function Login() {
 
 	return (
 
-		<div className="flex justify-center items-center min-h-[80vh] mt-8 px-4 font-sans bg-gray-100">
+		<div className="flex justify-center items-center min-h-[80vh] mt-8 px-4 font-sans bg-gray-100 dark:bg-[#1a1a1a]">
 
-			<div className="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200 w-full max-w-sm">
+			<div className="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200 w-full max-w-sm dark:bg-[#222] dark:border-[#2e2e2e]">
 
-				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800">
+				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-[#f0ede8]">
 					Login
 				</h1>
 
@@ -68,7 +68,7 @@ function Login() {
 					/>
 
 					{errorMessage && (
-						<p className="text-red-600 text-sm mb-2" role="alert" aria-live="assertive">
+						<p className="text-red-600 text-sm mb-2 dark:text-red-400" role="alert" aria-live="assertive">
 							{errorMessage}
 						</p>
 					)}
@@ -82,9 +82,9 @@ function Login() {
 
 				</form>
 
-				<p className="text-center text-sm mt-5 text-gray-500">
+				<p className="text-center text-sm mt-5 text-gray-500 dark:text-[#999]">
 					Don&apos;t have an account?{" "}
-					<Link to="/register" className="text-[#006751] underline hover:text-[#005040]">
+					<Link to="/register" className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]">
 						Register
 					</Link>
 				</p>
