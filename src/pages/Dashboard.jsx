@@ -73,7 +73,7 @@ function Dashboard() {
 
 	return (
 
-		<div className="max-w-5xl mx-auto mt-10 px-6">
+		<div className="max-w-5xl mx-auto mt-10 px-4 sm:px-6">
 
 			<h1 className="text-3xl font-semibold mb-6 text-gray-800">
 				User Account
@@ -101,11 +101,13 @@ function Dashboard() {
 									type="text"
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
+									aria-label="Edit username"
 								/>
 
 								<button
 									className="bg-[#006751] text-white px-4 py-2 rounded-md hover:bg-[#005040] transition"
 									onClick={handleUsernameUpdate}
+									aria-label="Save username"
 								>
 									Save
 								</button>
@@ -114,12 +116,13 @@ function Dashboard() {
 							<>
 								<span className="text-gray-600">{user.username}</span>
 
-								<span
+								<button
 									className="text-[#006751] underline cursor-pointer text-sm"
 									onClick={() => setEditingUsername(true)}
+									aria-label="Change username"
 								>
 									Change Username
-								</span>
+								</button>
 							</>
 						)}
 
@@ -130,9 +133,14 @@ function Dashboard() {
 						<span className="text-gray-600 ml-2">{user.email}</span>
 					</p>
 
+					{/* ✅ FIXED DATE JOINED */}
 					<p>
 						<span className="font-medium text-gray-700">Date Joined:</span>
-						<span className="text-gray-600 ml-2">{new Date().toLocaleDateString()}</span>
+						<span className="text-gray-600 ml-2">
+							{user.createdAt
+								? new Date(user.createdAt).toLocaleDateString()
+								: "N/A"}
+						</span>
 					</p>
 
 					<p>
@@ -147,13 +155,14 @@ function Dashboard() {
 
 					<img
 						src={profilePic}
-						alt="Profile"
+						alt={`${user.username}'s profile picture`}
 						className="w-36 h-36 rounded-full object-cover border-2 border-gray-200 shadow-sm"
 					/>
 
 					<button
 						className="text-sm bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200 transition"
 						onClick={openFilePicker}
+						aria-label="Upload new profile picture"
 					>
 						Edit Profile Picture
 					</button>
@@ -164,6 +173,7 @@ function Dashboard() {
 						ref={fileInputRef}
 						onChange={handleProfileChange}
 						className="hidden"
+						aria-label="Choose profile picture"
 					/>
 
 				</div>
