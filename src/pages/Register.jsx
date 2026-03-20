@@ -55,15 +55,15 @@ function Register() {
 
 	return (
 
-		<div className="flex justify-center items-center min-h-[80vh] mt-8 font-sans bg-gray-100">
+		<div className="flex justify-center items-center min-h-[80vh] mt-8 px-4 font-sans bg-gray-100">
 
-			<div className="bg-white p-8 rounded-lg shadow-md border border-gray-200 w-[350px]">
+			<div className="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200 w-full max-w-sm">
 
 				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800">
 					Register
 				</h1>
 
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} aria-label="Register form">
 
 					<FormInput
 						label="Username"
@@ -103,7 +103,7 @@ function Register() {
 					/>
 
 					{errorMessage && (
-						<p className="text-red-600 text-sm mb-2">
+						<p className="text-red-600 text-sm mb-2" aria-live="assertive">
 							{errorMessage}
 						</p>
 					)}
