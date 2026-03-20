@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import styles from "../styles/dashboard.module.css"
 import defaultPic from "../assets/default-profile.png"
 
 function Dashboard() {
@@ -40,9 +39,7 @@ function Dashboard() {
 
 		localStorage.setItem("user", JSON.stringify(updatedUser))
 		setUser(updatedUser)
-
 		setEditingUsername(false)
-
 	}
 
 	const handleProfileChange = (event) => {
@@ -63,11 +60,9 @@ function Dashboard() {
 
 			setUser(updatedUser)
 			setProfilePic(reader.result)
-
 		}
 
 		reader.readAsDataURL(file)
-
 	}
 
 	const openFilePicker = () => {
@@ -78,85 +73,96 @@ function Dashboard() {
 
 	return (
 
-		<div className={styles.container}>
+		<div className="max-w-5xl mx-auto mt-10 px-4 sm:px-6">
 
-			<h1 className={styles.header}>User Account</h1>
+			<h1 className="text-3xl font-semibold mb-6 text-gray-800">
+				User Account
+			</h1>
 
 			{/* Profile Section */}
+			<div className="flex flex-col md:flex-row justify-between gap-8 bg-white p-6 rounded-xl shadow-md border border-gray-200">
 
-			<div className={styles.profileSection}>
+				{/* LEFT SIDE */}
+				<div className="flex-1 space-y-4">
 
-				<div className={styles.profileInfo}>
+					<h2 className="text-xl font-semibold text-gray-700">
+						Profile Information
+					</h2>
 
-					<h2>Profile Information</h2>
+					{/* Username Row */}
+					<div className="flex items-center gap-3 flex-wrap">
 
-					<div className={styles.usernameRow}>
-
-						<strong>Username:</strong>
+						<span className="font-medium text-gray-700">Username:</span>
 
 						{editingUsername ? (
 							<>
 								<input
-									className={styles.input}
+									className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/20"
 									type="text"
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
+									aria-label="Edit username"
 								/>
 
 								<button
-									className={styles.button}
+									className="bg-[#006751] text-white px-4 py-2 rounded-md hover:bg-[#005040] transition"
 									onClick={handleUsernameUpdate}
+									aria-label="Save username"
 								>
 									Save
 								</button>
 							</>
 						) : (
 							<>
-								<span className={styles.value}>{user.username}</span>
+								<span className="text-gray-600">{user.username}</span>
 
-								<span
-									className={styles.changeLink}
+								<button
+									className="text-[#006751] underline cursor-pointer text-sm"
 									onClick={() => setEditingUsername(true)}
+									aria-label="Change username"
 								>
 									Change Username
-								</span>
+								</button>
 							</>
 						)}
 
 					</div>
 
 					<p>
-						<strong>Email:</strong>
-						<span className={styles.value}> {user.email}</span>
+						<span className="font-medium text-gray-700">Email:</span>
+						<span className="text-gray-600 ml-2">{user.email}</span>
+					</p>
+
+					{/* ✅ FIXED DATE JOINED */}
+					<p>
+						<span className="font-medium text-gray-700">Date Joined:</span>
+						<span className="text-gray-600 ml-2">
+							{user.createdAt
+								? new Date(user.createdAt).toLocaleDateString()
+								: "N/A"}
+						</span>
 					</p>
 
 					<p>
-						<strong>Date Joined:</strong>
-						<span className={styles.value}> {new Date().toLocaleDateString()}</span>
-					</p>
-
-					<p>
-						<strong>Account Status:</strong>
-						<span className={styles.value}> Active</span>
+						<span className="font-medium text-gray-700">Account Status:</span>
+						<span className="text-green-600 ml-2">Active</span>
 					</p>
 
 				</div>
 
-				{/* Profile Picture */}
-
-				<div className={styles.profilePicture}>
+				{/* RIGHT SIDE (Profile Picture) */}
+				<div className="flex flex-col items-center gap-3">
 
 					<img
 						src={profilePic}
-						alt="Profile"
-						width="140"
-						height="140"
-						className={styles.profilePic}
+						alt={`${user.username}'s profile picture`}
+						className="w-36 h-36 rounded-full object-cover border-2 border-gray-200 shadow-sm"
 					/>
 
 					<button
-						className={styles.smallButton}
+						className="text-sm bg-gray-100 px-4 py-2 rounded-md hover:bg-gray-200 transition"
 						onClick={openFilePicker}
+						aria-label="Upload new profile picture"
 					>
 						Edit Profile Picture
 					</button>
@@ -166,7 +172,8 @@ function Dashboard() {
 						accept="image/*"
 						ref={fileInputRef}
 						onChange={handleProfileChange}
-						style={{ display: "none" }}
+						className="hidden"
+						aria-label="Choose profile picture"
 					/>
 
 				</div>
@@ -174,52 +181,47 @@ function Dashboard() {
 			</div>
 
 			{/* Library Section */}
+			<div className="mt-8 bg-white p-6 rounded-xl shadow-md border border-gray-200">
 
-			<div className={styles.bookSection}>
+				<h2 className="text-xl font-semibold mb-4 text-gray-700">
+					Library Activity
+				</h2>
 
-				<h2>Library Activity</h2>
-
-				<h3>Checked Out Books</h3>
-
-				<ul>
+				<h3 className="font-medium text-gray-700">Checked Out Books</h3>
+				<ul className="list-disc ml-6 text-gray-600 mb-4">
 					<li>Example Book 1</li>
 					<li>Example Book 2</li>
 				</ul>
 
-				<h3>Reserved Books</h3>
-
-				<ul>
-					<li className={styles.value}>No reserved books</li>
+				<h3 className="font-medium text-gray-700">Reserved Books</h3>
+				<ul className="list-disc ml-6 text-gray-600 mb-4">
+					<li>No reserved books</li>
 				</ul>
 
-				<h3>Overdue Books & Fines</h3>
-
-				<p className={styles.value}>No overdue books</p>
+				<h3 className="font-medium text-gray-700">Overdue Books & Fines</h3>
+				<p className="text-gray-600">No overdue books</p>
 
 			</div>
 
 			{/* Actions */}
+			<div className="mt-8 flex flex-wrap gap-4">
 
-			<div className={styles.actions}>
-
-				<button className={styles.button}>
+				<button className="bg-[#006751] text-white px-5 py-2 rounded-md hover:bg-[#005040] transition">
 					Search Books
 				</button>
 
-				<button className={styles.button}>
+				<button className="bg-[#006751] text-white px-5 py-2 rounded-md hover:bg-[#005040] transition">
 					Reserve Book
 				</button>
 
-				<button className={styles.button}>
+				<button className="bg-[#006751] text-white px-5 py-2 rounded-md hover:bg-[#005040] transition">
 					Renew Book
 				</button>
 
 			</div>
 
 		</div>
-
 	)
-
 }
 
 export default Dashboard
