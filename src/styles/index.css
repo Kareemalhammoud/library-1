@@ -3,8 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@custom-variant dark (&:where(body.dark, body.dark *));
-
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

@@ -21,7 +21,7 @@ function FormInput({
 
 			<label
 				htmlFor={id}
-				className="mb-1 text-sm text-gray-700 font-medium"
+				className="mb-1 text-sm font-medium text-gray-700 dark:text-[#888]"
 			>
 				{label}
 			</label>
@@ -42,11 +42,18 @@ function FormInput({
 						border border-gray-300
 						rounded-md
 						text-sm
+						bg-white
+						text-gray-800
+						placeholder:text-gray-400
 						focus:outline-none
 						focus:border-[#006751]
 						focus:ring-2
 						focus:ring-[#006751]/20
 						transition
+						dark:border-[#3a3a3a]
+						dark:bg-[#2a2a2a]
+						dark:text-[#f0ede8]
+						dark:placeholder:text-[#666]
 					"
 				/>
 
@@ -57,6 +64,7 @@ function FormInput({
 						className="
 							absolute right-3 top-1/2 -translate-y-1/2
 							text-gray-500
+							dark:text-[#aaa]
 						"
 						aria-label={showPassword ? "Hide password" : "Show password"}
 					>
