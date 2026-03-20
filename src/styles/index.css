@@ -1,4 +1,9 @@
 @import './variables.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@custom-variant dark (&:where(body.dark, body.dark *));
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -34,3 +39,12 @@ body.dark {
 body.dark .main-content {
   background: #1a1a1a;
 }
+body.dark {
+  background: #1a1a1a;
+  color: #f0ede8;
+}
+
+body.dark header {
+  background: #1a1a1a;
+}
+
