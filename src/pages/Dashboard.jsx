@@ -15,11 +15,24 @@ function Dashboard() {
 	const [borrowedBooks, setBorrowedBooks] = useState([])
 	const [borrowedBooksLoaded, setBorrowedBooksLoaded] = useState(false)
 
+	const getLoanDetails = (bookId) => {
+		const rawLoan = localStorage.getItem(`loan-${bookId}`)
+
+		if (!rawLoan) return null
+
+		try {
+			return JSON.parse(rawLoan)
+		} catch {
+			return null
+		}
+	}
+
 	useEffect(() => {
 
 		const savedUser = JSON.parse(localStorage.getItem("user"))
+		const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
 
-		if (!savedUser) {
+		if (!savedUser || !isLoggedIn) {
 			navigate("/login")
 			return
 		}
@@ -39,7 +52,16 @@ function Dashboard() {
 
 		if (savedBorrowedBooks) {
 			try {
-				setBorrowedBooks(JSON.parse(savedBorrowedBooks))
+				const parsedBorrowedBooks = JSON.parse(savedBorrowedBooks).map((book) => {
+					const loanDetails = getLoanDetails(book.id)
+
+					return {
+						...book,
+						borrowedAt: book.borrowedAt || loanDetails?.borrowedAt || null
+					}
+				})
+
+				setBorrowedBooks(parsedBorrowedBooks)
 				setBorrowedBooksLoaded(true)
 				return
 			} catch {
@@ -59,6 +81,7 @@ function Dashboard() {
 				return {
 					id: book.id,
 					title: book.title,
+					borrowedAt: loan.borrowedAt || null,
 					dueDate: loan.dueDate || loan.dueAt,
 					renewCount: loan.renewCount ?? 0,
 					isReserved: loan.isReserved ?? false
@@ -90,6 +113,7 @@ function Dashboard() {
 					`loan-${book.id}`,
 					JSON.stringify({
 						...parsedLoan,
+						borrowedAt: book.borrowedAt || parsedLoan.borrowedAt,
 						dueAt: book.dueDate,
 						dueDate: book.dueDate,
 						renewCount: book.renewCount,
@@ -101,6 +125,7 @@ function Dashboard() {
 					`loan-${book.id}`,
 					JSON.stringify({
 						bookId: book.id,
+						borrowedAt: book.borrowedAt || null,
 						dueAt: book.dueDate,
 						dueDate: book.dueDate,
 						renewCount: book.renewCount,
@@ -188,15 +213,35 @@ function Dashboard() {
 		fileInputRef.current.click()
 	}
 
+	const handleLogout = () => {
+		localStorage.setItem("isLoggedIn", "false")
+		navigate("/login")
+	}
+
+	const formatLoanDate = (date) => {
+		if (!date) return "N/A"
+		return new Date(date).toLocaleDateString()
+	}
+
 	if (!user) return null
 
 	return (
 
 		<div className="max-w-5xl mx-auto mt-10 px-4 sm:px-6">
 
-			<h1 className="text-3xl font-semibold mb-6 text-gray-800 dark:text-[#f0ede8]">
-				User Account
-			</h1>
+			<div className="mb-6 flex items-center justify-between gap-4">
+				<h1 className="text-3xl font-semibold text-gray-800 dark:text-[#f0ede8]">
+					User Account
+				</h1>
+
+				<button
+					type="button"
+					className="rounded-md bg-[#006751] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#005040] dark:bg-[#006751] dark:text-white dark:hover:bg-[#005040]"
+					onClick={handleLogout}
+				>
+					Logout
+				</button>
+			</div>
 
 			{/* Profile Section */}
 			<div className="flex flex-col md:flex-row justify-between gap-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#222] dark:border-[#2e2e2e]">
@@ -309,76 +354,83 @@ function Dashboard() {
 				{borrowedBooks.length === 0 ? (
 					<p className="text-gray-600 mb-4 dark:text-[#999]">No books checked out</p>
 				) : (
-					<ul className="list-disc ml-6 text-gray-600 mb-4 dark:text-[#999]">
+					<ul className="mt-4 space-y-3">
 						{borrowedBooks.map((book) => {
 							const progress = Number(localStorage.getItem(`reading-progress-${book.id}`) ?? 0)
 							const isRenewDisabled = book.renewCount >= 2 || book.isReserved === true
 							const bookDetails = BOOKS.find((item) => item.id === book.id)
 
 							return (
-								<li key={book.id} className="mb-4">
-									<div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#252525] sm:flex-row sm:items-start">
-										<div className="w-full max-w-[110px]">
+								<li key={book.id}>
+									<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-800 shadow-sm dark:border-[#2e2e2e] dark:bg-[#252525] dark:text-[#f0ede8] sm:flex-row sm:items-center sm:justify-between">
+										<div className="flex min-w-0 items-center gap-4">
 											<button
 												type="button"
-												className="cursor-pointer border-0 bg-transparent p-0 text-left"
+												className="w-[52px] flex-shrink-0 cursor-pointer border-0 bg-transparent p-0 text-left"
 												onClick={() => navigate(`/books/${book.id}`)}
 											>
 												<img
 													src={bookDetails?.cover}
 													alt={`Cover of ${book.title}`}
-													className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+													className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
 												/>
 											</button>
-											<button
-												type="button"
-												className="mt-2 w-full cursor-pointer border-0 bg-transparent p-0 text-center font-semibold text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]"
-												onClick={() => navigate(`/books/${book.id}`)}
-											>
-												{book.title}
-											</button>
-										</div>
 
-										<div className="flex-1">
-											<div className="mb-3 flex flex-wrap items-center gap-2 text-gray-600 dark:text-[#999]">
-												<span>Return by {new Date(book.dueDate).toLocaleDateString()}</span>
-												<span>Renewals {book.renewCount}/2</span>
+											<div className="min-w-0">
 												<button
 													type="button"
-													className="bg-[#006751] text-white px-3 py-1 rounded-md hover:bg-[#005040] transition disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed dark:disabled:bg-[#3a3a3a] dark:disabled:text-[#777]"
-													onClick={() => handleRenewBook(book.id)}
-													disabled={isRenewDisabled}
+													className="cursor-pointer border-0 bg-transparent p-0 text-left"
+													onClick={() => navigate(`/books/${book.id}`)}
 												>
-													Renew
+													<p className="truncate text-left text-lg font-semibold text-gray-800 dark:text-[#f0ede8]">
+														{book.title}
+													</p>
 												</button>
+												<p className="text-sm text-gray-600 dark:text-[#999]">{bookDetails?.author || "Unknown author"}</p>
+												<p className="mt-1 text-sm text-gray-500 dark:text-[#888]">
+													Borrowed {formatLoanDate(book.borrowedAt)} · Due {formatLoanDate(book.dueDate)}
+												</p>
 											</div>
+										</div>
 
-											<div className="max-w-[340px] rounded-lg border border-[#e5e2dc] bg-white px-3 py-2 dark:border-[#2e2e2e] dark:bg-[#222]">
-												<div className="mb-2 flex items-center justify-between">
-													<span className="text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[#aaa] dark:text-[#555]">
-														Reading Progress
-													</span>
-													<span className="text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-[#f0ede8]">
-														{progress}%
-													</span>
-												</div>
+										<div className="flex w-full flex-col gap-3 sm:w-auto sm:min-w-[320px]">
+											<div className="flex items-center gap-3">
+												<div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-[#2e2e2e] dark:bg-[#222]">
+													<div className="mb-1 flex items-center justify-between">
+														<span className="text-[0.68rem] font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-[#888]">
+															Progress
+														</span>
+														<span className="text-[0.8rem] font-semibold text-gray-800 dark:text-[#f0ede8]">
+															{progress}%
+														</span>
+													</div>
 
-												<div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]">
-													<div
-														className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
-														style={{ width: `${progress}%` }}
+													<div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]">
+														<div
+															className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+															style={{ width: `${progress}%` }}
+														/>
+													</div>
+
+													<input
+														type="range"
+														min="0"
+														max="100"
+														value={progress}
+														onChange={(e) => handleLoanProgressChange(book.id, Number(e.target.value))}
+														className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#2d7a4f] [&::-moz-range-thumb]:h-[14px] [&::-moz-range-thumb]:w-[14px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[2px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[14px] [&::-webkit-slider-thumb]:w-[14px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[2px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.15] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
+														aria-label={`Reading progress for ${book.title}`}
 													/>
 												</div>
 
-												<input
-													type="range"
-													min="0"
-													max="100"
-													value={progress}
-													onChange={(e) => handleLoanProgressChange(book.id, Number(e.target.value))}
-													className="m-0 h-2 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#2d7a4f] [&::-moz-range-thumb]:h-[12px] [&::-moz-range-thumb]:w-[12px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[2px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:mt-[-2px] [&::-webkit-slider-thumb]:h-[12px] [&::-webkit-slider-thumb]:w-[12px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[2px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
-													aria-label={`Reading progress for ${book.title}`}
-												/>
+												<button
+													type="button"
+													className="rounded-md bg-[#006751] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#005040] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 dark:bg-[#006751] dark:text-white dark:hover:bg-[#005040] dark:disabled:bg-[#3a3a3a] dark:disabled:text-[#777]"
+													onClick={() => handleRenewBook(book.id)}
+													disabled={isRenewDisabled}
+												>
+													{isRenewDisabled ? "Renewed Max" : "Renew"}
+												</button>
 											</div>
 										</div>
 									</div>
@@ -388,12 +440,7 @@ function Dashboard() {
 					</ul>
 				)}
 
-				<h3 className="font-medium text-gray-700 dark:text-[#d0cdc8]">Reserved Books</h3>
-				<ul className="list-disc ml-6 text-gray-600 mb-4 dark:text-[#999]">
-					<li>No reserved books</li>
-				</ul>
-
-				<h3 className="font-medium text-gray-700 dark:text-[#d0cdc8]">Overdue Books & Fines</h3>
+				<h3 className="mt-8 font-medium text-gray-700 dark:text-[#d0cdc8]">Overdue Books & Fines</h3>
 				{overdueBooks.length === 0 ? (
 					<p className="text-gray-600 dark:text-[#999]">No overdue books</p>
 				) : (

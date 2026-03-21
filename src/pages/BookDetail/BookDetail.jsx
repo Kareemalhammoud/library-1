@@ -32,6 +32,13 @@ export default function BookDetail() {
   }, [borrowKey, loanKey])
 
   function handleBorrowClick() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
+      return
+    }
+
     setConfirmed(false)
     setModalOpen(true)
   }

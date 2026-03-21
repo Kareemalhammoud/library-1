@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import FormInput from "../components/FormInput"
 
 function Login() {
 
 	const navigate = useNavigate()
+	const location = useLocation()
 
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
@@ -29,7 +30,8 @@ function Login() {
 
 		if (email === savedUser.email && password === savedUser.password) {
 			setErrorMessage("")
-			navigate("/dashboard")
+			localStorage.setItem("isLoggedIn", "true")
+			navigate(location.state?.from || "/dashboard")
 		} else {
 			setErrorMessage("Invalid email or password")
 		}
@@ -84,7 +86,11 @@ function Login() {
 
 				<p className="text-center text-sm mt-5 text-gray-500 dark:text-[#999]">
 					Don&apos;t have an account?{" "}
-					<Link to="/register" className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]">
+					<Link
+						to="/register"
+						state={location.state}
+						className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]"
+					>
 						Register
 					</Link>
 				</p>
