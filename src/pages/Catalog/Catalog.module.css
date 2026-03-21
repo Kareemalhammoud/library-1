@@ -921,3 +921,134 @@
     height: 28px;
   }
 }
+
+/* ── Admin controls ── */
+.adminAddBtn {
+  margin-left: 0.75rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: #006751;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 150ms ease;
+  vertical-align: middle;
+}
+.adminAddBtn:hover { background: #1a4a3a; }
+
+.adminAction {
+  color: #006751 !important;
+  font-weight: 600 !important;
+}
+
+/* ── Admin Modal ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 2rem 2.25rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+.modalTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 1.25rem;
+}
+
+.modalForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1rem;
+}
+
+.modalField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modalLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+.modalInput,
+.modalTextarea {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.82rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: border-color 150ms ease;
+}
+.modalInput:focus,
+.modalTextarea:focus {
+  outline: none;
+  border-color: #006751;
+  box-shadow: 0 0 0 2px rgba(0, 103, 81, 0.12);
+}
+
+.modalTextarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modalActions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.modalCancel {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #555;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms ease;
+}
+.modalCancel:hover { background: #eee; }
+
+.modalSubmit {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  background: #006751;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms ease;
+}
+.modalSubmit:hover { background: #1a4a3a; }

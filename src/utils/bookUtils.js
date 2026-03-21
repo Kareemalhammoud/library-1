@@ -2,15 +2,24 @@ export function getCampus(id) {
   return id % 3 === 0 ? 'both' : id % 2 === 0 ? 'Byblos' : 'Beirut'
 }
 
+function getUserBorrow(id) {
+  try {
+    const u = JSON.parse(localStorage.getItem('user'))
+    const prefix = u?.email ? `${u.email}:` : ''
+    return !!localStorage.getItem(`${prefix}borrowed-${id}`)
+  } catch { return false }
+}
+
 export function getAvailability(id) {
-  const total = 3 + (id % 4)
-  const borrowed = id % 3
-  return (total - borrowed) > 0
+  const { available } = getCopies(id)
+  return available > 0
 }
 
 export function getCopies(id) {
   const total = 3 + (id % 4)
-  const borrowed = id % 3
+  const baseBorrowed = id % 3
+  const userBorrowed = getUserBorrow(id) ? 1 : 0
+  const borrowed = Math.min(baseBorrowed + userBorrowed, total)
   return { total, borrowed, available: total - borrowed }
 }
 
