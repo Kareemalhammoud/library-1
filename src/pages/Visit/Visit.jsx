@@ -224,7 +224,7 @@ function Visit() {
             </p>
           </div>
 
-          <div className="mx-auto grid max-w-[640px] gap-6">
+          <div className="mx-auto grid max-w-[980px] gap-6 lg:grid-cols-2">
             <div className="overflow-hidden rounded-[14px] border border-[#d0ddd8] bg-white shadow-sm transition-shadow hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_8px_24px_rgba(28,43,36,0.08)] dark:border-[#333333] dark:bg-[#1f1f1f]">
               <div className="relative aspect-[16/10] border-b border-[#d0ddd8] bg-[#EDF3F0] sm:aspect-video dark:border-[#333333] dark:bg-[#242424]">
                 <iframe
@@ -283,6 +283,67 @@ function Visit() {
 
               <div className="border-t border-black/5 px-5 py-3 text-[0.67rem] leading-[1.4] tracking-[0.01em] text-[#5a6b62]/50 sm:px-7 dark:border-white/5 dark:text-[#8c9691]/65">
                 ID required for entry - Bags may be checked
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-[14px] border border-[#d0ddd8] bg-white shadow-sm transition-shadow hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_8px_24px_rgba(28,43,36,0.08)] dark:border-[#333333] dark:bg-[#1f1f1f]">
+              <div className="relative aspect-[16/10] border-b border-[#d0ddd8] bg-[#EDF3F0] sm:aspect-video dark:border-[#333333] dark:bg-[#242424]">
+                <iframe
+                  className="absolute inset-0 h-full w-full border-0"
+                  title="LAU Byblos Campus Map"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3311.184779367851!2d35.648267!3d34.121757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1521f5d6d6f8db8f%3A0x1e0cb1f6ccf9f1cb!2sLebanese%20American%20University%20-%20Byblos%20Campus!5e0!3m2!1sen!2slb!4v1"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </div>
+
+              <div className="flex flex-col gap-4 px-5 py-6 sm:px-7 sm:py-7">
+                <h3 className="text-[1.05rem] font-extrabold tracking-[-0.02em] text-[#1C2B24] dark:text-[#f5f7f6]">Byblos Campus</h3>
+
+                <div className="flex items-start gap-3">
+                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#5ecba1]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 2C8.686 2 6 4.686 6 8c0 4.418 6 12 6 12s6-7.582 6-12c0-3.314-2.686-6-6-6Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    <circle cx="12" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                  <div>
+                    <p className="text-[0.86rem] font-semibold leading-[1.45] text-[#1C2B24] dark:text-[#f5f7f6]">Blat, Byblos</p>
+                    <p className="text-[0.8rem] leading-[1.45] text-[#5a6b62] dark:text-[#8c9691]">Mount Lebanon, Lebanon</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#5ecba1]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M3 9h18M9 3v18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  <p className="text-[0.8rem] leading-[1.55] text-[#5a6b62] dark:text-[#8c9691]">Visitor parking available near the main campus entrance</p>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#5ecba1]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  <p className="text-[0.8rem] leading-[1.55] text-[#5a6b62] dark:text-[#8c9691]">Inside LAU Byblos campus, a short walk from the main academic buildings</p>
+                </div>
+
+                <a
+                  href="https://www.google.com/maps/dir//Lebanese+American+University+Byblos+Campus,+Blat,+Lebanon"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-md border border-transparent bg-[#1a6644] px-[1.15rem] py-[0.6rem] text-[0.8rem] font-semibold tracking-[0.03em] text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a] hover:shadow-[0_2px_8px_rgba(26,102,68,0.3)] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a] max-[480px]:w-full"
+                >
+                  <svg className="h-[14px] w-[14px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 2C8.686 2 6 4.686 6 8c0 4.418 6 12 6 12s6-7.582 6-12c0-3.314-2.686-6-6-6Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    <circle cx="12" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
+                  </svg>
+                  Get Directions
+                </a>
+              </div>
+
+              <div className="border-t border-black/5 px-5 py-3 text-[0.67rem] leading-[1.4] tracking-[0.01em] text-[#5a6b62]/50 sm:px-7 dark:border-white/5 dark:text-[#8c9691]/65">
+                ID required for entry - Visitor guidance available at the gate
               </div>
             </div>
           </div>
