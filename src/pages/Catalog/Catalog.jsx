@@ -22,11 +22,11 @@ const SORT_OPTIONS = [
 ]
 
 const fieldLabelClass =
-  'text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62] dark:text-[#94A3B8]'
+  'text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62] dark:text-[#8c9691]'
 const selectClass =
-  'w-full rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#334155] dark:bg-[#0F172A] dark:text-[#F1F5F9] dark:focus:border-[#2DD4A8]'
+  'w-full rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]'
 const modalInputClass =
-  'w-full rounded-md border border-[#d0ddd8] bg-white px-3 py-2 text-[0.82rem] text-[#1C2B24] outline-none transition focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/10 dark:border-[#334155] dark:bg-[#0F172A] dark:text-[#F1F5F9] dark:focus:border-[#2DD4A8] dark:focus:ring-[#2DD4A8]/15'
+  'w-full rounded-md border border-[#d0ddd8] bg-white px-3 py-2 text-[0.82rem] text-[#1C2B24] outline-none transition focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/10 dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1] dark:focus:ring-[#5ecba1]/20'
 
 function isAdmin() {
   try {
@@ -42,13 +42,13 @@ function tagClass(type) {
     'inline-flex items-center rounded-[3px] px-2 py-[0.15rem] text-[0.56rem] font-semibold uppercase tracking-[0.05em]'
 
   if (type === 'resource') {
-    return `${base} bg-[#eae7f1] text-[#5a4d8a] dark:bg-[#243447] dark:text-[#c9d8ff]`
+    return `${base} bg-[#edf4f0] text-[#006751] dark:bg-[#242424] dark:text-[#5ecba1]`
   }
   if (type === 'subject') {
-    return `${base} bg-[#EDF3F0] text-[#3a7a5c] dark:bg-[#1E293B] dark:text-[#8dd3bb]`
+    return `${base} bg-[#EDF3F0] text-[#006751] dark:bg-[#1f1f1f] dark:text-[#5ecba1]`
   }
   if (type === 'available') {
-    return `${base} bg-[#e6f4ec] text-[#2d7a4f] dark:bg-[#11352a] dark:text-[#7ae0a8]`
+    return `${base} bg-[#e6f4ec] text-[#006751] dark:bg-[#143c2f] dark:text-[#5ecba1]`
   }
   return `${base} bg-[#fdf0ee] text-[#b5392b] dark:bg-[#3b1c1a] dark:text-[#ff9388]`
 }
@@ -187,8 +187,8 @@ export default function Catalog() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F5F3] dark:bg-[#0F172A]">
-      <section className="bg-gradient-to-br from-[#1a4a3a] via-[#006751] to-[#00856a] px-5 py-10 text-center sm:px-6 md:px-8 md:py-14">
+    <div className="min-h-screen bg-[#F2F5F3] dark:bg-[#121212]">
+      <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-10 text-center sm:px-6 md:px-8 md:py-14">
         <p className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white/45">Riyad Nassar Library</p>
         <h1 className="mb-[0.55rem] text-[clamp(1.8rem,4vw,2.4rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-white">Library Catalog</h1>
         <p className="mx-auto mb-8 max-w-[500px] text-[0.88rem] leading-[1.6] text-white/60">
@@ -196,20 +196,25 @@ export default function Catalog() {
         </p>
         <div className="mx-auto max-w-[600px]">
           <div className="group relative">
-            <svg className="pointer-events-none absolute left-[1.1rem] top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[rgba(28,43,36,0.35)] transition group-focus-within:text-[#006751]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg className="pointer-events-none absolute left-[1.1rem] top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#1a6644] transition" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" />
               <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
             <input
-              className="w-full rounded-[10px] border-none bg-white px-12 py-[0.85rem] text-[0.88rem] text-[#1C2B24] shadow-[0_2px_12px_rgba(28,43,36,0.12),0_1px_3px_rgba(28,43,36,0.06)] outline-none transition focus:ring-2 focus:ring-[#006751]/25"
-              type="search"
+              className="w-full rounded-[10px] border border-[#1a6644]/55 bg-white px-12 py-[0.85rem] text-[0.88rem] text-[#1C2B24] shadow-[0_2px_12px_rgba(28,43,36,0.12),0_1px_3px_rgba(28,43,36,0.06)] outline-none transition focus:border-[#1a6644] focus:ring-2 focus:ring-[#1a6644]/20"
+              type="text"
               placeholder="Search by title, author, subject, ISBN, or keyword"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search the catalog"
             />
             {search && (
-              <button className="absolute right-[0.65rem] top-1/2 -translate-y-1/2 px-2 py-1 text-[1.15rem] leading-none text-[rgba(28,43,36,0.35)] transition hover:text-[#1C2B24]" onClick={() => setSearch('')} aria-label="Clear search">
+              <button
+                className="absolute right-[0.65rem] top-1/2 -translate-y-1/2 px-2 py-1 text-[1.15rem] leading-none text-[#1a6644] transition hover:text-[#14533a]"
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+                type="button"
+              >
                 x
               </button>
             )}
@@ -253,7 +258,7 @@ export default function Catalog() {
         </div>
       </section>
 
-      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,43,36,0.04)] dark:border-[#334155] dark:bg-[#1E293B]">
+      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,43,36,0.04)] dark:border-[#333333] dark:bg-[#1f1f1f]">
         <div className="mx-auto flex max-w-[var(--container-max)] flex-col gap-3">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {[
@@ -276,8 +281,8 @@ export default function Catalog() {
             ))}
           </div>
           {activeCount > 0 && (
-            <div className="border-t border-[#EDF3F0] pt-2 dark:border-[#334155]">
-              <button className="rounded-full border border-[#006751] px-3 py-1 text-[0.7rem] font-semibold text-[#006751] transition hover:bg-[#006751] hover:text-white dark:border-[#2DD4A8] dark:text-[#2DD4A8] dark:hover:bg-[#2DD4A8] dark:hover:text-[#0F172A]" onClick={clearAll}>
+            <div className="border-t border-[#EDF3F0] pt-2 dark:border-[#333333]">
+              <button className="rounded-full border border-[#1a6644] px-3 py-1 text-[0.7rem] font-semibold text-[#1a6644] transition hover:bg-[#1a6644] hover:text-white dark:border-[#1a6644] dark:text-[#1a6644] dark:hover:bg-[#1a6644] dark:hover:text-white" onClick={clearAll}>
                 Clear all filters
               </button>
             </div>
@@ -287,18 +292,18 @@ export default function Catalog() {
 
       <main className="mx-auto max-w-[var(--container-max)] px-5 pb-16 pt-7 sm:px-6 md:px-8">
         <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="text-[0.82rem] text-[#5a6b62] dark:text-[#94A3B8]">
-            <strong className="text-[#1C2B24] dark:text-[#F1F5F9]">{filtered.length}</strong> {filtered.length === 1 ? 'record' : 'records'} found
-            {admin && <button className="ml-3 rounded-md bg-[#006751] px-3 py-[0.3rem] text-[0.7rem] font-semibold text-white transition hover:bg-[#1a4a3a] dark:bg-[#2DD4A8] dark:text-[#0F172A] dark:hover:bg-[#14B88A]" onClick={() => { setEditingBook(null); setShowAddModal(true) }}>+ Add Book</button>}
+          <div className="text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]">
+            <strong className="text-[#1C2B24] dark:text-[#f5f7f6]">{filtered.length}</strong> {filtered.length === 1 ? 'record' : 'records'} found
+            {admin && <button className="ml-3 rounded-md bg-[#1a6644] px-3 py-[0.3rem] text-[0.7rem] font-semibold text-white transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]" onClick={() => { setEditingBook(null); setShowAddModal(true) }}>+ Add Book</button>}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-2 text-[0.72rem] text-[#5a6b62] dark:text-[#94A3B8]" htmlFor="sort-select">Sort by</label>
-            <select id="sort-select" className="rounded-md border border-[#d0ddd8] bg-white px-3 py-[0.38rem] text-[0.75rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#334155] dark:bg-[#1E293B] dark:text-[#F1F5F9] dark:focus:border-[#2DD4A8]" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <label className="flex items-center gap-2 text-[0.72rem] text-[#5a6b62] dark:text-[#8c9691]" htmlFor="sort-select">Sort by</label>
+            <select id="sort-select" className="rounded-md border border-[#d0ddd8] bg-white px-3 py-[0.38rem] text-[0.75rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#1f1f1f] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]" value={sort} onChange={(e) => setSort(e.target.value)}>
               {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
-            <div className="flex overflow-hidden rounded-md border border-[#d0ddd8] dark:border-[#334155]" role="group" aria-label="View mode">
+            <div className="flex overflow-hidden rounded-md border border-[#d0ddd8] dark:border-[#333333]" role="group" aria-label="View mode">
               {['grid', 'list'].map((mode) => (
-                <button key={mode} className={`flex items-center justify-center px-3 py-2 transition ${view === mode ? 'bg-[#006751] text-white dark:bg-[#2DD4A8] dark:text-[#0F172A]' : 'bg-[#F2F5F3] text-[#5a6b62] dark:bg-[#0F172A] dark:text-[#94A3B8]'}`} onClick={() => setView(mode)} aria-label={`${mode === 'grid' ? 'Grid' : 'List'} view`} aria-pressed={view === mode}>
+                <button key={mode} className={`flex items-center justify-center px-3 py-2 transition ${view === mode ? 'bg-[#1a6644] text-white dark:bg-[#1a6644] dark:text-white' : 'bg-[#F2F5F3] text-[#5a6b62] dark:bg-[#121212] dark:text-[#8c9691]'}`} onClick={() => setView(mode)} aria-label={`${mode === 'grid' ? 'Grid' : 'List'} view`} aria-pressed={view === mode}>
                   <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
                     {mode === 'grid' ? <><rect x="1" y="1" width="6" height="6" rx="1" /><rect x="9" y="1" width="6" height="6" rx="1" /><rect x="1" y="9" width="6" height="6" rx="1" /><rect x="9" y="9" width="6" height="6" rx="1" /></> : <><rect x="1" y="1" width="14" height="3" rx="1" /><rect x="1" y="6.5" width="14" height="3" rx="1" /><rect x="1" y="12" width="14" height="3" rx="1" /></>}
                   </svg>
@@ -309,19 +314,19 @@ export default function Catalog() {
         </div>
 
         {!hasSearched && (
-          <section className="mb-6 rounded-[10px] border border-[#d0ddd8] bg-white p-5 dark:border-[#334155] dark:bg-[#1E293B]">
+          <section className="mb-6 rounded-[10px] border border-[#d0ddd8] bg-white p-5 dark:border-[#333333] dark:bg-[#1f1f1f]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-              <svg className="h-9 w-9 shrink-0 text-[#006751]/30 dark:text-[#2DD4A8]/40" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <svg className="h-9 w-9 shrink-0 text-[#006751]/30 dark:text-[#5ecba1]/45" viewBox="0 0 48 48" fill="none" aria-hidden="true">
                 <rect x="6" y="4" width="28" height="38" rx="3" stroke="currentColor" strokeWidth="2" />
                 <rect x="14" y="10" width="28" height="38" rx="3" stroke="currentColor" strokeWidth="2" fill="#f0f8f5" />
                 <path d="M20 22h16M20 28h12M20 34h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
               <div className="min-w-0 flex-1">
-                <p className="mb-1 text-[0.84rem] font-bold tracking-[-0.01em] text-[#1C2B24] dark:text-[#F1F5F9]">Browsing the full collection</p>
-                <p className="mb-3 text-[0.78rem] leading-[1.55] text-[#5a6b62] dark:text-[#94A3B8]">You are viewing all holdings across the Beirut and Byblos campuses. Use the search bar or filters to refine your results.</p>
+                <p className="mb-1 text-[0.84rem] font-bold tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">Browsing the full collection</p>
+                <p className="mb-3 text-[0.78rem] leading-[1.55] text-[#5a6b62] dark:text-[#8c9691]">You are viewing all holdings across the Beirut and Byblos campuses. Use the search bar or filters to refine your results.</p>
                 <div className="flex flex-wrap gap-2">
                   {[{ label: 'Philosophy', onClick: () => setSearch('philosophy') }, { label: 'Khalil Gibran', onClick: () => setSearch('gibran') }, { label: 'Journals', onClick: () => setResType('Journal') }, { label: 'Theses', onClick: () => setResType('Thesis') }, { label: 'French Collection', onClick: () => setLanguage('French') }].map((hint) => (
-                    <button key={hint.label} className="rounded-full border border-[#d0ddd8] bg-white px-3 py-1 text-[0.72rem] font-medium text-[#5a6b62] transition hover:border-[#006751] hover:bg-[#EDF3F0] hover:text-[#006751] dark:border-[#334155] dark:bg-[#0F172A] dark:text-[#94A3B8] dark:hover:border-[#2DD4A8] dark:hover:bg-[#1E293B] dark:hover:text-[#2DD4A8]" onClick={hint.onClick}>
+                    <button key={hint.label} className="rounded-full border border-[#d0ddd8] bg-white px-3 py-1 text-[0.72rem] font-medium text-[#5a6b62] transition hover:border-[#006751] hover:bg-[#EDF3F0] hover:text-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#5ecba1] dark:hover:bg-[#1f1f1f] dark:hover:text-[#5ecba1]" onClick={hint.onClick}>
                       {hint.label}
                     </button>
                   ))}
@@ -332,21 +337,21 @@ export default function Catalog() {
         )}
         {filtered.length === 0 ? (
           <section className="mx-auto flex max-w-[440px] flex-col items-center gap-2 px-4 py-16 text-center">
-            <svg className="mb-1 h-12 w-12 text-[#ccc] dark:text-[#64748B]" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <svg className="mb-1 h-12 w-12 text-[#ccc] dark:text-[#66706b]" viewBox="0 0 48 48" fill="none" aria-hidden="true">
               <circle cx="22" cy="22" r="14" stroke="currentColor" strokeWidth="2.5" />
               <path d="M33 33l9 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
               <path d="M16 22h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
-            <h2 className="text-[1.1rem] font-bold tracking-[-0.01em] text-[#1C2B24] dark:text-[#F1F5F9]">No results found</h2>
-            <p className="text-[0.84rem] leading-[1.6] text-[#5a6b62] dark:text-[#94A3B8]">We couldn&apos;t find anything matching your search. Here are a few suggestions:</p>
+            <h2 className="text-[1.1rem] font-bold tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">No results found</h2>
+            <p className="text-[0.84rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">We couldn&apos;t find anything matching your search. Here are a few suggestions:</p>
             <ul className="mt-2 space-y-2 text-left">
               {['Check the spelling of your search terms', 'Try broader keywords or alternative subject headings', 'Remove one or more filters to widen your search', 'Use the advanced search to query by title, author, or subject separately'].map((tip) => (
-                <li key={tip} className="relative pl-4 text-[0.78rem] text-[#5a6b62] before:absolute before:left-0 before:top-[0.45rem] before:h-1 before:w-1 before:rounded-full before:bg-[#d0ddd8] dark:text-[#94A3B8] dark:before:bg-[#334155]">
+                <li key={tip} className="relative pl-4 text-[0.78rem] text-[#5a6b62] before:absolute before:left-0 before:top-[0.45rem] before:h-1 before:w-1 before:rounded-full before:bg-[#d0ddd8] dark:text-[#8c9691] dark:before:bg-[#333333]">
                   {tip}
                 </li>
               ))}
             </ul>
-            <button className="mt-3 rounded-md bg-[#006751] px-5 py-2 text-[0.8rem] font-semibold text-white shadow-[0_1px_3px_rgba(0,103,81,0.3)] transition hover:bg-[#005040] dark:bg-[#2DD4A8] dark:text-[#0F172A] dark:hover:bg-[#14B88A]" onClick={clearAll}>
+            <button className="mt-3 rounded-md bg-[#1a6644] px-5 py-2 text-[0.8rem] font-semibold text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]" onClick={clearAll}>
               Clear all and start over
             </button>
           </section>
@@ -363,25 +368,25 @@ export default function Catalog() {
                     <img src={book.cover} alt={`Cover of ${book.title}`} className="h-full w-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   </div>
                   <div className="flex flex-col gap-1 pt-1">
-                    <h2 className="line-clamp-2 text-[0.82rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#F1F5F9]">
-                      <a href={`/books/${book.id}`} className="transition hover:text-[#006751] dark:hover:text-[#2DD4A8]" onClick={(e) => { e.preventDefault(); navigate(`/books/${book.id}`) }}>
+                    <h2 className="line-clamp-2 text-[0.82rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
+                      <a href={`/books/${book.id}`} className="transition hover:text-[#006751] dark:hover:text-[#5ecba1]" onClick={(e) => { e.preventDefault(); navigate(`/books/${book.id}`) }}>
                         {book.title}
                       </a>
                     </h2>
-                    <p className="text-[0.72rem] text-[#5a6b62] dark:text-[#94A3B8]">{book.author}</p>
-                    <p className="text-[0.64rem] tracking-[0.01em] text-[rgba(28,43,36,0.38)] dark:text-[#64748B]">{book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</p>
+                    <p className="text-[0.72rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
+                    <p className="text-[0.64rem] tracking-[0.01em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</p>
                     <div className="mt-1 flex flex-wrap gap-1">
                       <span className={tagClass('resource')}>{bookType}</span>
                       <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
                     </div>
-                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#334155]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#2DD4A8] dark:hover:text-[#14B88A]" onClick={() => setEditingBook(book)}>Edit</button></div>}
+                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
                   </div>
                 </li>
               )
             })}
           </ul>
         ) : (
-          <ul className="overflow-hidden rounded-[10px] bg-[#d0ddd8] dark:bg-[#334155]">
+          <ul className="overflow-hidden rounded-[10px] bg-[#d0ddd8] dark:bg-[#333333]">
             {filtered.map((book, index) => {
               const bookAvail = getAvailability(book.id)
               const { total, available } = getCopies(book.id)
@@ -389,27 +394,27 @@ export default function Catalog() {
               const bookType = getResourceType(book.id)
               const callNum = getCallNumber(book)
               return (
-                <li key={book.id} className={`flex gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#1E293B] dark:hover:bg-[#243447] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#334155]' : ''}`}>
+                <li key={book.id} className={`flex gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#1f1f1f] dark:hover:bg-[#242424] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#333333]' : ''}`}>
                   <img src={book.cover} alt={`Cover of ${book.title}`} className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#F1F5F9]">
-                      <a href={`/books/${book.id}`} className="transition hover:text-[#006751] dark:hover:text-[#2DD4A8]" onClick={(e) => { e.preventDefault(); navigate(`/books/${book.id}`) }}>
+                    <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
+                      <a href={`/books/${book.id}`} className="transition hover:text-[#006751] dark:hover:text-[#5ecba1]" onClick={(e) => { e.preventDefault(); navigate(`/books/${book.id}`) }}>
                         {book.title}
                       </a>
                     </h2>
-                    <p className="text-[0.78rem] text-[#5a6b62] dark:text-[#94A3B8]">{book.author}</p>
-                    <p className="truncate text-[0.7rem] tracking-[0.005em] text-[rgba(28,43,36,0.38)] dark:text-[#64748B]">{book.publisher}, {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {book.pages} pp. - ISBN {book.isbn}</p>
+                    <p className="text-[0.78rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
+                    <p className="truncate text-[0.7rem] tracking-[0.005em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{book.publisher}, {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {book.pages} pp. - ISBN {book.isbn}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       <span className={tagClass('resource')}>{bookType}</span>
                       <span className={tagClass('subject')}>{book.genre}</span>
                       <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
                     </div>
-                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#334155]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#2DD4A8] dark:hover:text-[#14B88A]" onClick={() => setEditingBook(book)}>Edit</button></div>}
+                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
                   </div>
                   <div className="hidden shrink-0 flex-col items-end gap-1 pt-1 text-right md:flex">
-                    <span className="rounded bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:bg-[#0F172A] dark:text-[#94A3B8]">{callNum}</span>
-                    <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#94A3B8]">{bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</span>
-                    <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#64748B]">{available} of {total} available</span>
+                    <span className="rounded bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:bg-[#121212] dark:text-[#8c9691]">{callNum}</span>
+                    <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">{bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</span>
+                    <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{available} of {total} available</span>
                   </div>
                 </li>
               )
@@ -460,29 +465,29 @@ function AdminBookModal({ book, isNew, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 p-6" onClick={onClose}>
-      <div className="max-h-[85vh] w-full max-w-[620px] overflow-y-auto rounded-[14px] bg-white p-8 shadow-[0_24px_60px_rgba(0,0,0,0.22)] dark:bg-[#1E293B]" onClick={(e) => e.stopPropagation()}>
-        <h2 className="mb-5 text-[1.15rem] font-bold text-[#1a1a1a] dark:text-[#F1F5F9]">{isNew ? 'Add New Book' : 'Edit Book'}</h2>
+      <div className="max-h-[85vh] w-full max-w-[620px] overflow-y-auto rounded-[14px] bg-white p-8 shadow-[0_24px_60px_rgba(0,0,0,0.22)] dark:bg-[#1f1f1f]" onClick={(e) => e.stopPropagation()}>
+        <h2 className="mb-5 text-[1.15rem] font-bold text-[#1a1a1a] dark:text-[#f5f7f6]">{isNew ? 'Add New Book' : 'Edit Book'}</h2>
         <form onSubmit={handleSubmit} className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           {fields.map((field) => (
             <label key={field.key} className="flex flex-col gap-1">
-              <span className="text-[0.68rem] font-semibold uppercase tracking-[0.06em] text-[#888] dark:text-[#94A3B8]">{field.label}</span>
+              <span className="text-[0.68rem] font-semibold uppercase tracking-[0.06em] text-[#888] dark:text-[#8c9691]">{field.label}</span>
               <input type={field.type} className={modalInputClass} value={form[field.key]} onChange={(e) => set(field.key, e.target.value)} required={field.required} />
             </label>
           ))}
           <label className="flex flex-col gap-1 sm:col-span-2">
-            <span className="text-[0.68rem] font-semibold uppercase tracking-[0.06em] text-[#888] dark:text-[#94A3B8]">Language</span>
+            <span className="text-[0.68rem] font-semibold uppercase tracking-[0.06em] text-[#888] dark:text-[#8c9691]">Language</span>
             <select className={modalInputClass} value={form.language} onChange={(e) => set('language', e.target.value)}>
               <option value="EN">English</option>
               <option value="FR">French</option>
             </select>
           </label>
           <label className="flex flex-col gap-1 sm:col-span-2">
-            <span className="text-[0.68rem] font-semibold uppercase tracking-[0.06em] text-[#888] dark:text-[#94A3B8]">Description</span>
+            <span className="text-[0.68rem] font-semibold uppercase tracking-[0.06em] text-[#888] dark:text-[#8c9691]">Description</span>
             <textarea className={`${modalInputClass} min-h-20 resize-y`} value={form.description} onChange={(e) => set('description', e.target.value)} rows={4} />
           </label>
-          <div className="mt-2 flex justify-end gap-2 border-t border-[#eee] pt-4 sm:col-span-2 dark:border-[#334155]">
-            <button type="button" className="rounded-md border border-[#ddd] bg-[#f5f5f5] px-4 py-2 text-[0.8rem] font-medium text-[#555] transition hover:bg-[#eee] dark:border-[#334155] dark:bg-[#0F172A] dark:text-[#94A3B8] dark:hover:bg-[#243447]" onClick={onClose}>Cancel</button>
-            <button type="submit" className="rounded-md bg-[#006751] px-5 py-2 text-[0.8rem] font-semibold text-white transition hover:bg-[#1a4a3a] dark:bg-[#2DD4A8] dark:text-[#0F172A] dark:hover:bg-[#14B88A]">{isNew ? 'Add Book' : 'Save Changes'}</button>
+          <div className="mt-2 flex justify-end gap-2 border-t border-[#eee] pt-4 sm:col-span-2 dark:border-[#333333]">
+            <button type="button" className="rounded-md border border-[#ddd] bg-[#f5f5f5] px-4 py-2 text-[0.8rem] font-medium text-[#555] transition hover:bg-[#eee] dark:border-[#333333] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:bg-[#242424]" onClick={onClose}>Cancel</button>
+            <button type="submit" className="rounded-md bg-[#1a6644] px-5 py-2 text-[0.8rem] font-semibold text-white transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]">{isNew ? 'Add Book' : 'Save Changes'}</button>
           </div>
         </form>
       </div>

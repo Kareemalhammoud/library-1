@@ -13,7 +13,6 @@ function Register() {
 	const [confirmPassword, setConfirmPassword] = useState("")
 
 	const [showPassword, setShowPassword] = useState(false)
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 	const [errorMessage, setErrorMessage] = useState("")
 
 	const handleSubmit = (e) => {
@@ -103,13 +102,11 @@ function Register() {
 
 					<FormInput
 						label="Confirm Password"
+						type={showPassword ? "text" : "password"}
 						id="confirmPassword"
 						value={confirmPassword}
 						onChange={(e) => setConfirmPassword(e.target.value)}
 						placeholder="Confirm password"
-						showToggle={true}
-						showPassword={showConfirmPassword}
-						setShowPassword={setShowConfirmPassword}
 					/>
 
 					{errorMessage && (
@@ -120,7 +117,7 @@ function Register() {
 
 					<button
 						type="submit"
-						className="w-full bg-[#006751] text-white py-3 rounded-md font-semibold text-base transition hover:bg-[#005040]"
+						className="w-full bg-[#1a6644] text-white py-3 rounded-md font-semibold text-base transition hover:bg-[#14533a]"
 					>
 						Register
 					</button>
@@ -132,7 +129,7 @@ function Register() {
 					<Link
 						to="/login"
 						state={location.state}
-						className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-white"
+						className="text-[#006751] underline hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white"
 					>
 						Login
 					</Link>

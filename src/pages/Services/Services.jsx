@@ -131,40 +131,40 @@ const Icon = ({ name, className = "" }) => {
 
 const CARD_VARIANTS = {
   dark: {
-    card: "bg-[#1a3a2e]",
-    iconWrap: "bg-white/10",
+    card: "border border-[rgba(255,255,255,0.05)] bg-[linear-gradient(160deg,#173f31_0%,#1f5a45_100%)]",
+    iconWrap: "bg-white/8",
     iconColor: "text-[#5ecba1]",
     tag: "text-[#5ecba1]",
     title: "text-white",
-    desc: "text-white/55",
+    desc: "text-white/65",
     link: "text-[#5ecba1]",
   },
   sage: {
     card: "bg-[#d6ede0] dark:bg-[#242424]",
     iconWrap: "bg-[#b4ddc6] dark:bg-[#2e2e2e]",
-    iconColor: "text-[#1a5c3a] dark:text-[#00AB8E]",
-    tag: "text-[#1a6644] dark:text-[#00AB8E]",
+    iconColor: "text-[#1a5c3a] dark:text-[#5ecba1]",
+    tag: "text-[#1a6644] dark:text-[#5ecba1]",
     title: "text-[#102a1c] dark:text-white",
     desc: "text-[#3d6650] dark:text-[#888]",
-    link: "text-[#1a6644] dark:text-[#00AB8E]",
+    link: "text-[#1a6644] dark:text-[#5ecba1]",
   },
   mid: {
-    card: "bg-[#2d6a4f]",
+    card: "border border-[rgba(255,255,255,0.05)] bg-[linear-gradient(160deg,#214c3c_0%,#2d6a4f_100%)]",
     iconWrap: "bg-white/10",
     iconColor: "text-[#b7e4c7]",
-    tag: "text-[#95d5b2]",
+    tag: "text-[#5ecba1]",
     title: "text-white",
     desc: "text-white/60",
-    link: "text-[#95d5b2]",
+    link: "text-[#5ecba1]",
   },
   mint: {
     card: "bg-[#eaf5ee] dark:bg-[#242424]",
     iconWrap: "bg-[#c7e8d4] dark:bg-[#2e2e2e]",
-    iconColor: "text-[#1a5c3a] dark:text-[#00AB8E]",
-    tag: "text-[#1a6644] dark:text-[#00AB8E]",
+    iconColor: "text-[#1a5c3a] dark:text-[#5ecba1]",
+    tag: "text-[#1a6644] dark:text-[#5ecba1]",
     title: "text-[#102a1c] dark:text-white",
     desc: "text-[#3d6650] dark:text-[#888]",
-    link: "text-[#1a6644] dark:text-[#00AB8E]",
+    link: "text-[#1a6644] dark:text-[#5ecba1]",
   },
 };
 
@@ -251,15 +251,15 @@ const RoomBookingForm = () => {
     return (
       <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col items-center justify-center gap-4 min-h-[340px]">
         <div className="w-14 h-14 rounded-full bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center">
-          <svg className="w-7 h-7 text-[#1a6644] dark:text-[#00AB8E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <svg className="w-7 h-7 text-[#1a6644] dark:text-[#5ecba1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
         <p className="text-[#162a1f] dark:text-white font-bold text-base">Reservation confirmed!</p>
         <p className="text-[#5e7a68] dark:text-[#888] text-sm text-center leading-relaxed">
-          Room <span className="font-semibold text-[#1a3a2e] dark:text-white">{ROOM_OPTIONS.find(r => r.value === form.room)?.label}</span> has been reserved for {form.date} at {form.time}.
+          Room <span className="font-semibold text-[#5ecba1] dark:text-white">{ROOM_OPTIONS.find(r => r.value === form.room)?.label}</span> has been reserved for {form.date} at {form.time}.
         </p>
-        <button onClick={resetForm} className="mt-2 text-sm text-[#1a6644] dark:text-[#00AB8E] font-medium underline underline-offset-2">
+        <button onClick={resetForm} className="mt-2 text-sm text-[#1a6644] dark:text-[#5ecba1] font-medium underline underline-offset-2">
           Make another reservation
         </button>
       </div>
@@ -282,7 +282,7 @@ const RoomBookingForm = () => {
               onClick={() => switchCampus(c)}
               className={`flex-1 h-8 rounded-lg text-[12px] font-semibold transition-colors duration-150 border ${
                 campus === c
-                  ? "bg-[#1a3a2e] text-white border-[#1a3a2e]"
+                  ? "bg-[#1a6644] text-white border-[#1a6644]"
                   : "bg-[#f7fbf8] dark:bg-[#2e2e2e] text-[#3d6650] dark:text-[#888] border-[#c5ddd0] dark:border-[#333] hover:border-[#1a6644]"
               }`}
             >
@@ -356,7 +356,7 @@ const RoomBookingForm = () => {
 
       <button
         onClick={handleSubmit}
-        className="w-full h-9 bg-[#1a3a2e] hover:bg-[#2d6a4f] text-white rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 transition-colors duration-150"
+        className="w-full h-9 bg-[#1a6644] hover:bg-[#14533a] text-white rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 transition-colors duration-150"
       >
         <Icon name="calendar" className="w-3.5 h-3.5" />
         Confirm reservation
@@ -384,15 +384,15 @@ const LibrarianChat = () => {
     <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col">
       <div className="flex items-center gap-3 mb-4">
         <div className="relative w-9 h-9 flex-shrink-0">
-          <div className="w-9 h-9 rounded-full bg-[#1a3a2e] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-[#1a6644] flex items-center justify-center">
             <Icon name="user" className="w-4 h-4 text-white" />
           </div>
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white dark:border-[#242424]" />
         </div>
         <div>
           <p className="text-[#162a1f] dark:text-white text-[14px] font-bold">Ask a Librarian</p>
-          <p className="text-green-500 text-[11px] flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+          <p className="text-[#1a6644] text-[11px] flex items-center gap-1 dark:text-[#5ecba1]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1a6644] inline-block dark:bg-[#5ecba1]" />
             Online now
           </p>
         </div>
@@ -405,7 +405,7 @@ const LibrarianChat = () => {
             className={`text-[12px] leading-relaxed px-3 py-2 rounded-xl max-w-[88%] ${
               m.from === "lib"
                 ? "bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#162a1f] dark:text-white self-start rounded-tl-sm"
-                : "bg-[#2d6a4f] text-white self-end rounded-tr-sm"
+                : "bg-[#1a6644] text-white self-end rounded-tr-sm"
             }`}
           >
             {m.text}
@@ -424,7 +424,7 @@ const LibrarianChat = () => {
         />
         <button
           onClick={send}
-          className="w-9 h-9 bg-[#2d6a4f] hover:bg-[#1a3a2e] rounded-lg flex items-center justify-center transition-colors duration-150 flex-shrink-0"
+          className="w-9 h-9 bg-[#1a6644] hover:bg-[#14533a] rounded-lg flex items-center justify-center transition-colors duration-150 flex-shrink-0"
         >
           <Icon name="send" className="w-3.5 h-3.5 text-white" />
         </button>
@@ -437,22 +437,22 @@ const LibrarianChat = () => {
 
 const ServicesPage = () => {
   return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
+    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#121212]">
 
-      <section className="bg-[#1a3a2e] px-8 md:px-16 py-12 relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#5ecba1]/5 pointer-events-none" />
+      <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 py-12 md:px-16">
+        <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-white/5 pointer-events-none" />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Riyad Nassar Library
         </p>
         <h1 className="text-white text-4xl font-bold leading-tight mb-2">Library Services</h1>
-        <p className="text-white/55 text-sm max-w-md leading-relaxed">
+        <p className="text-white/65 text-sm max-w-md leading-relaxed">
           Borrow materials, reserve study spaces, get writing support, and print — everything you need on campus.
         </p>
       </section>
 
       <div className="px-8 md:px-16 py-10">
 
-        <p className="text-[#1a6644] dark:text-[#00AB8E] text-[10px] font-semibold tracking-widest uppercase mb-1">
+        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
           What we offer
         </p>
         <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Our Services</h2>
@@ -468,7 +468,7 @@ const ServicesPage = () => {
 
         <hr className="border-[#cfe2d6] dark:border-[#333] mb-10" />
 
-        <p className="text-[#1a6644] dark:text-[#00AB8E] text-[10px] font-semibold tracking-widest uppercase mb-1">
+        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
           Interactive
         </p>
         <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Book a Room & Ask a Librarian</h2>

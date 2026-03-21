@@ -114,7 +114,7 @@ export default function ListView() {
       "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
   }
   const selectClass =
-    'appearance-none whitespace-nowrap rounded-[8px] border border-[#e0ddd8] bg-[#f8f7f4] bg-no-repeat py-[0.55rem] pl-3 pr-8 text-[0.82rem] text-[#333] outline-none transition-colors [background-position:right_0.6rem_center] focus:border-[#1a1a1a] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#00AB8E]'
+    'appearance-none whitespace-nowrap rounded-[8px] border border-[#e0ddd8] bg-[#f8f7f4] bg-no-repeat py-[0.55rem] pl-3 pr-8 text-[0.82rem] text-[#333] outline-none transition-colors [background-position:right_0.6rem_center] focus:border-[#1a1a1a] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#5ecba1]'
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] pb-20 dark:bg-[#1a1a1a]">
@@ -159,7 +159,7 @@ export default function ListView() {
               <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
             <input
-              className="box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] py-[0.55rem] pl-9 pr-3 text-[0.85rem] text-[#1a1a1a] outline-none transition-colors focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#00AB8E] dark:focus:bg-[#2e2e2e]"
+              className="box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] py-[0.55rem] pl-9 pr-3 text-[0.85rem] text-[#1a1a1a] outline-none transition-colors focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#5ecba1] dark:focus:bg-[#2e2e2e]"
               type="search"
               placeholder="Search title or author..."
               value={search}
@@ -262,7 +262,7 @@ export default function ListView() {
               </span>
             ))}
             <button
-              className="cursor-pointer rounded-full border border-[#1a4a3a] bg-transparent px-3 py-[0.3rem] text-[0.75rem] text-[#1a4a3a] transition-all hover:border-[#1a1a1a] hover:text-[#1a1a1a] dark:border-[#00AB8E] dark:text-[#00AB8E] dark:hover:border-white dark:hover:text-white"
+              className="cursor-pointer rounded-full border border-[#1a4a3a] bg-transparent px-3 py-[0.3rem] text-[0.75rem] text-[#1a4a3a] transition-all hover:border-[#1a1a1a] hover:text-[#1a1a1a] dark:border-[#5ecba1] dark:text-[#5ecba1] dark:hover:border-white dark:hover:text-white"
               onClick={clearAll}
             >
               Clear all
@@ -364,7 +364,7 @@ export default function ListView() {
             {totalPages > 1 && (
               <nav className="mt-12 flex items-center justify-center gap-4" aria-label="Pagination">
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#00AB8E] dark:hover:enabled:text-[#00AB8E]"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]"
                   onClick={() => {
                     setPage((p) => p - 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -378,7 +378,7 @@ export default function ListView() {
                   {page} / {totalPages}
                 </span>
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#00AB8E] dark:hover:enabled:text-[#00AB8E]"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]"
                   onClick={() => {
                     setPage((p) => p + 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })

@@ -16,10 +16,10 @@ function getLibraryStatus() {
 }
 
 const sectionTitleBar =
-  'before:mb-[1.15rem] before:block before:h-[3px] before:w-10 before:rounded-full before:bg-gradient-to-r before:from-[#006751] before:to-[rgba(0,103,81,0.35)] dark:before:from-[#2DD4A8] dark:before:to-[rgba(45,212,168,0.25)]'
+  'before:mb-[1.15rem] before:block before:h-[3px] before:w-10 before:rounded-full before:bg-gradient-to-r before:from-[#006751] before:to-[rgba(0,103,81,0.35)] dark:before:from-[#5ecba1] dark:before:to-[rgba(94,203,161,0.25)]'
 
 const iconWrapClass =
-  'mb-[1.15rem] flex h-[42px] w-[42px] items-center justify-center rounded-[10px] border border-[rgba(0,103,81,0.12)] bg-[rgba(0,103,81,0.07)] text-[#006751] dark:border-[rgba(45,212,168,0.16)] dark:bg-[rgba(45,212,168,0.08)] dark:text-[#2DD4A8]'
+  'mb-[1.15rem] flex h-[42px] w-[42px] items-center justify-center rounded-[10px] border border-[rgba(0,103,81,0.12)] bg-[rgba(0,103,81,0.07)] text-[#006751] dark:border-[rgba(94,203,161,0.16)] dark:bg-[rgba(94,203,161,0.08)] dark:text-[#5ecba1]'
 
 const spaceCards = [
   {
@@ -102,20 +102,20 @@ function Visit() {
   const status = getLibraryStatus()
 
   return (
-    <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#0F172A] dark:text-[#F1F5F9]">
-      <section className="bg-gradient-to-b from-[rgba(0,103,81,0.04)] to-[rgba(0,103,81,0.015)] px-5 py-9 sm:px-6 md:px-8 md:py-[3.75rem] dark:from-[rgba(45,212,168,0.08)] dark:to-[rgba(45,212,168,0.03)]">
+    <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
+      <section className="px-5 py-7 sm:px-6 md:px-8 md:py-10">
         <div className="mx-auto max-w-[var(--container-max)]">
-          <p className="mb-[0.85rem] text-[0.63rem] font-semibold uppercase tracking-[0.14em] text-[#006751]/70 dark:text-[#2DD4A8]/80">
+          <p className="mb-[0.85rem] text-[0.63rem] font-semibold uppercase tracking-[0.14em] text-[#006751]/70 dark:text-[#5ecba1]/80">
             Riyad Nassar Library
           </p>
-          <h1 className={`max-w-3xl text-[clamp(1.65rem,3.4vw,2.25rem)] font-extrabold leading-[1.1] tracking-[-0.032em] text-[#1C2B24] dark:text-[#F1F5F9] ${sectionTitleBar}`}>
+          <h1 className={`max-w-3xl text-[clamp(1.65rem,3.4vw,2.25rem)] font-extrabold leading-[1.1] tracking-[-0.032em] text-[#1C2B24] dark:text-[#f5f7f6] ${sectionTitleBar}`}>
             Visit Riyad Nassar Library
           </h1>
-          <p className="max-w-[52ch] text-[0.9rem] leading-[1.72] text-[#595959] dark:text-[#94A3B8]">
+          <p className="max-w-[52ch] text-[0.9rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">
             Plan your visit, find our locations on the Beirut and Byblos campuses, and explore the spaces and resources available to you.
           </p>
 
-          <div className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-full border border-[#d0ddd8] bg-white px-4 py-2 text-[0.74rem] font-medium tracking-[0.02em] shadow-sm dark:border-[#334155] dark:bg-[#1E293B]">
+          <div className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-full border border-[#d0ddd8] bg-white px-4 py-2 text-[0.74rem] font-medium tracking-[0.02em] shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f]">
             <span
               className={`h-[7px] w-[7px] rounded-full ${
                 status.open
@@ -123,11 +123,11 @@ function Visit() {
                   : 'bg-[#c0392b] shadow-[0_0_0_2.5px_rgba(192,57,43,0.15)]'
               }`}
             />
-            <span className="font-bold text-[#1C2B24] dark:text-[#F1F5F9]">{status.open ? 'Open Now' : 'Closed'}</span>
+            <span className="font-bold text-[#1C2B24] dark:text-[#f5f7f6]">{status.open ? 'Open Now' : 'Closed'}</span>
             {status.message && (
               <>
-                <span className="text-[0.65rem] text-[#d0ddd8] dark:text-[#334155]">/</span>
-                <span className="text-[#5a6b62] dark:text-[#94A3B8]">{status.message}</span>
+                <span className="text-[0.65rem] text-[#d0ddd8] dark:text-[#333333]">/</span>
+                <span className="text-[#5a6b62] dark:text-[#8c9691]">{status.message}</span>
               </>
             )}
           </div>
@@ -142,9 +142,9 @@ function Visit() {
         </div>
       </section>
 
-      <section className="bg-[rgba(0,103,81,0.035)] px-5 py-6 sm:px-6 md:px-8 md:py-12 dark:bg-[rgba(45,212,168,0.06)]">
+      <section className="px-5 py-5 sm:px-6 md:px-8 md:py-8">
         <div className="mx-auto max-w-[var(--container-max)]">
-          <div className="grid overflow-hidden rounded-[14px] bg-[#d0ddd8] shadow-[0_1px_0_rgba(255,255,255,0.65)_inset,0_4px_20px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)] sm:grid-cols-2 lg:grid-cols-4 dark:bg-[#334155]">
+          <div className="grid overflow-hidden rounded-[14px] bg-[#d0ddd8] shadow-[0_1px_0_rgba(255,255,255,0.65)_inset,0_4px_20px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)] sm:grid-cols-2 lg:grid-cols-4 dark:bg-[#333333]">
             {[
               {
                 title: 'Hours',
@@ -196,37 +196,37 @@ function Visit() {
                 ),
               },
             ].map((item) => (
-              <div key={item.title} className="flex flex-col bg-white px-5 py-6 sm:px-6 sm:py-[1.85rem] dark:bg-[#1E293B]">
-                <svg className="mb-4 h-[22px] w-[22px] text-[#006751] dark:text-[#2DD4A8]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <div key={item.title} className="flex flex-col bg-white px-5 py-6 sm:px-6 sm:py-[1.85rem] dark:bg-[#1f1f1f]">
+                <svg className="mb-4 h-[22px] w-[22px] text-[#006751] dark:text-[#5ecba1]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   {item.icon}
                 </svg>
-                <h3 className="mb-3 text-[0.6rem] font-bold uppercase tracking-[0.14em] text-[#006751] dark:text-[#2DD4A8]">
+                <h3 className="mb-3 text-[0.6rem] font-bold uppercase tracking-[0.14em] text-[#006751] dark:text-[#5ecba1]">
                   {item.title}
                 </h3>
-                {item.value && <p className="text-[0.88rem] font-bold leading-[1.4] text-[#1C2B24] dark:text-[#F1F5F9]">{item.value}</p>}
-                {item.detail && <p className="text-[0.8rem] leading-[1.6] text-[#5a6b62] dark:text-[#94A3B8]">{item.detail}</p>}
-                {item.extra && <p className="mt-2 text-[0.88rem] font-bold leading-[1.4] text-[#1C2B24] dark:text-[#F1F5F9]">{item.extra}</p>}
-                {item.extraDetail && <p className="text-[0.8rem] leading-[1.6] text-[#5a6b62] dark:text-[#94A3B8]">{item.extraDetail}</p>}
+                {item.value && <p className="text-[0.88rem] font-bold leading-[1.4] text-[#1C2B24] dark:text-[#f5f7f6]">{item.value}</p>}
+                {item.detail && <p className="text-[0.8rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">{item.detail}</p>}
+                {item.extra && <p className="mt-2 text-[0.88rem] font-bold leading-[1.4] text-[#1C2B24] dark:text-[#f5f7f6]">{item.extra}</p>}
+                {item.extraDetail && <p className="text-[0.8rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">{item.extraDetail}</p>}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-[rgba(200,190,170,0.06)] px-5 py-12 sm:px-6 md:px-8 md:py-[4.5rem] dark:bg-[rgba(30,41,59,0.55)]">
+      <section className="px-5 py-8 sm:px-6 md:px-8 md:py-10">
         <div className="mx-auto max-w-[var(--container-max)]">
           <div className="mb-10">
-            <h2 className={`text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] text-[#1C2B24] dark:text-[#F1F5F9] ${sectionTitleBar}`}>
+            <h2 className={`text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] text-[#1C2B24] dark:text-[#f5f7f6] ${sectionTitleBar}`}>
               Location & Directions
             </h2>
-            <p className="max-w-[52ch] text-[0.9rem] leading-[1.72] text-[#595959] dark:text-[#94A3B8]">
+            <p className="max-w-[52ch] text-[0.9rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">
               The Riyad Nassar Library serves both LAU campuses. Find the location nearest to you and plan your route.
             </p>
           </div>
 
           <div className="mx-auto grid max-w-[640px] gap-6">
-            <div className="overflow-hidden rounded-[14px] border border-[#d0ddd8] bg-white shadow-sm transition-shadow hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_8px_24px_rgba(28,43,36,0.08)] dark:border-[#334155] dark:bg-[#1E293B]">
-              <div className="relative aspect-[16/10] border-b border-[#d0ddd8] bg-[#EDF3F0] sm:aspect-video dark:border-[#334155] dark:bg-[#243447]">
+            <div className="overflow-hidden rounded-[14px] border border-[#d0ddd8] bg-white shadow-sm transition-shadow hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_8px_24px_rgba(28,43,36,0.08)] dark:border-[#333333] dark:bg-[#1f1f1f]">
+              <div className="relative aspect-[16/10] border-b border-[#d0ddd8] bg-[#EDF3F0] sm:aspect-video dark:border-[#333333] dark:bg-[#242424]">
                 <iframe
                   className="absolute inset-0 h-full w-full border-0"
                   title="LAU Beirut Campus Map"
@@ -238,40 +238,40 @@ function Visit() {
               </div>
 
               <div className="flex flex-col gap-4 px-5 py-6 sm:px-7 sm:py-7">
-                <h3 className="text-[1.05rem] font-extrabold tracking-[-0.02em] text-[#1C2B24] dark:text-[#F1F5F9]">Beirut Campus</h3>
+                <h3 className="text-[1.05rem] font-extrabold tracking-[-0.02em] text-[#1C2B24] dark:text-[#f5f7f6]">Beirut Campus</h3>
 
                 <div className="flex items-start gap-3">
-                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#2DD4A8]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#5ecba1]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M12 2C8.686 2 6 4.686 6 8c0 4.418 6 12 6 12s6-7.582 6-12c0-3.314-2.686-6-6-6Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
                     <circle cx="12" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
                   <div>
-                    <p className="text-[0.86rem] font-semibold leading-[1.45] text-[#1C2B24] dark:text-[#F1F5F9]">Mme. Curie Street, Koraytem</p>
-                    <p className="text-[0.8rem] leading-[1.45] text-[#5a6b62] dark:text-[#94A3B8]">Beirut, Lebanon</p>
+                    <p className="text-[0.86rem] font-semibold leading-[1.45] text-[#1C2B24] dark:text-[#f5f7f6]">Mme. Curie Street, Koraytem</p>
+                    <p className="text-[0.8rem] leading-[1.45] text-[#5a6b62] dark:text-[#8c9691]">Beirut, Lebanon</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#2DD4A8]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#5ecba1]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
                     <path d="M3 9h18M9 3v18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
-                  <p className="text-[0.8rem] leading-[1.55] text-[#5a6b62] dark:text-[#94A3B8]">Underground parking beneath the main campus building</p>
+                  <p className="text-[0.8rem] leading-[1.55] text-[#5a6b62] dark:text-[#8c9691]">Underground parking beneath the main campus building</p>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#2DD4A8]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <svg className="mt-[2px] h-4 w-4 shrink-0 text-[#006751]/55 dark:text-[#5ecba1]/75" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
                     <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
-                  <p className="text-[0.8rem] leading-[1.55] text-[#5a6b62] dark:text-[#94A3B8]">Near Koraytem Mosque, off Clemenceau Street</p>
+                  <p className="text-[0.8rem] leading-[1.55] text-[#5a6b62] dark:text-[#8c9691]">Near Koraytem Mosque, off Clemenceau Street</p>
                 </div>
 
                 <a
                   href="https://www.google.com/maps/dir//Lebanese+American+University+Beirut+Campus,+Koraytem,+Beirut,+Lebanon"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-md border border-transparent bg-[#006751] px-[1.15rem] py-[0.6rem] text-[0.8rem] font-semibold tracking-[0.03em] text-white shadow-[0_1px_3px_rgba(0,103,81,0.3)] transition hover:bg-[#005040] hover:shadow-[0_2px_8px_rgba(0,103,81,0.3)] dark:bg-[#2DD4A8] dark:text-[#0F172A] dark:hover:bg-[#14B88A] max-[480px]:w-full"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-md border border-transparent bg-[#1a6644] px-[1.15rem] py-[0.6rem] text-[0.8rem] font-semibold tracking-[0.03em] text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a] hover:shadow-[0_2px_8px_rgba(26,102,68,0.3)] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a] max-[480px]:w-full"
                 >
                   <svg className="h-[14px] w-[14px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M12 2C8.686 2 6 4.686 6 8c0 4.418 6 12 6 12s6-7.582 6-12c0-3.314-2.686-6-6-6Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
@@ -281,7 +281,7 @@ function Visit() {
                 </a>
               </div>
 
-              <div className="border-t border-black/5 px-5 py-3 text-[0.67rem] leading-[1.4] tracking-[0.01em] text-[#5a6b62]/50 sm:px-7 dark:border-white/5 dark:text-[#94A3B8]/65">
+              <div className="border-t border-black/5 px-5 py-3 text-[0.67rem] leading-[1.4] tracking-[0.01em] text-[#5a6b62]/50 sm:px-7 dark:border-white/5 dark:text-[#8c9691]/65">
                 ID required for entry - Bags may be checked
               </div>
             </div>
@@ -289,13 +289,13 @@ function Visit() {
         </div>
       </section>
 
-      <section className="bg-[rgba(0,103,81,0.03)] px-5 py-12 sm:px-6 md:px-8 md:py-[4.5rem] dark:bg-[rgba(15,23,42,0.45)]">
+      <section className="px-5 py-8 sm:px-6 md:px-8 md:py-10">
         <div className="mx-auto max-w-[var(--container-max)]">
           <div className="mb-10">
-            <h2 className={`text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] text-[#1C2B24] dark:text-[#F1F5F9] ${sectionTitleBar}`}>
+            <h2 className={`text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] text-[#1C2B24] dark:text-[#f5f7f6] ${sectionTitleBar}`}>
               Library Spaces
             </h2>
-            <p className="max-w-[52ch] text-[0.9rem] leading-[1.72] text-[#595959] dark:text-[#94A3B8]">
+            <p className="max-w-[52ch] text-[0.9rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">
               Whether you need silence to focus or a room to collaborate, the library offers a variety of spaces designed for every kind of work.
             </p>
           </div>
@@ -304,16 +304,16 @@ function Visit() {
             {spaceCards.map((space) => (
               <div
                 key={space.title}
-                className="flex flex-col rounded-[14px] border border-[#d0ddd8] bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-[3px] hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_12px_32px_rgba(28,43,36,0.09)] dark:border-[#334155] dark:bg-[#1E293B] max-[768px]:hover:translate-y-0"
+                className="flex flex-col rounded-[14px] border border-[#d0ddd8] bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-[3px] hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_12px_32px_rgba(28,43,36,0.09)] dark:border-[#333333] dark:bg-[#1f1f1f] max-[768px]:hover:translate-y-0"
               >
                 <div className={iconWrapClass}>
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     {space.icon}
                   </svg>
                 </div>
-                <h3 className="mb-2 text-[0.94rem] font-bold tracking-[-0.01em] text-[#1C2B24] dark:text-[#F1F5F9]">{space.title}</h3>
-                <p className="flex-1 text-[0.82rem] leading-[1.7] text-[#5a6b62] dark:text-[#94A3B8]">{space.body}</p>
-                <p className="mt-[0.85rem] border-t border-[rgba(0,103,81,0.08)] pt-3 text-[0.7rem] font-semibold tracking-[0.02em] text-[#006751]/60 dark:border-[rgba(45,212,168,0.12)] dark:text-[#2DD4A8]/75">
+                <h3 className="mb-2 text-[0.94rem] font-bold tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">{space.title}</h3>
+                <p className="flex-1 text-[0.82rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">{space.body}</p>
+                <p className="mt-[0.85rem] border-t border-[rgba(0,103,81,0.08)] pt-3 text-[0.7rem] font-semibold tracking-[0.02em] text-[#006751]/60 dark:border-[rgba(94,203,161,0.12)] dark:text-[#5ecba1]/75">
                   {space.note}
                 </p>
               </div>
@@ -322,18 +322,18 @@ function Visit() {
         </div>
       </section>
 
-      <section className="border-t border-[rgba(0,103,81,0.06)] px-5 py-10 text-center sm:px-6 md:px-8 md:py-[4.5rem] dark:border-[rgba(45,212,168,0.1)]">
-        <div className="mx-auto max-w-[480px]">
-          <h2 className="mb-[0.65rem] text-[clamp(1.2rem,2.4vw,1.5rem)] font-extrabold tracking-[-0.025em] text-[#1C2B24] dark:text-[#F1F5F9]">
+      <section className="border-t border-[rgba(0,103,81,0.06)] px-5 py-6 text-center sm:px-6 md:px-8 md:py-7 dark:border-[rgba(94,203,161,0.12)]">
+        <div className="mx-auto flex max-w-[460px] flex-col items-center justify-center">
+          <h2 className="mb-2 text-[clamp(1.2rem,2.4vw,1.5rem)] font-extrabold tracking-[-0.025em] text-[#1C2B24] dark:text-[#f5f7f6]">
             Need Help Planning Your Visit?
           </h2>
-          <p className="mb-7 text-[0.86rem] leading-[1.72] text-[#595959] dark:text-[#94A3B8]">
+          <p className="mb-3 max-w-[42ch] text-center text-[0.86rem] leading-[1.68] text-[#595959] dark:text-[#8c9691]">
             Our staff is happy to assist with directions, accessibility needs, or any questions before you arrive.
           </p>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
+          <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:flex-wrap sm:gap-5">
             <a
               href="mailto:libraries@lau.edu.lb"
-              className="inline-flex items-center gap-2 text-[0.84rem] font-semibold text-[#006751] transition-opacity hover:opacity-70 dark:text-[#2DD4A8]"
+              className="inline-flex items-center gap-2 text-[0.84rem] font-semibold text-[#006751] transition-opacity hover:opacity-70 dark:text-[#5ecba1]"
             >
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
@@ -341,10 +341,10 @@ function Visit() {
               </svg>
               libraries@lau.edu.lb
             </a>
-            <span className="hidden h-[1.1rem] w-px bg-[#d0ddd8] sm:block dark:bg-[#334155]" />
+            <span className="hidden h-[1.1rem] w-px bg-[#d0ddd8] sm:block dark:bg-[#333333]" />
             <a
               href="tel:+9611786456"
-              className="inline-flex items-center gap-2 text-[0.84rem] font-semibold text-[#006751] transition-opacity hover:opacity-70 dark:text-[#2DD4A8]"
+              className="inline-flex items-center gap-2 text-[0.84rem] font-semibold text-[#006751] transition-opacity hover:opacity-70 dark:text-[#5ecba1]"
             >
               <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z" stroke="currentColor" strokeWidth="1.5" />
