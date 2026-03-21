@@ -65,9 +65,9 @@ function Register() {
 
 		<div className="flex justify-center items-center min-h-[80vh] mt-8 px-4 font-sans bg-gray-100 dark:bg-[#1a1a1a]">
 
-			<div className="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200 w-full max-w-sm dark:bg-[#222] dark:border-[#2e2e2e]">
+			<div className="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200 w-full max-w-sm dark:bg-[#242424] dark:border-[#333]">
 
-				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-[#f0ede8]">
+				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-white">
 					Register
 				</h1>
 
@@ -127,12 +127,12 @@ function Register() {
 
 				</form>
 
-				<p className="text-center text-sm mt-5 text-gray-500 dark:text-[#999]">
+				<p className="text-center text-sm mt-5 text-gray-500 dark:text-[#888]">
 					Already have an account?{" "}
 					<Link
 						to="/login"
 						state={location.state}
-						className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]"
+						className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-white"
 					>
 						Login
 					</Link>

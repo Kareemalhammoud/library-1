@@ -114,23 +114,23 @@ export default function ListView() {
       "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
   }
   const selectClass =
-    'appearance-none whitespace-nowrap rounded-[8px] border border-[#e0ddd8] bg-[#f8f7f4] bg-no-repeat py-[0.55rem] pl-3 pr-8 text-[0.82rem] text-[#333] outline-none transition-colors [background-position:right_0.6rem_center] focus:border-[#1a1a1a] dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#d0cdc8] dark:focus:border-[#aaa]'
+    'appearance-none whitespace-nowrap rounded-[8px] border border-[#e0ddd8] bg-[#f8f7f4] bg-no-repeat py-[0.55rem] pl-3 pr-8 text-[0.82rem] text-[#333] outline-none transition-colors [background-position:right_0.6rem_center] focus:border-[#1a1a1a] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#00AB8E]'
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] pb-20 dark:bg-[#1a1a1a]">
-      <header className="border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 pb-6 pt-10 dark:border-[#2e2e2e] dark:bg-[#1a1a1a]">
+      <header className="border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 pb-6 pt-10 dark:border-[#333] dark:bg-[#1a1a1a]">
         <div className="mx-auto flex max-w-[1200px] items-end justify-between">
           <div>
-            <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#555]">
+            <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#888]">
               Riyad Nassar Library
             </p>
-            <h1 className="m-0 text-[2rem] font-extrabold tracking-tight text-[#1a1a1a] dark:text-[#f0ede8]">
+            <h1 className="m-0 text-[2rem] font-extrabold tracking-tight text-[#1a1a1a] dark:text-white">
               Browse the Collection
             </h1>
           </div>
           <div className="flex items-center gap-4">
             <p className="m-0 pb-1 text-[0.85rem] text-[#aaa]" aria-live="polite" aria-atomic="true">
-              <span className="text-[1.1rem] font-bold text-[#555] dark:text-[#aaa]">{filtered.length}</span> books
+              <span className="text-[1.1rem] font-bold text-[#555] dark:text-white">{filtered.length}</span> books
             </p>
             <button
               className="whitespace-nowrap rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.6rem] text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
@@ -144,7 +144,7 @@ export default function ListView() {
       </header>
 
       <search
-        className="sticky top-0 z-10 block border-b border-[#e5e2dc] bg-white px-8 py-4 dark:border-[#2e2e2e] dark:bg-[#222]"
+        className="sticky top-0 z-10 block border-b border-[#e5e2dc] bg-white px-8 py-4 dark:border-[#333] dark:bg-[#242424]"
         aria-label="Filter and sort books"
       >
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-3">
@@ -159,7 +159,7 @@ export default function ListView() {
               <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
             <input
-              className="box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] py-[0.55rem] pl-9 pr-3 text-[0.85rem] text-[#1a1a1a] outline-none transition-colors focus:border-[#1a1a1a] focus:bg-white dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#f0ede8] dark:focus:border-[#aaa] dark:focus:bg-[#333]"
+              className="box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] py-[0.55rem] pl-9 pr-3 text-[0.85rem] text-[#1a1a1a] outline-none transition-colors focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#00AB8E] dark:focus:bg-[#2e2e2e]"
               type="search"
               placeholder="Search title or author..."
               value={search}
@@ -169,7 +169,7 @@ export default function ListView() {
           </div>
 
           <label className="flex flex-col gap-[0.2rem]">
-            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#666]">
+            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#888]">
               Genre
             </span>
             <select className={selectClass} style={selectStyle} value={genre} onChange={(e) => setGenre(e.target.value)}>
@@ -183,7 +183,7 @@ export default function ListView() {
           </label>
 
           <label className="flex flex-col gap-[0.2rem]">
-            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#666]">
+            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#888]">
               Language
             </span>
             <select className={selectClass} style={selectStyle} value={language} onChange={(e) => setLanguage(e.target.value)}>
@@ -196,7 +196,7 @@ export default function ListView() {
           </label>
 
           <label className="flex flex-col gap-[0.2rem]">
-            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#666]">
+            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#888]">
               Campus
             </span>
             <select className={selectClass} style={selectStyle} value={campus} onChange={(e) => setCampus(e.target.value)}>
@@ -209,7 +209,7 @@ export default function ListView() {
           </label>
 
           <label className="flex flex-col gap-[0.2rem]">
-            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#666]">
+            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#888]">
               Availability
             </span>
             <select className={selectClass} style={selectStyle} value={avail} onChange={(e) => setAvail(e.target.value)}>
@@ -221,8 +221,8 @@ export default function ListView() {
             </select>
           </label>
 
-          <label className="ml-1 flex flex-col gap-[0.2rem] border-l border-[#e5e2dc] pl-3 dark:border-[#2e2e2e]">
-            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#666]">
+          <label className="ml-1 flex flex-col gap-[0.2rem] border-l border-[#e5e2dc] pl-3 dark:border-[#333]">
+            <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#888]">
               Sort by
             </span>
             <select className={selectClass} style={selectStyle} value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort books">
@@ -262,7 +262,7 @@ export default function ListView() {
               </span>
             ))}
             <button
-              className="cursor-pointer rounded-full border border-[#1a4a3a] bg-transparent px-3 py-[0.3rem] text-[0.75rem] text-[#1a4a3a] transition-all hover:border-[#1a1a1a] hover:text-[#1a1a1a] dark:border-[#2d7a4f] dark:text-[#2d7a4f] dark:hover:border-[#aaa] dark:hover:text-[#aaa]"
+              className="cursor-pointer rounded-full border border-[#1a4a3a] bg-transparent px-3 py-[0.3rem] text-[0.75rem] text-[#1a4a3a] transition-all hover:border-[#1a1a1a] hover:text-[#1a1a1a] dark:border-[#00AB8E] dark:text-[#00AB8E] dark:hover:border-white dark:hover:text-white"
               onClick={clearAll}
             >
               Clear all
@@ -274,8 +274,8 @@ export default function ListView() {
       <main className="mx-auto mt-10 max-w-[1200px] px-8">
         {filtered.length === 0 ? (
           <section className="flex flex-col items-center gap-3 px-8 py-24 text-center" aria-label="No results">
-            <p className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-[#f0ede8]">No books found</p>
-            <p className="m-0 text-[0.9rem] text-[#999] dark:text-[#666]">Try adjusting your filters or search term.</p>
+            <p className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">No books found</p>
+            <p className="m-0 text-[0.9rem] text-[#999] dark:text-[#888]">Try adjusting your filters or search term.</p>
             <button
               className="mt-2 rounded-lg border-0 bg-[#1a4a3a] px-6 py-[0.65rem] text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
               onClick={clearAll}
@@ -295,9 +295,9 @@ export default function ListView() {
               <ul className="m-0 grid list-none gap-x-6 gap-y-8 p-0 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]" aria-label="Loading books">
                 {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                   <li key={i}>
-                    <div className="aspect-[2/3] w-full animate-pulse rounded-[8px] bg-[#ece9e3] dark:bg-[#2a2a2a]" />
-                    <div className="mt-[0.6rem] h-3 animate-pulse rounded-[4px] bg-[#ece9e3] dark:bg-[#2a2a2a]" />
-                    <div className="mt-[0.4rem] h-[10px] w-[60%] animate-pulse rounded-[4px] bg-[#ece9e3] dark:bg-[#2a2a2a]" />
+                    <div className="aspect-[2/3] w-full animate-pulse rounded-[8px] bg-[#ece9e3] dark:bg-[#2e2e2e]" />
+                    <div className="mt-[0.6rem] h-3 animate-pulse rounded-[4px] bg-[#ece9e3] dark:bg-[#2e2e2e]" />
+                    <div className="mt-[0.4rem] h-[10px] w-[60%] animate-pulse rounded-[4px] bg-[#ece9e3] dark:bg-[#2e2e2e]" />
                   </li>
                 ))}
               </ul>
@@ -318,7 +318,7 @@ export default function ListView() {
                         }}
                         aria-label={`${book.title} by ${book.author}, ${isAvailable ? 'available' : 'unavailable'}`}
                       >
-                        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-[#e5e2dc] shadow-[0_4px_16px_rgba(0,0,0,0.1)] transition-all duration-200 group-hover:-translate-y-[5px] group-hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] dark:bg-[#2a2a2a]">
+                        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-[#e5e2dc] shadow-[0_4px_16px_rgba(0,0,0,0.1)] transition-all duration-200 group-hover:-translate-y-[5px] group-hover:shadow-[0_12px_28px_rgba(0,0,0,0.15)] dark:bg-[#2e2e2e]">
                           <img
                             src={book.cover}
                             alt={`Cover of ${book.title}`}
@@ -341,12 +341,12 @@ export default function ListView() {
                           <span className="text-[0.68rem] font-bold uppercase tracking-[0.08em]" style={{ color: book.genreColor }}>
                             {book.genre}
                           </span>
-                          <h2 className="m-0 line-clamp-2 text-[0.88rem] font-bold leading-[1.3] text-[#1a1a1a] dark:text-[#f0ede8]">
+                          <h2 className="m-0 line-clamp-2 text-[0.88rem] font-bold leading-[1.3] text-[#1a1a1a] dark:text-white">
                             {book.title}
                           </h2>
-                          <p className="m-0 text-[0.78rem] text-[#888] dark:text-[#666]">{book.author}</p>
+                          <p className="m-0 text-[0.78rem] text-[#888] dark:text-[#888]">{book.author}</p>
                           <div className="mt-[0.4rem] flex items-center justify-between gap-2">
-                            <span className="overflow-hidden text-ellipsis whitespace-nowrap text-[0.7rem] text-[#aaa] dark:text-[#555]">
+                            <span className="overflow-hidden text-ellipsis whitespace-nowrap text-[0.7rem] text-[#aaa] dark:text-[#888]">
                               {bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus}
                             </span>
                             <span className={`whitespace-nowrap text-[0.7rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
@@ -364,7 +364,7 @@ export default function ListView() {
             {totalPages > 1 && (
               <nav className="mt-12 flex items-center justify-center gap-4" aria-label="Pagination">
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#3a3a3a] dark:bg-[#222] dark:text-[#aaa] dark:hover:enabled:border-[#2d7a4f] dark:hover:enabled:text-[#2d7a4f]"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#00AB8E] dark:hover:enabled:text-[#00AB8E]"
                   onClick={() => {
                     setPage((p) => p - 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -374,11 +374,11 @@ export default function ListView() {
                 >
                   {'\u2190'} Prev
                 </button>
-                <span className="min-w-[60px] text-center text-[0.85rem] text-[#888] dark:text-[#555]">
+                <span className="min-w-[60px] text-center text-[0.85rem] text-[#888] dark:text-[#888]">
                   {page} / {totalPages}
                 </span>
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#3a3a3a] dark:bg-[#222] dark:text-[#aaa] dark:hover:enabled:border-[#2d7a4f] dark:hover:enabled:text-[#2d7a4f]"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-5 py-2 text-[0.85rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#00AB8E] dark:hover:enabled:text-[#00AB8E]"
                   onClick={() => {
                     setPage((p) => p + 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })
