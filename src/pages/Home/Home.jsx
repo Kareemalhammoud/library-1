@@ -2,6 +2,7 @@ import styles from './Home.module.css'
 import { useLayoutEffect, useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
+import { EVENTS } from '@/data/eventsData'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
@@ -84,21 +85,34 @@ function Home() {
             className={`${styles.heroImage} ${i === currentSlide ? styles.heroImageActive : ''}`}
           />
         ))}
+        {(() => {
+          const today = new Date().toISOString().slice(0, 10)
+          const next = EVENTS
+            .filter((event) => event.date >= today)
+            .sort((a, b) => a.date.localeCompare(b.date))[0]
 
-        <aside className={styles.heroEvent}>
-          <div className={styles.heroEventHeader}>
-            <svg className={styles.heroEventIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <span className={styles.heroEventLabel}>Upcoming Event</span>
-          </div>
-          <p className={styles.heroEventTitle}>Research Skills Workshop</p>
-          <p className={styles.heroEventMeta}>Wed, Mar 12 &nbsp;·&nbsp; 2:00 – 4:00 PM</p>
-          <p className={styles.heroEventLocation}>Riyad Nassar Library, Beirut</p>
-        </aside>
+          if (!next) return null
 
+          const eventDate = new Date(`${next.date}T00:00:00`)
+          const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][eventDate.getDay()]
+          const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][eventDate.getMonth()]
+
+          return (
+            <aside className={styles.heroEvent} onClick={() => navigate('/events')} style={{ cursor: 'pointer' }}>
+              <div className={styles.heroEventHeader}>
+                <svg className={styles.heroEventIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <span className={styles.heroEventLabel}>Upcoming Event</span>
+              </div>
+              <p className={styles.heroEventTitle}>{next.title}</p>
+              <p className={styles.heroEventMeta}>{weekday}, {monthName} {eventDate.getDate()} &nbsp;�&nbsp; {next.time}</p>
+              <p className={styles.heroEventLocation}>{next.location}</p>
+            </aside>
+          )
+        })()}
         <div className={styles.heroCard}>
           <p className={styles.heroCardEyebrow}>Riyad Nassar Library</p>
           <h1 className={styles.heroCardTitle}>

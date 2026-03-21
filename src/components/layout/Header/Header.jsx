@@ -1,5 +1,22 @@
-import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+
+function useIsLoggedIn() {
+  const getStatus = () => localStorage.getItem('isLoggedIn') === 'true' && !!localStorage.getItem('user')
+  const [loggedIn, setLoggedIn] = useState(getStatus)
+
+  useEffect(() => {
+    const check = () => setLoggedIn(getStatus())
+    window.addEventListener('storage', check)
+    window.addEventListener('focus', check)
+    return () => {
+      window.removeEventListener('storage', check)
+      window.removeEventListener('focus', check)
+    }
+  }, [])
+
+  return loggedIn
+}
 
 function isOpenNow() {
   const now = new Date()
@@ -13,6 +30,7 @@ function isOpenNow() {
 
 function Header() {
   const open = isOpenNow()
+  const loggedIn = useIsLoggedIn()
   const [isDark, setIsDark] = useState(
     () =>
       document.body.classList.contains('dark') ||
@@ -35,6 +53,14 @@ function Header() {
     setIsDark(nextIsDark)
   }
 
+  const navItems = [
+    { to: '/catalog', label: 'Catalog' },
+    { to: '/visit', label: 'Visit' },
+    { to: '/events', label: 'Events' },
+    { to: '/services', label: 'Services' },
+    { to: loggedIn ? '/dashboard' : '/login', label: loggedIn ? 'My Account' : 'Sign In' },
+  ]
+
   return (
     <header className="relative z-[100] bg-transparent px-8 pb-[1.1rem] pt-2 shadow-[0_1px_0_rgba(0,103,81,0.06),0_4px_16px_rgba(0,0,0,0.05),0_1px_4px_rgba(0,0,0,0.03)]">
       <div className="mx-auto mb-[0.9rem] flex max-w-[var(--container-max)] items-center justify-between border-b border-[rgba(0,55,40,0.10)] py-[0.42rem] text-[0.67rem] font-medium tracking-[0.045em] text-[rgba(28,43,36,0.42)] dark:border-[#2e2e2e] dark:text-[#888]">
@@ -54,8 +80,26 @@ function Header() {
           <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#555]">·</span>
           <span>Sat - Sun Closed</span>
         </div>
-        <div className="flex items-center">
+
+        <div className="flex items-center gap-3">
           <span>Mme. Curie St, Koraytem, Beirut</span>
+          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#555]">·</span>
+          <button
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[rgba(0,55,40,0.10)] text-[rgba(28,43,36,0.52)] transition-colors hover:bg-[rgba(0,55,40,0.05)] dark:border-[#2e2e2e] dark:text-[#aaa] dark:hover:bg-[#2a2a2a]"
+            onClick={handleToggleDark}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? (
+              <svg className="h-4 w-4" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.3" />
+                <path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.22 4.22l1.42 1.42M12.36 12.36l1.42 1.42M4.22 13.78l1.42-1.42M12.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="M15.5 10.5a6.5 6.5 0 0 1-8-8A6.5 6.5 0 1 0 15.5 10.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
@@ -82,15 +126,9 @@ function Header() {
 
         <div className="flex h-11 items-center rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(6,26,18,0.84)] px-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_20px_rgba(0,0,0,0.24),0_1px_4px_rgba(0,0,0,0.14)] backdrop-blur-[16px] saturate-[1.4]">
           <nav className="flex items-center gap-9">
-            {[
-              { to: '/catalog', label: 'Catalog' },
-              { to: '/visit', label: 'Visit' },
-              { to: '/events', label: 'Events' },
-              { to: '/services', label: 'Services' },
-              { to: '/dashboard', label: 'User Profile' },
-            ].map(({ to, label }) => (
+            {navItems.map(({ to, label }) => (
               <NavLink
-                key={to}
+                key={`${to}-${label}`}
                 to={to}
                 className={({ isActive }) =>
                   `group relative rounded-md px-[0.65rem] py-[0.3rem] text-[0.72rem] font-medium uppercase tracking-[0.08em] no-underline whitespace-nowrap transition-all duration-[180ms] ease ${
@@ -101,11 +139,7 @@ function Header() {
                 }
               >
                 {label}
-                <span
-                  className={`absolute bottom-[2px] left-[0.65rem] right-[0.65rem] h-px origin-left bg-[#00AB8E] transition-transform duration-[260ms] ease ${
-                    window.location.pathname === to ? 'scale-x-100 bg-[#006751]' : 'scale-x-0 group-hover:scale-x-100'
-                  }`}
-                />
+                <span className="absolute bottom-[2px] left-[0.65rem] right-[0.65rem] h-px origin-left bg-[#00AB8E] transition-transform duration-[260ms] ease scale-x-0 group-hover:scale-x-100" />
               </NavLink>
             ))}
           </nav>
@@ -116,7 +150,7 @@ function Header() {
           onClick={handleToggleDark}
           aria-label="Toggle dark mode"
         >
-          {isDark ? '\uD83C\uDF19' : '\u2600\uFE0F'}
+          {isDark ? '🌙' : '☀️'}
         </button>
       </div>
     </header>

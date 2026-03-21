@@ -118,8 +118,9 @@
   font-size: 0.72rem;
   font-weight: 500;
   color: rgba(240, 248, 244, 0.55);
-  margin: 0 0 0.28rem;
+  margin: 0;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .heroEventLocation {
@@ -242,7 +243,6 @@
 .heroCardActions {
   display: flex;
   gap: 0.6rem;
-  flex-wrap: wrap;
 }
 
 .btnPrimary {
@@ -256,6 +256,7 @@
   letter-spacing: 0.03em;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
   transition: background 150ms ease, box-shadow 150ms ease;
   box-shadow: 0 1px 3px rgba(0, 103, 81, 0.3);
 }
@@ -276,6 +277,7 @@
   letter-spacing: 0.03em;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
   transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
 }
 
@@ -283,6 +285,29 @@
   border-color: #1C2B24;
   color: #1C2B24;
   background: rgba(28, 43, 36, 0.05);
+}
+
+.heroCardHint {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(28, 43, 36, 0.08);
+  font-size: 0.7rem;
+  font-style: italic;
+  color: rgba(28, 43, 36, 0.4);
+  letter-spacing: 0.015em;
+  line-height: 1.6;
+}
+
+.heroCardHintLink {
+  color: rgba(0, 103, 81, 0.6);
+  text-decoration: none;
+  font-style: normal;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.heroCardHintLink:hover {
+  color: #006751;
+  text-decoration: underline;
 }
 
 /* ── Community Stats ── */
