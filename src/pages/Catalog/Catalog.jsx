@@ -258,7 +258,7 @@ export default function Catalog() {
         </div>
       </section>
 
-      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,43,36,0.04)] dark:border-[#333333] dark:bg-[#1f1f1f]">
+      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,43,36,0.04)] dark:border-[#2a2a2a] dark:bg-[#121212]">
         <div className="mx-auto flex max-w-[var(--container-max)] flex-col gap-3">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {[
@@ -298,10 +298,10 @@ export default function Catalog() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-[0.72rem] text-[#5a6b62] dark:text-[#8c9691]" htmlFor="sort-select">Sort by</label>
-            <select id="sort-select" className="rounded-md border border-[#d0ddd8] bg-white px-3 py-[0.38rem] text-[0.75rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#1f1f1f] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <select id="sort-select" className="rounded-md border border-[#d0ddd8] bg-white px-3 py-[0.38rem] text-[0.75rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]" value={sort} onChange={(e) => setSort(e.target.value)}>
               {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
-            <div className="flex overflow-hidden rounded-md border border-[#d0ddd8] dark:border-[#333333]" role="group" aria-label="View mode">
+            <div className="flex overflow-hidden rounded-md border border-[#d0ddd8] bg-[#F2F5F3] dark:border-[#2a2a2a] dark:bg-[#121212]" role="group" aria-label="View mode">
               {['grid', 'list'].map((mode) => (
                 <button key={mode} className={`flex items-center justify-center px-3 py-2 transition ${view === mode ? 'bg-[#1a6644] text-white dark:bg-[#1a6644] dark:text-white' : 'bg-[#F2F5F3] text-[#5a6b62] dark:bg-[#121212] dark:text-[#8c9691]'}`} onClick={() => setView(mode)} aria-label={`${mode === 'grid' ? 'Grid' : 'List'} view`} aria-pressed={view === mode}>
                   <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
@@ -314,7 +314,7 @@ export default function Catalog() {
         </div>
 
         {!hasSearched && (
-          <section className="mb-6 rounded-[10px] border border-[#d0ddd8] bg-white p-5 dark:border-[#333333] dark:bg-[#1f1f1f]">
+          <section className="mb-6 rounded-[10px] border border-[#d0ddd8] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#121212]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
               <svg className="h-9 w-9 shrink-0 text-[#006751]/30 dark:text-[#5ecba1]/45" viewBox="0 0 48 48" fill="none" aria-hidden="true">
                 <rect x="6" y="4" width="28" height="38" rx="3" stroke="currentColor" strokeWidth="2" />
@@ -326,7 +326,7 @@ export default function Catalog() {
                 <p className="mb-3 text-[0.78rem] leading-[1.55] text-[#5a6b62] dark:text-[#8c9691]">You are viewing all holdings across the Beirut and Byblos campuses. Use the search bar or filters to refine your results.</p>
                 <div className="flex flex-wrap gap-2">
                   {[{ label: 'Philosophy', onClick: () => setSearch('philosophy') }, { label: 'Khalil Gibran', onClick: () => setSearch('gibran') }, { label: 'Journals', onClick: () => setResType('Journal') }, { label: 'Theses', onClick: () => setResType('Thesis') }, { label: 'French Collection', onClick: () => setLanguage('French') }].map((hint) => (
-                    <button key={hint.label} className="rounded-full border border-[#d0ddd8] bg-white px-3 py-1 text-[0.72rem] font-medium text-[#5a6b62] transition hover:border-[#006751] hover:bg-[#EDF3F0] hover:text-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#5ecba1] dark:hover:bg-[#1f1f1f] dark:hover:text-[#5ecba1]" onClick={hint.onClick}>
+                    <button key={hint.label} className="rounded-full border border-[#d0ddd8] bg-white px-3 py-1 text-[0.72rem] font-medium text-[#5a6b62] transition hover:border-[#006751] hover:bg-[#EDF3F0] hover:text-[#006751] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#5ecba1] dark:hover:bg-[#181818] dark:hover:text-[#5ecba1]" onClick={hint.onClick}>
                       {hint.label}
                     </button>
                   ))}
@@ -363,7 +363,7 @@ export default function Catalog() {
               const bookType = getResourceType(book.id)
               return (
                 <li key={book.id} className="flex flex-col gap-2">
-                  <div className="group relative aspect-[2/3] cursor-pointer overflow-hidden rounded-[3px_7px_7px_3px] bg-[#e5e2dc] shadow-[-2px_0_4px_rgba(28,43,36,0.14),0_2px_0_rgba(28,43,36,0.06),0_4px_14px_rgba(28,43,36,0.12)] transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[-4px_0_10px_rgba(28,43,36,0.18),0_2px_0_rgba(28,43,36,0.08),0_12px_28px_rgba(28,43,36,0.16)]" onClick={() => navigate(`/books/${book.id}`)} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/books/${book.id}`) }}>
+                  <div className="group relative aspect-[2/3] cursor-pointer overflow-hidden rounded-[3px_7px_7px_3px] bg-[#e5e2dc] shadow-[-2px_0_4px_rgba(28,43,36,0.14),0_2px_0_rgba(28,43,36,0.06),0_4px_14px_rgba(28,43,36,0.12)] transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[-4px_0_10px_rgba(28,43,36,0.18),0_2px_0_rgba(28,43,36,0.08),0_12px_28px_rgba(28,43,36,0.16)] dark:bg-[#121212]" onClick={() => navigate(`/books/${book.id}`)} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/books/${book.id}`) }}>
                     <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.03)_40%,transparent_65%)]" />
                     <img src={book.cover} alt={`Cover of ${book.title}`} className="h-full w-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   </div>
@@ -386,7 +386,7 @@ export default function Catalog() {
             })}
           </ul>
         ) : (
-          <ul className="overflow-hidden rounded-[10px] bg-[#d0ddd8] dark:bg-[#333333]">
+          <ul className="overflow-hidden rounded-[10px] bg-[#d0ddd8] dark:bg-[#121212]">
             {filtered.map((book, index) => {
               const bookAvail = getAvailability(book.id)
               const { total, available } = getCopies(book.id)
@@ -394,7 +394,7 @@ export default function Catalog() {
               const bookType = getResourceType(book.id)
               const callNum = getCallNumber(book)
               return (
-                <li key={book.id} className={`flex gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#1f1f1f] dark:hover:bg-[#242424] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#333333]' : ''}`}>
+                <li key={book.id} className={`flex gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#181818] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''}`}>
                   <img src={book.cover} alt={`Cover of ${book.title}`} className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   <div className="min-w-0 flex-1">
                     <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
@@ -412,7 +412,7 @@ export default function Catalog() {
                     {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
                   </div>
                   <div className="hidden shrink-0 flex-col items-end gap-1 pt-1 text-right md:flex">
-                    <span className="rounded bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:bg-[#121212] dark:text-[#8c9691]">{callNum}</span>
+                    <span className="rounded border border-transparent bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:border-[#1f1f1f] dark:bg-[#121212] dark:text-[#8c9691]">{callNum}</span>
                     <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">{bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</span>
                     <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{available} of {total} available</span>
                   </div>

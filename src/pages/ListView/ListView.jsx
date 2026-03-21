@@ -114,11 +114,11 @@ export default function ListView() {
       "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
   }
   const selectClass =
-    'appearance-none whitespace-nowrap rounded-[8px] border border-[#e0ddd8] bg-[#f8f7f4] bg-no-repeat py-[0.55rem] pl-3 pr-8 text-[0.82rem] text-[#333] outline-none transition-colors [background-position:right_0.6rem_center] focus:border-[#1a1a1a] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#5ecba1]'
+    'appearance-none whitespace-nowrap rounded-[8px] border border-[#e0ddd8] bg-[#f8f7f4] bg-no-repeat py-[0.55rem] pl-3 pr-8 text-[0.82rem] text-[#333] outline-none transition-colors [background-position:right_0.6rem_center] focus:border-[#1a1a1a] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-white dark:focus:border-[#5ecba1]'
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4] pb-20 dark:bg-[#1a1a1a]">
-      <header className="border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 pb-6 pt-10 dark:border-[#333] dark:bg-[#1a1a1a]">
+    <div className="min-h-screen bg-[#f8f7f4] pb-20 dark:bg-[#121212]">
+      <header className="border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 pb-6 pt-10 dark:border-[#2a2a2a] dark:bg-[#121212]">
         <div className="mx-auto flex max-w-[1200px] items-end justify-between">
           <div>
             <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#888]">
@@ -144,7 +144,7 @@ export default function ListView() {
       </header>
 
       <search
-        className="sticky top-0 z-10 block border-b border-[#e5e2dc] bg-white px-8 py-4 dark:border-[#333] dark:bg-[#242424]"
+        className="sticky top-0 z-10 block border-b border-[#e5e2dc] bg-white px-8 py-4 dark:border-[#2a2a2a] dark:bg-[#121212]"
         aria-label="Filter and sort books"
       >
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-3">
@@ -159,7 +159,7 @@ export default function ListView() {
               <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
             <input
-              className="box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] py-[0.55rem] pl-9 pr-3 text-[0.85rem] text-[#1a1a1a] outline-none transition-colors focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:focus:border-[#5ecba1] dark:focus:bg-[#2e2e2e]"
+              className="box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] py-[0.55rem] pl-9 pr-3 text-[0.85rem] text-[#1a1a1a] outline-none transition-colors focus:border-[#1a1a1a] focus:bg-white dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-white dark:focus:border-[#5ecba1] dark:focus:bg-[#121212]"
               type="search"
               placeholder="Search title or author..."
               value={search}
@@ -221,7 +221,7 @@ export default function ListView() {
             </select>
           </label>
 
-          <label className="ml-1 flex flex-col gap-[0.2rem] border-l border-[#e5e2dc] pl-3 dark:border-[#333]">
+          <label className="ml-1 flex flex-col gap-[0.2rem] border-l border-[#e5e2dc] pl-3 dark:border-[#2a2a2a]">
             <span className="pl-[0.1rem] text-[0.65rem] font-bold uppercase tracking-[0.08em] text-[#bbb] dark:text-[#888]">
               Sort by
             </span>

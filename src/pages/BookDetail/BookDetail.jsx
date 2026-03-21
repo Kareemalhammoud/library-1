@@ -115,9 +115,9 @@ export default function BookDetail() {
   }
 
   return (
-    <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
+    <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#121212]">
       <nav
-        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#333] dark:bg-[#1a1a1a]"
+        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#2a2a2a] dark:bg-[#121212]"
         aria-label="Breadcrumb"
       >
         <button
@@ -137,7 +137,7 @@ export default function BookDetail() {
             className="w-full rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
           />
 
-          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#333] dark:bg-[#242424]">
+          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#121212]">
             <p className={`m-0 text-[0.9rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
               {isAvailable ? '\u25CF Available' : '\u25CF Fully Borrowed'}
             </p>
@@ -157,7 +157,7 @@ export default function BookDetail() {
             </button>
 
             <button
-              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]"
+              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#888] dark:hover:bg-[#181818]"
               aria-label={`Share ${book.title}`}
               onClick={handleShare}
             >
@@ -211,7 +211,7 @@ export default function BookDetail() {
           </ul>
 
           <section
-            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#333] dark:bg-[#242424]"
+            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#121212]"
             aria-label="Reading progress tracker"
           >
             <div className="flex items-baseline justify-between">
@@ -230,7 +230,7 @@ export default function BookDetail() {
             </div>
 
             <div
-              className="h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2e2e2e]"
+              className="h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#181818]"
               role="progressbar"
               aria-valuenow={progress}
               aria-valuemin={0}
