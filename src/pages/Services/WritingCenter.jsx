@@ -90,7 +90,7 @@ const WritingCenterPage = () => {
   const [showStaff, setShowStaff] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#0f1e17]">
+    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
       {/* Hero — pale mint accent */}
       <section className="bg-[#eaf5ee] dark:bg-[#1a3a2e] px-8 md:px-16 py-12 relative overflow-hidden">
@@ -119,8 +119,8 @@ const WritingCenterPage = () => {
       <div className="px-8 md:px-16 py-10 max-w-4xl">
 
         {/* Intro quote */}
-        <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6 mb-4">
-          <p className="text-[#3d6650] dark:text-[#7aaa8a] text-[14px] leading-relaxed italic">
+        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
+          <p className="text-[#3d6650] dark:text-[#888] text-[14px] leading-relaxed italic">
             "Whether you are brainstorming, drafting, revising, or finalizing your work, our team works with you at every stage of the process to better provide guidance on content, structure, language, delivery and the responsible use of AI."
           </p>
         </div>
@@ -132,14 +132,14 @@ const WritingCenterPage = () => {
             {SERVICES_OFFERED.map((s) => (
               <div
                 key={s.title}
-                className="bg-white dark:bg-[#1e2e26] rounded-xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-4 flex gap-3"
+                className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4 flex gap-3"
               >
-                <div className="w-9 h-9 rounded-lg bg-[#eaf5ee] dark:bg-[#162a1f] flex items-center justify-center flex-shrink-0 text-[#1a6644] dark:text-[#5ecba1]">
+                <div className="w-9 h-9 rounded-lg bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center flex-shrink-0 text-[#1a6644] dark:text-[#5ecba1]">
                   <WIcon name={s.icon} />
                 </div>
                 <div>
                   <p className="text-[#162a1f] dark:text-white text-[13px] font-bold mb-0.5">{s.title}</p>
-                  <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[12px] leading-relaxed">{s.desc}</p>
+                  <p className="text-[#5e7a68] dark:text-[#888] text-[12px] leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -147,16 +147,16 @@ const WritingCenterPage = () => {
         </div>
 
         {/* Locations */}
-        <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6 mb-4">
+        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-3">Hours & location</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             {LOCATIONS.map((l) => (
-              <div key={l.campus} className="bg-[#eaf5ee] dark:bg-[#162a1f] rounded-xl p-4">
+              <div key={l.campus} className="bg-[#eaf5ee] dark:bg-[#2e2e2e] rounded-xl p-4">
                 <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-wider uppercase mb-1">
                   {l.campus}
                 </p>
                 <p className="text-[#162a1f] dark:text-white text-[13px] font-semibold mb-0.5">{l.location}</p>
-                <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[12px]">{l.phone}</p>
+                <p className="text-[#5e7a68] dark:text-[#888] text-[12px]">{l.phone}</p>
               </div>
             ))}
           </div>
@@ -171,7 +171,7 @@ const WritingCenterPage = () => {
         </div>
 
         {/* Contact / Staff toggle */}
-        <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6">
+        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold">Contact us</h3>
             <button
@@ -184,7 +184,7 @@ const WritingCenterPage = () => {
 
           <div className="flex flex-col gap-2 mb-4">
             <a href="mailto:wcc@lau.edu.lb" className="flex items-center gap-2 text-[13px] text-[#162a1f] dark:text-white">
-              <span className="w-6 h-6 rounded-lg bg-[#eaf5ee] dark:bg-[#162a1f] flex items-center justify-center text-[#1a6644] dark:text-[#5ecba1]">
+              <span className="w-6 h-6 rounded-lg bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center text-[#1a6644] dark:text-[#5ecba1]">
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               </span>
               wcc@lau.edu.lb
@@ -193,15 +193,15 @@ const WritingCenterPage = () => {
 
           {/* Collapsible staff list */}
           {showStaff && (
-            <div className="border-t border-[#cfe2d6] dark:border-[#2d4a3a] pt-4 space-y-3">
+            <div className="border-t border-[#cfe2d6] dark:border-[#333] pt-4 space-y-3">
               {STAFF.map((s) => (
                 <div key={s.name} className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#eaf5ee] dark:bg-[#162a1f] flex items-center justify-center text-[#1a6644] dark:text-[#5ecba1] text-[12px] font-bold flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center text-[#1a6644] dark:text-[#5ecba1] text-[12px] font-bold flex-shrink-0">
                     {s.name.split(" ").filter(w => w.match(/^[A-Z]/)).map(w => w[0]).join("").slice(0, 2)}
                   </div>
                   <div>
                     <p className="text-[#162a1f] dark:text-white text-[13px] font-semibold">{s.name}</p>
-                    <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[11px]">{s.title}</p>
+                    <p className="text-[#5e7a68] dark:text-[#888] text-[11px]">{s.title}</p>
                     <a href={`mailto:${s.email}`} className="text-[#1a6644] dark:text-[#5ecba1] text-[11px] underline underline-offset-2">
                       {s.email}
                     </a>

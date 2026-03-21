@@ -50,7 +50,7 @@ const InfoCard = ({ title, children, accent = false }) => (
   <div className={`rounded-2xl border p-6 mb-4 ${
     accent
       ? "bg-[#1a3a2e] border-transparent"
-      : "bg-white dark:bg-[#1e2e26] border-[#cfe2d6] dark:border-[#2d4a3a]"
+      : "bg-white dark:bg-[#242424] border-[#cfe2d6] dark:border-[#333]"
   }`}>
     <h3 className={`text-[15px] font-bold mb-3 ${accent ? "text-white" : "text-[#162a1f] dark:text-white"}`}>
       {title}
@@ -68,7 +68,7 @@ const CirculationPage = () => {
   const visibleRows = showFullTable ? LOAN_TABLE : LOAN_TABLE.slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#0f1e17]">
+    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
       {/* Hero — deep forest accent */}
       <section className="bg-[#1a3a2e] px-8 md:px-16 py-12 relative overflow-hidden">
@@ -93,8 +93,8 @@ const CirculationPage = () => {
             { label: "Renewals",         value: "3×" },
             { label: "Overdue fine",     value: "$0.25/day" },
           ].map((s) => (
-            <div key={s.label} className="bg-white dark:bg-[#1e2e26] rounded-xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-4">
-              <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[11px] mb-1">{s.label}</p>
+            <div key={s.label} className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4">
+              <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mb-1">{s.label}</p>
               <p className="text-[#162a1f] dark:text-white text-xl font-bold">{s.value}</p>
             </div>
           ))}
@@ -105,15 +105,15 @@ const CirculationPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-[#cfe2d6] dark:border-[#2d4a3a]">
+                <tr className="border-b border-[#cfe2d6] dark:border-[#333]">
                   {["Borrower category", "Items", "Period", "Renewals"].map((h) => (
-                    <th key={h} className="text-left text-[#5e7a68] dark:text-[#7aaa8a] font-semibold pb-2 pr-4">{h}</th>
+                    <th key={h} className="text-left text-[#5e7a68] dark:text-[#888] font-semibold pb-2 pr-4">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {visibleRows.map((r) => (
-                  <tr key={r.category} className="border-b border-[#f0f7f3] dark:border-[#1e2e26]">
+                  <tr key={r.category} className="border-b border-[#f0f7f3] dark:border-[#2e2e2e]">
                     <td className="py-2 pr-4 text-[#162a1f] dark:text-white">{r.category}</td>
                     <td className="py-2 pr-4 text-[#162a1f] dark:text-white font-medium">{r.items}</td>
                     <td className="py-2 pr-4 text-[#162a1f] dark:text-white">{r.period}</td>
@@ -133,18 +133,18 @@ const CirculationPage = () => {
 
         {/* Renewals & returns */}
         <InfoCard title="Renewals, returns & reservations">
-          <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[13px] leading-relaxed mb-3">
+          <p className="text-[#5e7a68] dark:text-[#888] text-[13px] leading-relaxed mb-3">
             Books and audiovisual materials may be renewed multiple times unless reserved by another user.
             Equipment (laptops, iPads) may be renewed twice only.
           </p>
-          <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[13px] leading-relaxed mb-3">
+          <p className="text-[#5e7a68] dark:text-[#888] text-[13px] leading-relaxed mb-3">
             Renewals can be done online via the Library Catalog, by emailing{" "}
             <a href="mailto:circulation@lau.edu.lb" className="text-[#1a6644] dark:text-[#5ecba1] underline underline-offset-2">
               circulation@lau.edu.lb
             </a>
             , or by calling Ext. 1213 / 2280 / 2977.
           </p>
-          <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[13px] leading-relaxed">
+          <p className="text-[#5e7a68] dark:text-[#888] text-[13px] leading-relaxed">
             Reserved items: when a reserved item is returned, the requester is notified by email.
           </p>
         </InfoCard>
@@ -153,7 +153,7 @@ const CirculationPage = () => {
         <InfoCard title="Discipline & responsibilities">
           <ul className="space-y-2">
             {RULES.map((r) => (
-              <li key={r} className="flex items-start gap-2.5 text-[13px] text-[#5e7a68] dark:text-[#7aaa8a]">
+              <li key={r} className="flex items-start gap-2.5 text-[13px] text-[#5e7a68] dark:text-[#888]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#1a6644] dark:bg-[#5ecba1] mt-1.5 flex-shrink-0" />
                 {r}
               </li>

@@ -77,7 +77,7 @@ const StudyRoomsPage = () => {
   const data = CAMPUS_ROOMS[campus];
 
   return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#0f1e17]">
+    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
       {/* Hero — sage green accent */}
       <section className="bg-[#d6ede0] dark:bg-[#1a3a2e] px-8 md:px-16 py-12 relative overflow-hidden">
@@ -104,15 +104,15 @@ const StudyRoomsPage = () => {
             { label: "Beirut rooms",   value: "5" },
             { label: "Byblos rooms",   value: "14" },
           ].map((s) => (
-            <div key={s.label} className="bg-white dark:bg-[#1e2e26] rounded-xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-4">
-              <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[11px] mb-1">{s.label}</p>
+            <div key={s.label} className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4">
+              <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mb-1">{s.label}</p>
               <p className="text-[#162a1f] dark:text-white text-xl font-bold">{s.value}</p>
             </div>
           ))}
         </div>
 
         {/* Campus toggle + room list */}
-        <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6 mb-4">
+        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-4">Available rooms</h3>
 
           {/* Toggle pills */}
@@ -124,7 +124,7 @@ const StudyRoomsPage = () => {
                 className={`flex-1 h-9 rounded-xl text-[13px] font-semibold transition-colors duration-150 border ${
                   campus === c
                     ? "bg-[#1a6644] text-white border-[#1a6644]"
-                    : "bg-[#f7fbf8] dark:bg-[#162a1f] text-[#3d6650] dark:text-[#7aaa8a] border-[#c5ddd0] dark:border-[#2d4a3a] hover:border-[#1a6644]"
+                    : "bg-[#f7fbf8] dark:bg-[#2e2e2e] text-[#3d6650] dark:text-[#888] border-[#c5ddd0] dark:border-[#333] hover:border-[#1a6644]"
                 }`}
               >
                 {c === "Beirut" ? "🏙 Beirut (RNL)" : "🌿 Byblos (JGJL / HSL)"}
@@ -133,13 +133,13 @@ const StudyRoomsPage = () => {
           </div>
 
           {/* Library name + equipment badge */}
-          <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[12px] mb-1">{data.library}</p>
+          <p className="text-[#5e7a68] dark:text-[#888] text-[12px] mb-1">{data.library}</p>
           <div className="flex flex-wrap gap-2 mb-4">
-            <span className="bg-[#eaf5ee] dark:bg-[#162a1f] text-[#1a6644] dark:text-[#5ecba1] text-[11px] font-medium px-3 py-1 rounded-full">
+            <span className="bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#1a6644] dark:text-[#5ecba1] text-[11px] font-medium px-3 py-1 rounded-full">
               {data.equipment}
             </span>
             {data.cctv && (
-              <span className="bg-[#eaf5ee] dark:bg-[#162a1f] text-[#1a6644] dark:text-[#5ecba1] text-[11px] font-medium px-3 py-1 rounded-full">
+              <span className="bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#1a6644] dark:text-[#5ecba1] text-[11px] font-medium px-3 py-1 rounded-full">
                 CCTV monitored
               </span>
             )}
@@ -150,10 +150,10 @@ const StudyRoomsPage = () => {
             {data.rooms.map((room) => (
               <div
                 key={room.id}
-                className="bg-[#f7fbf8] dark:bg-[#162a1f] border border-[#cfe2d6] dark:border-[#2d4a3a] rounded-xl px-4 py-3"
+                className="bg-[#f7fbf8] dark:bg-[#2e2e2e] border border-[#cfe2d6] dark:border-[#333] rounded-xl px-4 py-3"
               >
                 <p className="text-[#162a1f] dark:text-white text-[13px] font-semibold">{room.name}</p>
-                <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[11px] mt-0.5">{campus} campus</p>
+                <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mt-0.5">{campus} campus</p>
               </div>
             ))}
           </div>
@@ -180,11 +180,11 @@ const StudyRoomsPage = () => {
         </div>
 
         {/* Rules */}
-        <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6">
+        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-3">Rules for using GSRs</h3>
           <ul className="space-y-2">
             {RULES.map((r) => (
-              <li key={r} className="flex items-start gap-2.5 text-[13px] text-[#5e7a68] dark:text-[#7aaa8a]">
+              <li key={r} className="flex items-start gap-2.5 text-[13px] text-[#5e7a68] dark:text-[#888]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#1a6644] dark:bg-[#5ecba1] mt-1.5 flex-shrink-0" />
                 {r}
               </li>
