@@ -1,5 +1,4 @@
 import styles from './Home.module.css'
-
 import { useLayoutEffect, useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
@@ -13,20 +12,11 @@ const HERO_SLIDES = [
   { src: slideCampusFountain, alt: 'LAU Beirut campus fountain and palm trees' },
 ]
 
-// cover: Open Library public covers API — falls back to the gradient if the image 404s.
-// Swap any URL for local artwork: import img from '@/assets/...' and reference it here.
-// Gap in px — must match CSS .booksTrack gap (2rem at 16px root = 32px)
 const GAP_PX = 32
 const N = BOOKS.length
-
-// Double the list so the CSS animation can scroll one full set and loop seamlessly
 const TRACK = [...BOOKS, ...BOOKS]
-
-// Scroll speed in px/s — constant across breakpoints so the shelf always
-// feels the same regardless of card size
 const PX_PER_SEC = 55
 
-// Fixed card widths per breakpoint
 function getCardWidth(viewportWidth) {
   if (viewportWidth < 480) return 112
   if (viewportWidth < 768) return 132
@@ -36,7 +26,7 @@ function getCardWidth(viewportWidth) {
 function Home() {
   const viewportRef = useRef(null)
   const trackRef    = useRef(null)
-  const animRef     = useRef(null) // Web Animations API Animation object
+  const animRef     = useRef(null)
   const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
 
@@ -52,15 +42,13 @@ function Home() {
 
     const start = () => {
       const cw   = getCardWidth(viewport.offsetWidth)
-      const dist = N * (cw + GAP_PX)          // one seamless loop = N × (card + gap)
-      const dur  = (dist / PX_PER_SEC) * 1000 // ms
+      const dist = N * (cw + GAP_PX)
+      const dur  = (dist / PX_PER_SEC) * 1000
 
-      // Size every card
       Array.from(track.children).forEach(card => {
         card.style.flexBasis = `${cw}px`
       })
 
-      // Cancel any previous animation (e.g. after a resize) and start fresh
       animRef.current?.cancel()
       animRef.current = track.animate(
         [{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }],
@@ -97,7 +85,6 @@ function Home() {
           />
         ))}
 
-        {/* Upcoming event chip — right side */}
         <aside className={styles.heroEvent}>
           <div className={styles.heroEventHeader}>
             <svg className={styles.heroEventIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -112,7 +99,6 @@ function Home() {
           <p className={styles.heroEventLocation}>Riyad Nassar Library, Beirut</p>
         </aside>
 
-        {/* Floating card overlay */}
         <div className={styles.heroCard}>
           <p className={styles.heroCardEyebrow}>Riyad Nassar Library</p>
           <h1 className={styles.heroCardTitle}>
@@ -148,10 +134,8 @@ function Home() {
         </div>
       </section>
 
-      {/* ── Community stats — real LAU figures from Academic Catalog 2025–26 ── */}
       <section className={styles.stats} aria-label="Library statistics">
         <div className={styles.statBlock}>
-          {/* Book icon */}
           <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             <path d="M4 19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -163,7 +147,6 @@ function Home() {
         </div>
         <span className={styles.statDivider} />
         <div className={styles.statBlock}>
-          {/* Database/stack icon */}
           <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" strokeWidth="1.5"/>
             <path d="M4 6v4c0 1.657 3.582 3 8 3s8-1.343 8-3V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -174,7 +157,6 @@ function Home() {
         </div>
         <span className={styles.statDivider} />
         <div className={styles.statBlock}>
-          {/* Users icon */}
           <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M17 20c0-2.21-2.239-4-5-4s-5 1.79-5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/>
@@ -186,7 +168,6 @@ function Home() {
         </div>
         <span className={styles.statDivider} />
         <div className={styles.statBlock}>
-          {/* Desk/chair icon */}
           <svg className={styles.statIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M3 14h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
             <path d="M5 14V9a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -206,6 +187,7 @@ function Home() {
         </div>
         <div className={styles.actionsGrid}>
 
+          {/* Card 1 — Find Your Next Book */}
           <a href="/books" className={styles.actionCard}>
             <svg className={styles.actionIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -217,11 +199,12 @@ function Home() {
             <div className={styles.actionCardHeader}>
               <h3 className={styles.actionCardTitle}>Find Your Next Book</h3>
               <span className={styles.actionArrow}>→</span>
-            </div>  
+            </div>
             <p className={styles.actionCardBody}>Search thousands of titles and discover something new to read.</p>
             <p className={styles.actionCardDetail}>500,000+ items available</p>
           </a>
 
+          {/* Card 2 — Join an Event (no link yet) */}
           <a href="#" className={styles.actionCard}>
             <svg className={styles.actionIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
@@ -238,7 +221,12 @@ function Home() {
             <p className={styles.actionCardDetail}>View this week&apos;s schedule</p>
           </a>
 
-          <a href="#" className={styles.actionCard}>
+          {/* Card 3 — Discover Study Spaces → /services/StudyRooms */}
+          <a
+            href="/services/StudyRooms"
+            className={styles.actionCard}
+            onClick={e => { e.preventDefault(); navigate('/services/StudyRooms') }}
+          >
             <svg className={styles.actionIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 14h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <path d="M5 14V9a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -254,6 +242,7 @@ function Home() {
             <p className={styles.actionCardDetail}>Reserve a space in advance</p>
           </a>
 
+          {/* Card 4 — Plan Your Visit (no link yet) */}
           <a href="#" className={styles.actionCard}>
             <svg className={styles.actionIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2C8.686 2 6 4.686 6 8c0 4.418 6 12 6 12s6-7.582 6-12c0-3.314-2.686-6-6-6Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
@@ -287,12 +276,12 @@ function Home() {
           <div className={styles.booksTrack} ref={trackRef}>
             {TRACK.map((book, i) => (
               <article
-                  key={`${book.id}-${i}`}
-                  className={styles.bookCard}
-                  onClick={() => navigate(`/books/${book.id}`)}
-                  style={{ cursor: 'pointer' }}
-                  aria-label={`View details for ${book.title} by ${book.author}`}
-                >
+                key={`${book.id}-${i}`}
+                className={styles.bookCard}
+                onClick={() => navigate(`/books/${book.id}`)}
+                style={{ cursor: 'pointer' }}
+                aria-label={`View details for ${book.title} by ${book.author}`}
+              >
                 <div className={styles.bookCover} data-color={book.color}>
                   {book.cover && (
                     <img
