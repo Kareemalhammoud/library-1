@@ -68,7 +68,7 @@ function FormInput({
 						"
 						aria-label={showPassword ? "Hide password" : "Show password"}
 					>
-						{showPassword ? <FaEyeSlash /> : <FaEye />}
+						{showPassword ? <FaEye /> : <FaEyeSlash />}
 					</button>
 				)}
 
