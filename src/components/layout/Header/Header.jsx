@@ -1,65 +1,123 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import styles from './Header.module.css'
 
 function isOpenNow() {
-  const now  = new Date()
-  const day  = now.getDay()
+  const now = new Date()
+  const day = now.getDay()
   const hour = now.getHours() + now.getMinutes() / 60
+
   if (day >= 1 && day <= 5) return hour >= 7.5 && hour < 22
+
   return false
 }
 
 function Header() {
   const open = isOpenNow()
+  const [isDark, setIsDark] = useState(
+    () =>
+      document.body.classList.contains('dark') ||
+      document.documentElement.classList.contains('dark')
+  )
+
+  useEffect(() => {
+    const nextIsDark =
+      document.body.classList.contains('dark') ||
+      document.documentElement.classList.contains('dark')
+
+    setIsDark(nextIsDark)
+  }, [])
+
+  function handleToggleDark() {
+    const nextIsDark = !isDark
+    document.documentElement.classList.toggle('dark', nextIsDark)
+    document.body.classList.toggle('dark', nextIsDark)
+    localStorage.setItem('theme', nextIsDark ? 'dark' : 'light')
+    setIsDark(nextIsDark)
+  }
 
   return (
-    <header className={styles.header}>
-
-      {/* ── Utility strip ── */}
-      <div className={styles.topbar}>
-        <div className={styles.topbarLeft}>
-          <span className={styles.statusDot} data-open={open} />
-          <span className={styles.statusLabel} data-open={open}>
+    <header className="relative z-[100] bg-transparent px-8 pb-[1.1rem] pt-2 shadow-[0_1px_0_rgba(0,103,81,0.06),0_4px_16px_rgba(0,0,0,0.05),0_1px_4px_rgba(0,0,0,0.03)]">
+      <div className="mx-auto mb-[0.9rem] flex max-w-[var(--container-max)] items-center justify-between border-b border-[rgba(0,55,40,0.10)] py-[0.42rem] text-[0.67rem] font-medium tracking-[0.045em] text-[rgba(28,43,36,0.42)] dark:border-[#2e2e2e] dark:text-[#888]">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-block h-[6px] w-[6px] flex-shrink-0 rounded-full ${
+              open
+                ? 'bg-[#4caf7d] shadow-[0_0_0_2px_rgba(76,175,125,0.2)]'
+                : 'bg-[#c0392b] shadow-[0_0_0_2px_rgba(192,57,43,0.2)]'
+            }`}
+          />
+          <span className={`font-semibold tracking-[0.05em] ${open ? 'text-[#3a9466] dark:text-[#2d7a4f]' : 'text-[rgba(28,43,36,0.5)] dark:text-[#666]'}`}>
             {open ? 'Open Now' : 'Closed'}
           </span>
-          <span className={styles.topbarSep}>·</span>
-          <span>Mon – Fri &nbsp;7:30 – 22:00</span>
-          <span className={styles.topbarSep}>·</span>
-          <span>Sat – Sun &nbsp;Closed</span>
+          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#555]">·</span>
+          <span>Mon - Fri 7:30 - 22:00</span>
+          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#555]">·</span>
+          <span>Sat - Sun Closed</span>
         </div>
-        <div className={styles.topbarRight}>
+        <div className="flex items-center">
           <span>Mme. Curie St, Koraytem, Beirut</span>
         </div>
       </div>
 
-      {/* ── Logo left · Nav pill right ── */}
-      <div className={styles.headerMain}>
-
-        <NavLink to="/" className={styles.logo}>
-          <svg className={styles.logoIcon} viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M2 15 Q14 20 26 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-            <line x1="14" y1="3"  x2="14" y2="15" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-            <path d="M14 3.5 L23 11 L14 14 Z" fill="currentColor" fillOpacity="0.72"/>
-            <line x1="8"  y1="14" x2="6"  y2="18" stroke="currentColor" strokeWidth="1"   strokeLinecap="round"/>
-            <line x1="20" y1="14" x2="22" y2="18" stroke="currentColor" strokeWidth="1"   strokeLinecap="round"/>
-            <line x1="14" y1="15" x2="14" y2="19" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round"/>
+      <div className="mx-auto flex max-w-[var(--container-max)] items-center justify-between">
+        <NavLink
+          to="/"
+          className="flex flex-shrink-0 items-center gap-[0.85rem] text-[#006751] no-underline transition-opacity duration-[160ms] ease hover:opacity-[0.78] dark:text-[#00AB8E]"
+        >
+          <svg className="h-[38px] w-auto flex-shrink-0 text-[#006751] dark:text-[#00AB8E]" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M2 15 Q14 20 26 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <line x1="14" y1="3" x2="14" y2="15" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            <path d="M14 3.5 L23 11 L14 14 Z" fill="currentColor" fillOpacity="0.72" />
+            <line x1="8" y1="14" x2="6" y2="18" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+            <line x1="20" y1="14" x2="22" y2="18" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+            <line x1="14" y1="15" x2="14" y2="19" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
           </svg>
-          <div className={styles.logoText}>
-            <span className={styles.logoName}>LAU</span>
-            <span className={styles.logoSub}>Riyad Nassar Library</span>
+          <div className="flex flex-col gap-[0.26rem] border-l-[1.5px] border-[rgba(0,103,81,0.18)] pl-[0.9rem] dark:border-[#2e2e2e]">
+            <span className="text-[1.32rem] font-extrabold uppercase leading-none tracking-[0.12em] text-[#006751] dark:text-[#00AB8E]">LAU</span>
+            <span className="whitespace-nowrap text-[0.62rem] font-semibold uppercase leading-none tracking-[0.11em] text-[rgba(0,103,81,0.50)] dark:text-[#888]">
+              Riyad Nassar Library
+            </span>
           </div>
         </NavLink>
 
-        {/* Nav pill */}
-        <div className={styles.inner}>
-          <nav className={styles.nav}>
-            <NavLink to="/catalog"  className={({ isActive }) => isActive ? styles.active : ''}>Catalog</NavLink>
-            <NavLink to="/visit"    className={({ isActive }) => isActive ? styles.active : ''}>Visit</NavLink>
-            <NavLink to="/events"   className={({ isActive }) => isActive ? styles.active : ''}>Events</NavLink>
-            <NavLink to="/services" className={({ isActive }) => isActive ? styles.active : ''}>Services</NavLink>
+        <div className="flex h-11 items-center rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(6,26,18,0.84)] px-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_20px_rgba(0,0,0,0.24),0_1px_4px_rgba(0,0,0,0.14)] backdrop-blur-[16px] saturate-[1.4]">
+          <nav className="flex items-center gap-9">
+            {[
+              { to: '/catalog', label: 'Catalog' },
+              { to: '/visit', label: 'Visit' },
+              { to: '/events', label: 'Events' },
+              { to: '/services', label: 'Services' },
+              { to: '/dashboard', label: 'User Profile' },
+            ].map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `group relative rounded-md px-[0.65rem] py-[0.3rem] text-[0.72rem] font-medium uppercase tracking-[0.08em] no-underline whitespace-nowrap transition-all duration-[180ms] ease ${
+                    isActive
+                      ? 'text-[rgba(240,248,244,0.96)]'
+                      : 'text-[rgba(240,248,244,0.45)] hover:-translate-y-px hover:bg-[rgba(255,255,255,0.07)] hover:text-[rgba(240,248,244,0.92)]'
+                  }`
+                }
+              >
+                {label}
+                <span
+                  className={`absolute bottom-[2px] left-[0.65rem] right-[0.65rem] h-px origin-left bg-[#00AB8E] transition-transform duration-[260ms] ease ${
+                    window.location.pathname === to ? 'scale-x-100 bg-[#006751]' : 'scale-x-0 group-hover:scale-x-100'
+                  }`}
+                />
+              </NavLink>
+            ))}
           </nav>
         </div>
 
+        <button
+          className="cursor-pointer rounded-lg border border-[#d9ddd9] bg-transparent px-[0.6rem] py-[0.4rem] text-base transition-colors hover:bg-[rgba(0,55,40,0.03)] dark:border-[#3a3a3a] dark:hover:bg-[#2a2a2a]"
+          onClick={handleToggleDark}
+          aria-label="Toggle dark mode"
+        >
+          {isDark ? '\uD83C\uDF19' : '\u2600\uFE0F'}
+        </button>
       </div>
     </header>
   )
