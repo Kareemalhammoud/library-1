@@ -63,7 +63,7 @@ function Header() {
 
   return (
     <header className="relative z-[100] bg-transparent px-8 pb-[1.1rem] pt-2 shadow-[0_1px_0_rgba(0,103,81,0.06),0_4px_16px_rgba(0,0,0,0.05),0_1px_4px_rgba(0,0,0,0.03)]">
-      <div className="mx-auto mb-[0.9rem] flex max-w-[var(--container-max)] items-center justify-between border-b border-[rgba(0,55,40,0.10)] py-[0.42rem] text-[0.67rem] font-medium tracking-[0.045em] text-[rgba(28,43,36,0.42)] dark:border-[#2e2e2e] dark:text-[#888]">
+      <div className="mx-auto mb-[0.9rem] flex max-w-[var(--container-max)] items-center justify-between border-b border-[rgba(0,55,40,0.10)] py-[0.42rem] text-[0.67rem] font-medium tracking-[0.045em] text-[rgba(28,43,36,0.42)] dark:border-[#333] dark:text-[#888]">
         <div className="flex items-center gap-2">
           <span
             className={`inline-block h-[6px] w-[6px] flex-shrink-0 rounded-full ${
@@ -72,31 +72,31 @@ function Header() {
                 : 'bg-[#c0392b] shadow-[0_0_0_2px_rgba(192,57,43,0.2)]'
             }`}
           />
-          <span className={`font-semibold tracking-[0.05em] ${open ? 'text-[#3a9466] dark:text-[#2d7a4f]' : 'text-[rgba(28,43,36,0.5)] dark:text-[#666]'}`}>
+          <span className={`font-semibold tracking-[0.05em] ${open ? 'text-[#3a9466] dark:text-[#00AB8E]' : 'text-[rgba(28,43,36,0.5)] dark:text-[#888]'}`}>
             {open ? 'Open Now' : 'Closed'}
           </span>
-          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#555]">·</span>
+          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#888]">·</span>
           <span>Mon - Fri 7:30 - 22:00</span>
-          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#555]">·</span>
+          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#888]">·</span>
           <span>Sat - Sun Closed</span>
         </div>
 
         <div className="flex items-center gap-3">
           <span>Mme. Curie St, Koraytem, Beirut</span>
-          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#555]">·</span>
+          <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#888]">·</span>
           <button
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[rgba(0,55,40,0.10)] text-[rgba(28,43,36,0.52)] transition-colors hover:bg-[rgba(0,55,40,0.05)] dark:border-[#2e2e2e] dark:text-[#aaa] dark:hover:bg-[#2a2a2a]"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[rgba(0,55,40,0.10)] text-[rgba(28,43,36,0.52)] transition-colors hover:bg-[rgba(0,55,40,0.05)] dark:border-[#333] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
             onClick={handleToggleDark}
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? (
               <svg className="h-4 w-4" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.3" />
-                <path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.22 4.22l1.42 1.42M12.36 12.36l1.42 1.42M4.22 13.78l1.42-1.42M12.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                <path d="M15.5 10.5a6.5 6.5 0 0 1-8-8A6.5 6.5 0 1 0 15.5 10.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
               </svg>
             ) : (
               <svg className="h-4 w-4" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                <path d="M15.5 10.5a6.5 6.5 0 0 1-8-8A6.5 6.5 0 1 0 15.5 10.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+                <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.3" />
+                <path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.22 4.22l1.42 1.42M12.36 12.36l1.42 1.42M4.22 13.78l1.42-1.42M12.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
             )}
           </button>
@@ -116,7 +116,7 @@ function Header() {
             <line x1="20" y1="14" x2="22" y2="18" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
             <line x1="14" y1="15" x2="14" y2="19" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
           </svg>
-          <div className="flex flex-col gap-[0.26rem] border-l-[1.5px] border-[rgba(0,103,81,0.18)] pl-[0.9rem] dark:border-[#2e2e2e]">
+          <div className="flex flex-col gap-[0.26rem] border-l-[1.5px] border-[rgba(0,103,81,0.18)] pl-[0.9rem] dark:border-[#333]">
             <span className="text-[1.32rem] font-extrabold uppercase leading-none tracking-[0.12em] text-[#006751] dark:text-[#00AB8E]">LAU</span>
             <span className="whitespace-nowrap text-[0.62rem] font-semibold uppercase leading-none tracking-[0.11em] text-[rgba(0,103,81,0.50)] dark:text-[#888]">
               Riyad Nassar Library
@@ -144,14 +144,6 @@ function Header() {
             ))}
           </nav>
         </div>
-
-        <button
-          className="cursor-pointer rounded-lg border border-[#d9ddd9] bg-transparent px-[0.6rem] py-[0.4rem] text-base transition-colors hover:bg-[rgba(0,55,40,0.03)] dark:border-[#3a3a3a] dark:hover:bg-[#2a2a2a]"
-          onClick={handleToggleDark}
-          aria-label="Toggle dark mode"
-        >
-          {isDark ? '🌙' : '☀️'}
-        </button>
       </div>
     </header>
   )

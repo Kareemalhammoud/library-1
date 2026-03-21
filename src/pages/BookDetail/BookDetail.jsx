@@ -117,16 +117,16 @@ export default function BookDetail() {
   return (
     <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
       <nav
-        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#2e2e2e] dark:bg-[#1a1a1a]"
+        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#333] dark:bg-[#1a1a1a]"
         aria-label="Breadcrumb"
       >
         <button
-          className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#3a3a3a] dark:text-[#aaa] dark:hover:bg-[#2a2a2a]"
+          className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#333] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
           onClick={() => navigate(-1)}
         >
           {'\u2190'} Back
         </button>
-        <span className="text-[0.85rem] text-[#999] dark:text-[#555]">Books / {book.title}</span>
+        <span className="text-[0.85rem] text-[#999] dark:text-[#888]">Books / {book.title}</span>
       </nav>
 
       <article className="mx-auto mt-12 grid max-w-[1000px] items-start gap-12 px-8 [grid-template-columns:280px_1fr]">
@@ -137,11 +137,11 @@ export default function BookDetail() {
             className="w-full rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
           />
 
-          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2e2e2e] dark:bg-[#252525]">
+          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#333] dark:bg-[#242424]">
             <p className={`m-0 text-[0.9rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
               {isAvailable ? '\u25CF Available' : '\u25CF Fully Borrowed'}
             </p>
-            <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#555]">
+            <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#888]">
               {availableCopies} of {totalCopies} copies available
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function BookDetail() {
             </button>
 
             <button
-              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#aaa] dark:hover:bg-[#333]"
+              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]"
               aria-label={`Share ${book.title}`}
               onClick={handleShare}
             >
@@ -175,23 +175,23 @@ export default function BookDetail() {
         </aside>
 
         <section className="flex flex-col gap-3 self-stretch">
-          <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#888] dark:text-[#666]">
+          <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#888] dark:text-[#888]">
             {book.genre}
           </span>
 
-          <h1 className="m-0 text-[2.2rem] font-bold leading-[1.2] text-[#1a1a1a] dark:text-[#f0ede8]">
+          <h1 className="m-0 text-[2.2rem] font-bold leading-[1.2] text-[#1a1a1a] dark:text-white">
             {book.title}
           </h1>
           <p className="m-0 text-base text-[#666] dark:text-[#888]">by {book.author}</p>
 
-          <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#999]">
+          <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
             {book.description.split('\n\n').map((para, i) => (
               <p key={i}>{para}</p>
             ))}
           </div>
 
           <ul
-            className="mt-2 grid list-none grid-cols-2 gap-x-6 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 dark:border-[#2e2e2e]"
+            className="mt-2 grid list-none grid-cols-2 gap-x-6 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 dark:border-[#333]"
             aria-label="Book details"
           >
             {[
@@ -203,26 +203,26 @@ export default function BookDetail() {
               ['Rating', `\u2B50 ${book.rating}`],
               ['Campus', bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus],
             ].map(([label, value]) => (
-              <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#555]">
+              <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#888]">
                 <span>{label}</span>
-                <strong className="mt-[0.15rem] text-[0.9rem] text-[#222] dark:text-[#d0cdc8]">{value}</strong>
+                <strong className="mt-[0.15rem] text-[0.9rem] text-[#222] dark:text-white">{value}</strong>
               </li>
             ))}
           </ul>
 
           <section
-            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2e2e2e] dark:bg-[#222]"
+            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#333] dark:bg-[#242424]"
             aria-label="Reading progress tracker"
           >
             <div className="flex items-baseline justify-between">
               <label
                 htmlFor={`progress-${book.id}`}
-                className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#555]"
+                className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]"
               >
                 Reading Progress
               </label>
               <span
-                className="text-[1.6rem] font-extrabold leading-none tracking-tight text-[#1a1a1a] dark:text-[#f0ede8]"
+                className="text-[1.6rem] font-extrabold leading-none tracking-tight text-[#1a1a1a] dark:text-white"
                 aria-live="polite"
               >
                 {progress}%
@@ -230,7 +230,7 @@ export default function BookDetail() {
             </div>
 
             <div
-              className="h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]"
+              className="h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2e2e2e]"
               role="progressbar"
               aria-valuenow={progress}
               aria-valuemin={0}
@@ -250,10 +250,10 @@ export default function BookDetail() {
               max="100"
               value={progress}
               onChange={(e) => handleProgress(Number(e.target.value))}
-              className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#2d7a4f] [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:w-[18px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[18px] [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.2] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
+              className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#00AB8E] [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:w-[18px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[18px] [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.2] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
             />
 
-            <p className="m-0 text-[0.78rem] italic text-[#bbb] dark:text-[#555]" aria-live="polite">
+            <p className="m-0 text-[0.78rem] italic text-[#bbb] dark:text-[#888]" aria-live="polite">
               {progress === 0 && 'Not started yet'}
               {progress > 0 && progress < 100 && `${100 - progress}% left to go`}
               {progress === 100 && '\u2713 Finished!'}
@@ -264,10 +264,10 @@ export default function BookDetail() {
 
       {relatedBooks.length > 0 && (
         <section
-          className="mx-auto mt-12 max-w-[1000px] border-t border-[#e5e2dc] px-8 pt-8 dark:border-[#2e2e2e]"
+          className="mx-auto mt-12 max-w-[1000px] border-t border-[#e5e2dc] px-8 pt-8 dark:border-[#333]"
           aria-label="Related books"
         >
-          <h2 className="mb-6 text-[1.3rem] font-bold text-[#1a1a1a] dark:text-[#f0ede8]">{relatedTitle}</h2>
+          <h2 className="mb-6 text-[1.3rem] font-bold text-[#1a1a1a] dark:text-white">{relatedTitle}</h2>
           <ul className="m-0 grid list-none grid-cols-4 gap-6 p-0">
             {relatedBooks.map((related) => (
               <li key={related.id}>
@@ -281,10 +281,10 @@ export default function BookDetail() {
                     alt={`Cover of ${related.title}`}
                     className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-transform duration-200 group-hover:-translate-y-1"
                   />
-                  <p className="mb-[0.2rem] mt-[0.6rem] text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-[#f0ede8]">
+                  <p className="mb-[0.2rem] mt-[0.6rem] text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-white">
                     {related.title}
                   </p>
-                  <p className="m-0 text-[0.75rem] text-[#888] dark:text-[#666]">{related.author}</p>
+                  <p className="m-0 text-[0.75rem] text-[#888] dark:text-[#888]">{related.author}</p>
                 </button>
               </li>
             ))}
@@ -301,7 +301,7 @@ export default function BookDetail() {
           aria-label="Borrow book"
         >
           <div
-            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-8 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] dark:bg-[#222]"
+            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-8 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] dark:bg-[#242424]"
             onClick={(e) => e.stopPropagation()}
           >
             {confirmed ? (
@@ -309,10 +309,10 @@ export default function BookDetail() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2d7a4f] text-2xl text-white">
                   {'\u2713'}
                 </div>
-                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-[#f0ede8]">
+                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
                   Borrowed Successfully!
                 </h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#999]">
+                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
                   <strong>{book.title}</strong> has been added to your loans. Please pick it up from the library desk
                   within 48 hours.
                 </p>
@@ -330,15 +330,15 @@ export default function BookDetail() {
                   alt={`Cover of ${book.title}`}
                   className="aspect-[2/3] w-[100px] rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
                 />
-                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-[#f0ede8]">Borrow this book?</h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#999]">
+                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">Borrow this book?</h2>
+                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
                   <strong>{book.title}</strong> by {book.author}
                   <br />
-                  <span className="mt-1 block text-[0.8rem] text-[#aaa]">Loan period: 14 days</span>
+                  <span className="mt-1 block text-[0.8rem] text-[#aaa] dark:text-[#888]">Loan period: 14 days</span>
                 </p>
                 <div className="mt-2 flex w-full gap-3">
                   <button
-                    className="flex-1 cursor-pointer rounded-lg border border-[#e0ddd8] bg-white py-3 text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f5f3ef] dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#aaa] dark:hover:bg-[#333]"
+                    className="flex-1 cursor-pointer rounded-lg border border-[#e0ddd8] bg-white py-3 text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f5f3ef] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]"
                     onClick={handleClose}
                   >
                     Cancel

@@ -230,7 +230,7 @@ function Dashboard() {
 		<div className="max-w-5xl mx-auto mt-10 px-4 sm:px-6">
 
 			<div className="mb-6 flex items-center justify-between gap-4">
-				<h1 className="text-3xl font-semibold text-gray-800 dark:text-[#f0ede8]">
+				<h1 className="text-3xl font-semibold text-gray-800 dark:text-white">
 					User Account
 				</h1>
 
@@ -243,22 +243,22 @@ function Dashboard() {
 				</button>
 			</div>
 
-			<div className="flex flex-col md:flex-row justify-between gap-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#222] dark:border-[#2e2e2e]">
+			<div className="flex flex-col md:flex-row justify-between gap-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#242424] dark:border-[#333]">
 
 				<div className="flex-1 space-y-4">
 
-					<h2 className="text-xl font-semibold text-gray-700 dark:text-[#f0ede8]">
+					<h2 className="text-xl font-semibold text-gray-700 dark:text-white">
 						Profile Information
 					</h2>
 
 					<div className="flex items-center gap-3 flex-wrap">
 
-						<span className="font-medium text-gray-700 dark:text-[#d0cdc8]">Username:</span>
+						<span className="font-medium text-gray-700 dark:text-white">Username:</span>
 
 						{editingUsername ? (
 							<>
 								<input
-									className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/20 dark:bg-[#2a2a2a] dark:border-[#3a3a3a] dark:text-[#f0ede8]"
+									className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/20 dark:bg-[#2e2e2e] dark:border-[#333] dark:text-white"
 									type="text"
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
@@ -275,10 +275,10 @@ function Dashboard() {
 							</>
 						) : (
 							<>
-								<span className="text-gray-600 dark:text-[#999]">{user.username}</span>
+								<span className="text-gray-600 dark:text-[#888]">{user.username}</span>
 
 								<button
-									className="text-[#006751] underline cursor-pointer text-sm dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]"
+									className="text-[#006751] underline cursor-pointer text-sm dark:text-[#00AB8E] dark:hover:text-white"
 									onClick={() => setEditingUsername(true)}
 									aria-label="Change username"
 								>
@@ -290,13 +290,13 @@ function Dashboard() {
 					</div>
 
 					<p>
-						<span className="font-medium text-gray-700 dark:text-[#d0cdc8]">Email:</span>
-						<span className="text-gray-600 ml-2 dark:text-[#999]">{user.email}</span>
+						<span className="font-medium text-gray-700 dark:text-white">Email:</span>
+						<span className="text-gray-600 ml-2 dark:text-[#888]">{user.email}</span>
 					</p>
 
 					<p>
-						<span className="font-medium text-gray-700 dark:text-[#d0cdc8]">Date Joined:</span>
-						<span className="text-gray-600 ml-2 dark:text-[#999]">
+						<span className="font-medium text-gray-700 dark:text-white">Date Joined:</span>
+						<span className="text-gray-600 ml-2 dark:text-[#888]">
 							{user.createdAt
 								? new Date(user.createdAt).toLocaleDateString()
 								: "N/A"}
@@ -304,7 +304,7 @@ function Dashboard() {
 					</p>
 
 					<p>
-						<span className="font-medium text-gray-700 dark:text-[#d0cdc8]">Account Status:</span>
+						<span className="font-medium text-gray-700 dark:text-white">Account Status:</span>
 						<span className="ml-2 text-[#006751] dark:text-[#00AB8E]">Active</span>
 					</p>
 
@@ -315,11 +315,11 @@ function Dashboard() {
 					<img
 						src={profilePic}
 						alt={`${user.username}'s profile picture`}
-						className="w-36 h-36 rounded-full object-cover border-2 border-gray-200 shadow-sm dark:border-[#3a3a3a]"
+						className="w-36 h-36 rounded-full object-cover border-2 border-gray-200 shadow-sm dark:border-[#333]"
 					/>
 
 					<button
-						className="text-sm border border-transparent bg-[#006751] text-white px-4 py-2 rounded-md hover:bg-[#005040] transition dark:border-[#3a3a3a]"
+						className="text-sm border border-transparent bg-[#006751] text-white px-4 py-2 rounded-md hover:bg-[#005040] transition dark:border-[#333]"
 						onClick={openFilePicker}
 						aria-label="Upload new profile picture"
 					>
@@ -339,15 +339,15 @@ function Dashboard() {
 
 			</div>
 
-			<div className="mt-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#222] dark:border-[#2e2e2e]">
+			<div className="mt-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#242424] dark:border-[#333]">
 
-				<h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-[#f0ede8]">
+				<h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
 					Library Activity
 				</h2>
 
-				<h3 className="font-medium text-gray-700 dark:text-[#d0cdc8]">Checked Out Books</h3>
+				<h3 className="font-medium text-gray-700 dark:text-white">Checked Out Books</h3>
 				{borrowedBooks.length === 0 ? (
-					<p className="text-gray-600 mb-4 dark:text-[#999]">No books checked out</p>
+					<p className="text-gray-600 mb-4 dark:text-[#888]">No books checked out</p>
 				) : (
 					<ul className="mt-4 space-y-3">
 						{borrowedBooks.map((book) => {
@@ -357,7 +357,7 @@ function Dashboard() {
 
 							return (
 								<li key={book.id}>
-									<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-800 shadow-sm dark:border-[#2e2e2e] dark:bg-[#252525] dark:text-[#f0ede8] sm:flex-row sm:items-center sm:justify-between">
+									<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-800 shadow-sm dark:border-[#333] dark:bg-[#242424] dark:text-white sm:flex-row sm:items-center sm:justify-between">
 										<div className="flex min-w-0 items-center gap-4">
 											<button
 												type="button"
@@ -377,11 +377,11 @@ function Dashboard() {
 													className="cursor-pointer border-0 bg-transparent p-0 text-left"
 													onClick={() => navigate(`/books/${book.id}`)}
 												>
-													<p className="truncate text-left text-lg font-semibold text-gray-800 dark:text-[#f0ede8]">
+													<p className="truncate text-left text-lg font-semibold text-gray-800 dark:text-white">
 														{book.title}
 													</p>
 												</button>
-												<p className="text-sm text-gray-600 dark:text-[#999]">{bookDetails?.author || "Unknown author"}</p>
+												<p className="text-sm text-gray-600 dark:text-[#888]">{bookDetails?.author || "Unknown author"}</p>
 												<p className="mt-1 text-sm text-gray-500 dark:text-[#888]">
 													Borrowed {formatLoanDate(book.borrowedAt)} · Due {formatLoanDate(book.dueDate)}
 												</p>
@@ -390,17 +390,17 @@ function Dashboard() {
 
 										<div className="flex w-full flex-col gap-3 sm:w-auto sm:min-w-[320px]">
 											<div className="flex items-center gap-3">
-												<div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-[#2e2e2e] dark:bg-[#222]">
+												<div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-[#333] dark:bg-[#2e2e2e]">
 													<div className="mb-1 flex items-center justify-between">
 														<span className="text-[0.68rem] font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-[#888]">
 															Progress
 														</span>
-														<span className="text-[0.8rem] font-semibold text-gray-800 dark:text-[#f0ede8]">
+														<span className="text-[0.8rem] font-semibold text-gray-800 dark:text-white">
 															{progress}%
 														</span>
 													</div>
 
-													<div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]">
+													<div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2e2e2e]">
 														<div
 															className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
 															style={{ width: `${progress}%` }}
@@ -413,14 +413,14 @@ function Dashboard() {
 														max="100"
 														value={progress}
 														onChange={(e) => handleLoanProgressChange(book.id, Number(e.target.value))}
-														className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#2d7a4f] [&::-moz-range-thumb]:h-[14px] [&::-moz-range-thumb]:w-[14px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[2px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[14px] [&::-webkit-slider-thumb]:w-[14px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[2px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.15] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
+														className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#00AB8E] [&::-moz-range-thumb]:h-[14px] [&::-moz-range-thumb]:w-[14px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[2px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[14px] [&::-webkit-slider-thumb]:w-[14px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[2px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.15] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
 														aria-label={`Reading progress for ${book.title}`}
 													/>
 												</div>
 
 												<button
 													type="button"
-													className="rounded-md bg-[#006751] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#005040] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 dark:bg-[#006751] dark:text-white dark:hover:bg-[#005040] dark:disabled:bg-[#3a3a3a] dark:disabled:text-[#777]"
+													className="rounded-md bg-[#006751] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#005040] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 dark:bg-[#006751] dark:text-white dark:hover:bg-[#005040] dark:disabled:bg-[#333] dark:disabled:text-[#888]"
 													onClick={() => handleRenewBook(book.id)}
 													disabled={isRenewDisabled}
 												>
@@ -435,11 +435,11 @@ function Dashboard() {
 					</ul>
 				)}
 
-				<h3 className="mt-8 font-medium text-gray-700 dark:text-[#d0cdc8]">Overdue Books & Fines</h3>
+				<h3 className="mt-8 font-medium text-gray-700 dark:text-white">Overdue Books & Fines</h3>
 				{overdueBooks.length === 0 ? (
-					<p className="text-gray-600 dark:text-[#999]">No overdue books</p>
+					<p className="text-gray-600 dark:text-[#888]">No overdue books</p>
 				) : (
-					<ul className="list-disc ml-6 text-gray-600 dark:text-[#999]">
+					<ul className="list-disc ml-6 text-gray-600 dark:text-[#888]">
 						{overdueBooks.map((book) => (
 							<li key={book.id}>
 								{book.title} - Due on {new Date(book.dueDate).toLocaleDateString()}
