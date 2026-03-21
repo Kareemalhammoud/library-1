@@ -236,7 +236,7 @@ function Dashboard() {
 
 				<button
 					type="button"
-					className="rounded-md bg-[#006751] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#005040] dark:bg-[#006751] dark:text-white dark:hover:bg-[#005040]"
+					className="rounded-md bg-[#1a6644] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]"
 					onClick={handleLogout}
 				>
 					Logout
@@ -266,7 +266,7 @@ function Dashboard() {
 								/>
 
 								<button
-									className="bg-[#006751] text-white px-4 py-2 rounded-md hover:bg-[#005040] transition"
+									className="bg-[#1a6644] text-white px-4 py-2 rounded-md hover:bg-[#14533a] transition"
 									onClick={handleUsernameUpdate}
 									aria-label="Save username"
 								>
@@ -278,7 +278,7 @@ function Dashboard() {
 								<span className="text-gray-600 dark:text-[#888]">{user.username}</span>
 
 								<button
-									className="text-[#006751] underline cursor-pointer text-sm dark:text-[#00AB8E] dark:hover:text-white"
+									className="text-[#006751] underline cursor-pointer text-sm dark:text-[#5ecba1] dark:hover:text-white"
 									onClick={() => setEditingUsername(true)}
 									aria-label="Change username"
 								>
@@ -305,7 +305,7 @@ function Dashboard() {
 
 					<p>
 						<span className="font-medium text-gray-700 dark:text-white">Account Status:</span>
-						<span className="ml-2 text-[#006751] dark:text-[#00AB8E]">Active</span>
+						<span className="ml-2 text-[#006751] dark:text-[#5ecba1]">Active</span>
 					</p>
 
 				</div>
@@ -319,7 +319,7 @@ function Dashboard() {
 					/>
 
 					<button
-						className="text-sm border border-transparent bg-[#006751] text-white px-4 py-2 rounded-md hover:bg-[#005040] transition dark:border-[#333]"
+						className="text-sm border border-transparent bg-[#1a6644] text-white px-4 py-2 rounded-md hover:bg-[#14533a] transition dark:border-[#333]"
 						onClick={openFilePicker}
 						aria-label="Upload new profile picture"
 					>
@@ -390,7 +390,7 @@ function Dashboard() {
 
 										<div className="flex w-full flex-col gap-3 sm:w-auto sm:min-w-[320px]">
 											<div className="flex items-center gap-3">
-												<div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-[#333] dark:bg-[#2e2e2e]">
+												<div className="min-w-0 flex-1">
 													<div className="mb-1 flex items-center justify-between">
 														<span className="text-[0.68rem] font-bold uppercase tracking-[0.08em] text-gray-500 dark:text-[#888]">
 															Progress
@@ -413,14 +413,14 @@ function Dashboard() {
 														max="100"
 														value={progress}
 														onChange={(e) => handleLoanProgressChange(book.id, Number(e.target.value))}
-														className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#00AB8E] [&::-moz-range-thumb]:h-[14px] [&::-moz-range-thumb]:w-[14px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[2px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[14px] [&::-webkit-slider-thumb]:w-[14px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[2px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.15] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
+														className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#5ecba1] [&::-moz-range-thumb]:h-[14px] [&::-moz-range-thumb]:w-[14px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[2px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[14px] [&::-webkit-slider-thumb]:w-[14px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[2px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.15] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
 														aria-label={`Reading progress for ${book.title}`}
 													/>
 												</div>
 
 												<button
 													type="button"
-													className="rounded-md bg-[#006751] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#005040] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 dark:bg-[#006751] dark:text-white dark:hover:bg-[#005040] dark:disabled:bg-[#333] dark:disabled:text-[#888]"
+													className="rounded-md bg-[#1a6644] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#14533a] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a] dark:disabled:bg-[#333] dark:disabled:text-[#888]"
 													onClick={() => handleRenewBook(book.id)}
 													disabled={isRenewDisabled}
 												>
@@ -453,7 +453,7 @@ function Dashboard() {
 			<div className="mt-8 mb-10 flex flex-wrap gap-4">
 
 				<button
-					className="bg-[#006751] text-white px-5 py-2 rounded-md hover:bg-[#005040] transition"
+					className="bg-[#1a6644] text-white px-5 py-2 rounded-md hover:bg-[#14533a] transition"
 					onClick={() => navigate("/books")}
 				>
 					Search Books

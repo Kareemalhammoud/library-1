@@ -59,7 +59,7 @@ const RULES = [
 const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-1.5 text-[#1a6644] text-[13px] font-medium hover:opacity-80 transition-opacity mb-6"
+    className="mb-6 flex items-center gap-1.5 text-[13px] font-medium text-[#5ecba1] transition-opacity hover:opacity-80"
   >
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -80,16 +80,16 @@ const StudyRoomsPage = () => {
     <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
       {/* Hero — sage green accent */}
-      <section className="bg-[#d6ede0] dark:bg-[#1a3a2e] px-8 md:px-16 py-12 relative overflow-hidden">
+      <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#1a6644]/8 pointer-events-none" />
         <BackButton onClick={() => navigate("/Services")} />
-        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
+        <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Services · Study Rooms
         </p>
-        <h1 className="text-[#102a1c] dark:text-white text-4xl font-bold leading-tight mb-2">
+        <h1 className="text-white text-4xl font-bold leading-tight mb-2">
           Group Study Rooms
         </h1>
-        <p className="text-[#3d6650] dark:text-white/55 text-sm max-w-lg leading-relaxed">
+        <p className="text-white/65 text-sm max-w-lg leading-relaxed">
           Book private study rooms at Beirut or Byblos campus for collaborative sessions. Valid LAU ID required.
         </p>
       </section>
@@ -167,7 +167,7 @@ const StudyRoomsPage = () => {
             }
             target="_blank"
             rel="noreferrer"
-            className="mt-5 flex items-center justify-center gap-2 w-full h-10 bg-[#1a6644] hover:bg-[#1a3a2e] text-white rounded-xl text-[13px] font-semibold transition-colors duration-150"
+            className="mt-5 flex items-center justify-center gap-2 w-full h-10 bg-[#1a6644] hover:bg-[#14533a] text-white rounded-xl text-[13px] font-semibold transition-colors duration-150"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" />

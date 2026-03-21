@@ -25,9 +25,6 @@ body {
 
 .main-content {
   flex: 1;
-  padding: 0 var(--spacing-4) var(--spacing-6);
-  max-width: var(--container-max);
-  margin: 0 auto;
   width: 100%;
 }
 /* ──────────────────────────────────────
@@ -51,8 +48,8 @@ body.dark header {
 
 /* Hero sections — muted deep green, not bright */
 body.dark [class*="hero"] {
-  --hero-bg-start: #0B2E23;
-  --hero-bg-end: #0F172A;
+  --hero-bg-start: #143c2f;
+  --hero-bg-end: #121212;
 }
 
 /* White cards → elevated dark surfaces */
@@ -69,7 +66,7 @@ body.dark [class*="infoCard"] {
 body.dark [class*="card"]:hover,
 body.dark [class*="Card"]:hover {
   background: var(--color-bg-elevated) !important;
-  border-color: rgba(45, 212, 168, 0.15) !important;
+  border-color: rgba(94, 203, 161, 0.18) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -90,20 +87,20 @@ body.dark select:focus,
 body.dark input:focus,
 body.dark textarea:focus {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 2px rgba(45, 212, 168, 0.12) !important;
+  box-shadow: 0 0 0 2px rgba(0, 171, 142, 0.14) !important;
 }
 
 /* Buttons — muted green primary */
 body.dark [class*="btnPrimary"],
 body.dark [class*="ctaBtn"]:not([class*="Ghost"]),
 body.dark button[class*="Primary"] {
-  background: #1A7A5C !important;
-  color: #F1F5F9 !important;
+  background: #006751 !important;
+  color: #f5f7f6 !important;
 }
 
 body.dark [class*="btnPrimary"]:hover,
 body.dark [class*="ctaBtn"]:not([class*="Ghost"]):hover {
-  background: #1F8F6B !important;
+  background: #005040 !important;
 }
 
 /* Ghost / outlined buttons */
@@ -131,13 +128,13 @@ body.dark [class*="section"] {
 body.dark [class*="filterBar"],
 body.dark [class*="policiesSection"],
 body.dark [class*="supportSection"] {
-  background: rgba(30, 41, 59, 0.5) !important;
+  background: rgba(20, 60, 47, 0.24) !important;
   border-color: var(--color-border) !important;
 }
 
 /* Stats bar */
 body.dark [class*="stats"] {
-  background: rgba(30, 41, 59, 0.4) !important;
+  background: rgba(20, 60, 47, 0.18) !important;
   border-color: var(--color-border) !important;
 }
 
@@ -182,7 +179,7 @@ body.dark [class*="empty"] {
 
 /* Footer */
 body.dark footer {
-  background: #0B1120 !important;
+  background: #121212 !important;
   border-top-color: var(--color-border) !important;
 }
 
@@ -190,8 +187,8 @@ body.dark footer {
 body.dark [class*="heroCard"] {
   background: linear-gradient(
     160deg,
-    rgba(15, 23, 42, 0.92) 0%,
-    rgba(30, 41, 59, 0.88) 100%
+    rgba(18, 18, 18, 0.92) 0%,
+    rgba(20, 60, 47, 0.86) 100%
   ) !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
@@ -209,7 +206,7 @@ body.dark [class*="heroCardHint"] {
 
 /* Hero search bar */
 body.dark [class*="heroSearch"] {
-  background: rgba(15, 23, 42, 0.6) !important;
+  background: rgba(18, 18, 18, 0.72) !important;
   border-color: var(--color-border) !important;
 }
 
@@ -225,7 +222,7 @@ body.dark [class*="actionCard"] {
 
 body.dark [class*="actionCard"]:hover {
   background: var(--color-bg-elevated) !important;
-  border-color: rgba(45, 212, 168, 0.2) !important;
+  border-color: rgba(94, 203, 161, 0.2) !important;
 }
 
 /* Book cards / covers */
@@ -239,7 +236,7 @@ body.dark [class*="bookMeta"] {
 
 /* Nav pill in dark mode */
 body.dark [class*="inner"] {
-  background: rgba(15, 23, 42, 0.9) !important;
+  background: rgba(18, 18, 18, 0.92) !important;
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
@@ -253,14 +250,15 @@ body.dark [class*="filterGroup"] select {
 
 /* Catalog hero — dark green gradient */
 body.dark [class*="hero"] {
-  background: linear-gradient(165deg, #0B2E23 0%, #0F2030 60%, #0F172A 100%) !important;
+  background: linear-gradient(165deg, #143c2f 0%, #19372d 60%, #121212 100%) !important;
 }
 
 /* Advanced search panel */
 body.dark [class*="advancedPanel"] {
-  background: rgba(15, 23, 42, 0.8) !important;
+  background: rgba(18, 18, 18, 0.88) !important;
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
+
 
 /* List rows */
 body.dark [class*="listRow"] {
@@ -279,7 +277,7 @@ body.dark [class*="themeToggle"] {
 
 body.dark [class*="themeToggle"]:hover {
   color: var(--color-text) !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(94, 203, 161, 0.08) !important;
 }
 
 /* Dashboard (Tailwind pages) */

@@ -77,7 +77,7 @@ function Login() {
 
 					<button
 						type="submit"
-						className="w-full bg-[#006751] text-white py-3 rounded-md font-semibold text-base transition hover:bg-[#005040]"
+						className="w-full bg-[#1a6644] text-white py-3 rounded-md font-semibold text-base transition hover:bg-[#14533a]"
 					>
 						Login
 					</button>
@@ -89,7 +89,7 @@ function Login() {
 					<Link
 						to="/register"
 						state={location.state}
-						className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-white"
+						className="text-[#006751] underline hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white"
 					>
 						Register
 					</Link>

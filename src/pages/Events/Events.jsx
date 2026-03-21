@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { EVENTS } from '@/data/eventsData'
 
 const CATEGORIES = ['All', 'Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']
@@ -19,15 +19,15 @@ function formatFullDate(dateStr) {
 
 function categoryColor(category) {
   const map = {
-    Workshops: 'text-[#006751] dark:text-[#2DD4A8]',
-    'Author Talks': 'text-[#4A6EA3] dark:text-[#9ec3ff]',
+    Workshops: 'text-[#006751] dark:text-[#5ecba1]',
+    'Author Talks': 'text-[#1a6644] dark:text-[#5ecba1]',
     Exhibitions: 'text-[#987432] dark:text-[#e2c781]',
     'Book Clubs': 'text-[#8B5E3C] dark:text-[#d6aa8a]',
-    Film: 'text-[#7B4EA3] dark:text-[#c8a6ff]',
+    Film: 'text-[#2d6a4f] dark:text-[#5ecba1]',
     'Kids & Families': 'text-[#B8565C] dark:text-[#ff9ba3]',
-    Community: 'text-[#44785E] dark:text-[#8fd0af]',
+    Community: 'text-[#44785E] dark:text-[#5ecba1]',
   }
-  return map[category] || 'text-[#006751] dark:text-[#2DD4A8]'
+  return map[category] || 'text-[#006751] dark:text-[#5ecba1]'
 }
 
 function Events() {
@@ -67,25 +67,25 @@ function Events() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#0F172A] dark:text-[#F1F5F9]">
+    <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
       <section className="grid min-h-[480px] md:grid-cols-2">
         <div className="relative flex items-center overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-6 py-12 md:px-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_80%,rgba(0,171,142,0.07)_0%,transparent_70%),radial-gradient(ellipse_40%_40%_at_80%_20%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
           <div className="relative max-w-[480px]">
-            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#00AB8E]">Riyad Nassar Library</p>
+            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Riyad Nassar Library</p>
             <h1 className="mb-5 text-[clamp(1.8rem,3.5vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.035em] text-[rgba(240,248,244,0.96)]">Library Events</h1>
             <p className="mb-8 max-w-[42ch] text-[0.9rem] leading-[1.75] text-[rgba(240,248,244,0.48)]">Author talks, research workshops, film screenings, poetry evenings: the library is where ideas find their audience and community takes shape.</p>
             <div className="mb-8 flex flex-wrap gap-3">
-              <a href="#upcoming" className="rounded-lg bg-[#00AB8E] px-5 py-2.5 text-[0.8rem] font-semibold text-white shadow-[0_1px_4px_rgba(0,171,142,0.3)] transition hover:bg-[#009A7F]">View Upcoming Events</a>
+              <a href="#upcoming" className="rounded-lg bg-[#1a6644] px-5 py-2.5 text-[0.8rem] font-semibold text-white shadow-[0_1px_4px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a]">View Upcoming Events</a>
               <a href="mailto:libraries@lau.edu.lb" className="rounded-lg border border-white/15 px-5 py-2.5 text-[0.8rem] font-semibold text-[rgba(240,248,244,0.7)] transition hover:bg-white/5 hover:text-[rgba(240,248,244,0.95)]">Host or Partner With Us</a>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
-              <span className="h-[7px] w-[7px] rounded-full bg-[#00AB8E] shadow-[0_0_0_3px_rgba(0,171,142,0.18)]" />
+              <span className="h-[7px] w-[7px] rounded-full bg-[#5ecba1] shadow-[0_0_0_3px_rgba(94,203,161,0.18)]" />
               <span className="text-[0.72rem] font-semibold text-[rgba(240,248,244,0.55)]">{EVENTS.length} events this month</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-center bg-[linear-gradient(155deg,rgba(0,103,81,0.06)_0%,rgba(200,190,170,0.05)_100%)] p-6 dark:bg-[linear-gradient(155deg,rgba(15,23,42,0.95)_0%,rgba(30,41,59,0.9)_100%)]">
+        <div className="flex items-center justify-center bg-[linear-gradient(155deg,rgba(0,103,81,0.06)_0%,rgba(200,190,170,0.05)_100%)] p-6 dark:bg-[linear-gradient(155deg,rgba(18,18,18,0.96)_0%,rgba(31,31,31,0.92)_100%)]">
           <div className="grid h-full max-h-[400px] w-full max-w-[520px] grid-cols-[1.4fr_1fr] grid-rows-2 gap-3">
             {[
               ['main', 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=600&q=80', 'Library shelves'],
@@ -106,27 +106,27 @@ function Events() {
         const pct = featuredEvent.seats ? (featuredEvent.registered / featuredEvent.seats) * 100 : 0
 
         return (
-          <section className="border-b border-[rgba(0,103,81,0.06)] bg-[linear-gradient(170deg,rgba(0,103,81,0.035)_0%,rgba(200,190,170,0.055)_100%)] px-5 py-16 dark:border-[#334155] dark:bg-[linear-gradient(170deg,rgba(15,23,42,0.92)_0%,rgba(30,41,59,0.88)_100%)]">
+          <section className="border-b border-[rgba(0,103,81,0.06)] bg-[linear-gradient(170deg,rgba(0,103,81,0.035)_0%,rgba(200,190,170,0.055)_100%)] px-5 py-16 dark:border-[#333333] dark:bg-[linear-gradient(170deg,rgba(18,18,18,0.94)_0%,rgba(31,31,31,0.9)_100%)]">
             <div className="mx-auto grid max-w-[var(--container-max)] gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
               <div className="lg:sticky lg:top-8 lg:self-start">
                 <div className="relative overflow-hidden rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.10),0_1px_3px_rgba(0,0,0,0.06)]">
                   <img src={featuredEvent.image} alt={featuredEvent.title} className="h-full w-full object-cover" />
                   <div className="absolute left-4 top-4 flex w-14 flex-col items-center rounded-[10px] border border-white/12 bg-[rgba(6,26,18,0.78)] py-2 shadow-[0_4px_16px_rgba(0,0,0,0.28)] backdrop-blur-[10px]">
-                    <span className="text-[0.54rem] font-bold uppercase tracking-[0.14em] text-[#00AB8E]">{fd.month}</span>
+                    <span className="text-[0.54rem] font-bold uppercase tracking-[0.14em] text-[#5ecba1]">{fd.month}</span>
                     <span className="text-[1.4rem] font-extrabold leading-none text-[rgba(240,248,244,0.95)]">{fd.day}</span>
                   </div>
-                  <span className={`absolute bottom-4 left-4 rounded-md bg-white/90 px-3 py-1 text-[0.58rem] font-bold uppercase tracking-[0.12em] shadow ${categoryColor(featuredEvent.category)}`}>{featuredEvent.category}</span>
+                  <span className={`absolute bottom-4 left-4 rounded-md bg-white/90 px-3 py-1 text-[0.58rem] font-bold uppercase tracking-[0.12em] shadow dark:bg-[#121212]/90 ${categoryColor(featuredEvent.category)}`}>{featuredEvent.category}</span>
                 </div>
               </div>
 
               <div className="flex flex-col">
                 <div className="mb-5 flex flex-wrap items-center gap-3">
-                  <span className="rounded-full bg-[#006751] px-3 py-1 text-[0.58rem] font-bold uppercase tracking-[0.14em] text-white dark:bg-[#2DD4A8] dark:text-[#0F172A]">Featured Event</span>
-                  <span className="text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62]/60 dark:text-[#94A3B8]">Open to all</span>
+                  <span className="rounded-full bg-[#006751] px-3 py-1 text-[0.58rem] font-bold uppercase tracking-[0.14em] text-white dark:bg-[#5ecba1] dark:text-[#121212]">Featured Event</span>
+                  <span className="text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62]/60 dark:text-[#8c9691]">Open to all</span>
                 </div>
                 <h2 className="mb-3 text-[clamp(1.35rem,2.8vw,1.9rem)] font-extrabold leading-[1.2] tracking-[-0.03em]">{featuredEvent.title}</h2>
-                <p className="mb-7 max-w-[56ch] text-[0.88rem] leading-[1.72] text-[#595959] dark:text-[#94A3B8]">{featuredEvent.description}</p>
-                <div className="mb-7 grid gap-4 rounded-xl border border-[#d0ddd8] border-t-[2px] border-t-[rgba(0,103,81,0.15)] bg-[linear-gradient(155deg,rgba(253,250,244,1)_0%,rgba(247,242,232,1)_100%)] p-5 shadow-sm md:grid-cols-2 dark:border-[#334155] dark:border-t-[#2DD4A8]/30 dark:bg-[#1E293B]">
+                <p className="mb-7 max-w-[56ch] text-[0.88rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">{featuredEvent.description}</p>
+                <div className="mb-7 grid gap-4 rounded-xl border border-[#d0ddd8] border-t-[2px] border-t-[rgba(0,103,81,0.15)] bg-[linear-gradient(155deg,rgba(253,250,244,1)_0%,rgba(247,242,232,1)_100%)] p-5 shadow-sm md:grid-cols-2 dark:border-[#333333] dark:border-t-[rgba(94,203,161,0.3)] dark:bg-[#1f1f1f] dark:[background-image:none]">
                   {[
                     ['Date', `${fd.weekday}, ${formatFullDate(featuredEvent.date)}`],
                     ['Time', featuredEvent.time],
@@ -134,20 +134,20 @@ function Events() {
                     ['Speaker', featuredEvent.speaker],
                   ].filter(([, value]) => value).map(([label, value]) => (
                     <div key={label}>
-                      <span className="mb-1 block text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#5a6b62]/60 dark:text-[#94A3B8]">{label}</span>
-                      <span className="text-[0.82rem] font-semibold text-[#1C2B24] dark:text-[#F1F5F9]">{value}</span>
+                      <span className="mb-1 block text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#5a6b62]/60 dark:text-[#8c9691]">{label}</span>
+                      <span className="text-[0.82rem] font-semibold text-[#1C2B24] dark:text-[#f5f7f6]">{value}</span>
                     </div>
                   ))}
                 </div>
                 {featuredEvent.seats && (
                   <div className="mb-7 flex items-center gap-3">
-                    <div className="h-[5px] w-[140px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#334155]"><div className="h-full rounded bg-[#006751] dark:bg-[#2DD4A8]" style={{ width: `${pct}%` }} /></div>
-                    <span className="text-[0.72rem] font-semibold text-[#006751]/70 dark:text-[#2DD4A8]/80">{seatsLeft} of {featuredEvent.seats} seats remaining</span>
+                    <div className="h-[5px] w-[140px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${pct}%` }} /></div>
+                    <span className="text-[0.72rem] font-semibold text-[#006751]/70 dark:text-[#5ecba1]/80">{seatsLeft} of {featuredEvent.seats} seats remaining</span>
                   </div>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  <button type="button" className="rounded-lg bg-[#006751] px-6 py-2.5 text-[0.82rem] font-semibold text-white shadow-[0_1px_3px_rgba(0,103,81,0.3)] transition hover:bg-[#005040] dark:bg-[#2DD4A8] dark:text-[#0F172A] dark:hover:bg-[#14B88A]">Reserve a Spot</button>
-                  <button type="button" className="rounded-lg border border-[#d0ddd8] px-6 py-2.5 text-[0.82rem] font-semibold text-[#1C2B24] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#334155] dark:text-[#F1F5F9] dark:hover:border-[#2DD4A8] dark:hover:bg-[#1E293B]">Learn More</button>
+                  <button type="button" className="rounded-lg bg-[#1a6644] px-6 py-2.5 text-[0.82rem] font-semibold text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]">Reserve a Spot</button>
+                  <button type="button" className="rounded-lg border border-[#d0ddd8] px-6 py-2.5 text-[0.82rem] font-semibold text-[#1C2B24] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#333333] dark:text-[#f5f7f6] dark:hover:border-[#5ecba1] dark:hover:bg-[#1f1f1f]">Learn More</button>
                 </div>
               </div>
             </div>
@@ -155,60 +155,60 @@ function Events() {
         )
       })()}
 
-      <section id="upcoming" className="relative overflow-hidden border-b border-[rgba(0,103,81,0.05)] bg-[rgba(200,190,170,0.05)] px-5 py-16 dark:border-[#334155] dark:bg-[rgba(15,23,42,0.55)]">
+      <section id="upcoming" className="relative overflow-hidden border-b border-[rgba(0,103,81,0.05)] bg-[rgba(200,190,170,0.05)] px-5 py-16 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.88)]">
         <div className="mx-auto max-w-[var(--container-max)]">
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="mb-2 text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] before:mb-[1.15rem] before:block before:h-[3px] before:w-10 before:rounded-full before:bg-gradient-to-r before:from-[#006751] before:to-[rgba(0,103,81,0.35)] dark:before:from-[#2DD4A8] dark:before:to-[rgba(45,212,168,0.25)]">Upcoming Events</h2>
-              <p className="max-w-[48ch] text-[0.86rem] leading-[1.72] text-[#595959] dark:text-[#94A3B8]">Browse what&apos;s coming up, or narrow things down by topic, month, or format.</p>
+              <h2 className="mb-2 text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] before:mb-[1.15rem] before:block before:h-[3px] before:w-10 before:rounded-full before:bg-gradient-to-r before:from-[#006751] before:to-[rgba(0,103,81,0.35)] dark:before:from-[#5ecba1] dark:before:to-[rgba(94,203,161,0.25)]">Upcoming Events</h2>
+              <p className="max-w-[48ch] text-[0.86rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">Browse what&apos;s coming up, or narrow things down by topic, month, or format.</p>
             </div>
-            {activeFilterCount > 0 && <button type="button" className="inline-flex items-center gap-2 rounded-full border border-[#d0ddd8] px-3 py-1.5 text-[0.72rem] font-semibold text-[#5a6b62] transition hover:border-[#006751] hover:bg-[#006751]/5 hover:text-[#006751] dark:border-[#334155] dark:text-[#94A3B8] dark:hover:border-[#2DD4A8] dark:hover:text-[#2DD4A8]" onClick={clearAll}>Clear all <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#006751] text-[0.58rem] font-bold text-white dark:bg-[#2DD4A8] dark:text-[#0F172A]">{activeFilterCount}</span></button>}
+            {activeFilterCount > 0 && <button type="button" className="inline-flex items-center gap-2 rounded-full border border-[#d0ddd8] px-3 py-1.5 text-[0.72rem] font-semibold text-[#5a6b62] transition hover:border-[#1a6644] hover:bg-[#1a6644]/5 hover:text-[#1a6644] dark:border-[#333333] dark:text-[#8c9691] dark:hover:border-[#1a6644] dark:hover:text-[#1a6644]" onClick={clearAll}>Clear all <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1a6644] text-[0.58rem] font-bold text-white dark:bg-[#1a6644] dark:text-white">{activeFilterCount}</span></button>}
           </div>
 
           <div className="mb-6 max-w-[560px]">
             <div className="relative">
-              <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#006751]/40 dark:text-[#2DD4A8]/60" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#006751]/40 dark:text-[#5ecba1]/60" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 <path d="M16.5 16.5 L21 21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
-              <input type="search" className="w-full rounded-[10px] border border-[#d0ddd8] bg-white px-10 py-3 text-[0.82rem] text-[#1C2B24] outline-none transition focus:border-[#006751] focus:ring-4 focus:ring-[#006751]/8 dark:border-[#334155] dark:bg-[#1E293B] dark:text-[#F1F5F9] dark:focus:border-[#2DD4A8] dark:focus:ring-[#2DD4A8]/10" placeholder="Search events, speakers, or topics..." value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Search events" />
-              {search && <button type="button" className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#5a6b62]/50 transition hover:bg-black/5 hover:text-[#5a6b62] dark:text-[#94A3B8] dark:hover:bg-white/5" onClick={() => setSearch('')} aria-label="Clear search">x</button>}
+              <input type="search" className="w-full rounded-[10px] border border-[#d0ddd8] bg-white px-10 py-3 text-[0.82rem] text-[#1C2B24] outline-none transition focus:border-[#006751] focus:ring-4 focus:ring-[#006751]/8 dark:border-[#333333] dark:bg-[#1f1f1f] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1] dark:focus:ring-[#5ecba1]/10" placeholder="Search events, speakers, or topics..." value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Search events" />
+              {search && <button type="button" className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-[#5a6b62]/50 transition hover:bg-black/5 hover:text-[#5a6b62] dark:text-[#8c9691] dark:hover:bg-white/5" onClick={() => setSearch('')} aria-label="Clear search">x</button>}
             </div>
           </div>
 
-          <div className="sticky top-0 z-[8] mb-6 rounded-[14px] border border-[#d0ddd8] bg-white p-5 shadow-sm dark:border-[#334155] dark:bg-[#1E293B] max-[480px]:static">
+          <div className="sticky top-0 z-[8] mb-6 rounded-[14px] border border-[#d0ddd8] bg-white p-5 shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f] max-[480px]:static">
             <div className="mb-5">
-              <span className="mb-3 block text-[0.58rem] font-bold uppercase tracking-[0.14em] text-[#5a6b62]/55 dark:text-[#94A3B8]">Category</span>
+              <span className="mb-3 block text-[0.58rem] font-bold uppercase tracking-[0.14em] text-[#5a6b62]/55 dark:text-[#8c9691]">Category</span>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((cat) => (
-                  <button key={cat} type="button" className={`rounded-full border px-3 py-1.5 text-[0.72rem] transition ${cat === activeCategory ? 'border-[#006751] bg-[#006751] text-white shadow-[0_1px_3px_rgba(0,103,81,0.25)] dark:border-[#2DD4A8] dark:bg-[#2DD4A8] dark:text-[#0F172A]' : 'border-[#d0ddd8] bg-[#F2F5F3] text-[#5a6b62] hover:border-[#006751] hover:text-[#006751] dark:border-[#334155] dark:bg-[#0F172A] dark:text-[#94A3B8] dark:hover:border-[#2DD4A8] dark:hover:text-[#2DD4A8]'}`} onClick={() => setActiveCategory(cat)}>{cat === 'All' ? 'All Events' : cat}</button>
+                  <button key={cat} type="button" className={`rounded-full border px-3 py-1.5 text-[0.72rem] transition ${cat === activeCategory ? 'border-[#1a6644] bg-[#1a6644] text-white shadow-[0_1px_3px_rgba(26,102,68,0.25)] dark:border-[#1a6644] dark:bg-[#1a6644] dark:text-white' : 'border-[#d0ddd8] bg-[#F2F5F3] text-[#5a6b62] hover:border-[#1a6644] hover:text-[#1a6644] dark:border-[#333333] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#1a6644] dark:hover:text-[#1a6644]'}`} onClick={() => setActiveCategory(cat)}>{cat === 'All' ? 'All Events' : cat}</button>
                 ))}
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="flex flex-col gap-1">
-                <span className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#5a6b62]/55 dark:text-[#94A3B8]">Month</span>
-                <select className="rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] outline-none transition focus:border-[#006751] dark:border-[#334155] dark:bg-[#0F172A] dark:text-[#F1F5F9] dark:focus:border-[#2DD4A8]" value={month} onChange={(e) => setMonth(e.target.value)}>{MONTHS.map((m) => <option key={m} value={m}>{m}</option>)}</select>
+                <span className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#5a6b62]/55 dark:text-[#8c9691]">Month</span>
+                <select className="rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]" value={month} onChange={(e) => setMonth(e.target.value)}>{MONTHS.map((m) => <option key={m} value={m}>{m}</option>)}</select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#5a6b62]/55 dark:text-[#94A3B8]">Format</span>
-                <select className="rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] outline-none transition focus:border-[#006751] dark:border-[#334155] dark:bg-[#0F172A] dark:text-[#F1F5F9] dark:focus:border-[#2DD4A8]" value={format} onChange={(e) => setFormat(e.target.value)}>{FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}</select>
+                <span className="text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#5a6b62]/55 dark:text-[#8c9691]">Format</span>
+                <select className="rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]" value={format} onChange={(e) => setFormat(e.target.value)}>{FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}</select>
               </label>
             </div>
           </div>
 
-          <div className="mb-5 text-[0.82rem] text-[#5a6b62] dark:text-[#94A3B8]"><span className="font-bold text-[#1C2B24] dark:text-[#F1F5F9]">{filtered.length}</span> event{filtered.length !== 1 ? 's' : ''} found</div>
+          <div className="mb-5 text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]"><span className="font-bold text-[#1C2B24] dark:text-[#f5f7f6]">{filtered.length}</span> event{filtered.length !== 1 ? 's' : ''} found</div>
 
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#334155] dark:bg-[#1E293B]">
-              <svg className="mb-3 h-8 w-8 text-[#5a6b62]/40 dark:text-[#94A3B8]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <div className="flex flex-col items-center rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#333333] dark:bg-[#1f1f1f]">
+              <svg className="mb-3 h-8 w-8 text-[#5a6b62]/40 dark:text-[#8c9691]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 <path d="M8 11h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
               <p className="mb-2 text-[0.94rem] font-bold">No events found</p>
-              <p className="mb-5 max-w-[36ch] text-[0.8rem] leading-[1.7] text-[#5a6b62] dark:text-[#94A3B8]">Try broadening your search or adjusting your filters. There may be something just around the corner.</p>
-              <button type="button" className="rounded-md bg-[#006751] px-5 py-2 text-[0.8rem] font-semibold text-white transition hover:bg-[#005040] dark:bg-[#2DD4A8] dark:text-[#0F172A] dark:hover:bg-[#14B88A]" onClick={clearAll}>Clear all filters</button>
+              <p className="mb-5 max-w-[36ch] text-[0.8rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">Try broadening your search or adjusting your filters. There may be something just around the corner.</p>
+              <button type="button" className="rounded-md bg-[#1a6644] px-5 py-2 text-[0.8rem] font-semibold text-white transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]" onClick={clearAll}>Clear all filters</button>
             </div>
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -216,31 +216,31 @@ function Events() {
                 const { month, day, weekday } = formatDate(event.date)
                 const seatsLeft = event.seats ? event.seats - event.registered : null
                 return (
-                  <article key={event.id} className={`overflow-hidden rounded-[14px] border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(28,43,36,0.10)] dark:border-[#334155] dark:bg-[#1E293B] ${idx === 0 ? 'border-[#d0ddd8] bg-[linear-gradient(150deg,rgba(253,250,244,1)_0%,rgba(247,242,232,1)_100%)] xl:col-span-2 dark:bg-[#1E293B]' : 'border-[#d0ddd8]'}`}>
-                    <div className="relative aspect-video overflow-hidden bg-[#EDF3F0] dark:bg-[#243447]">
+                  <article key={event.id} className={`overflow-hidden rounded-[14px] border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(28,43,36,0.10)] dark:border-[#333333] dark:bg-[#1f1f1f] ${idx === 0 ? 'border-[#d0ddd8] bg-[linear-gradient(150deg,rgba(253,250,244,1)_0%,rgba(247,242,232,1)_100%)] xl:col-span-2 dark:bg-[#1f1f1f] dark:[background-image:none]' : 'border-[#d0ddd8]'}`}>
+                    <div className="relative aspect-video overflow-hidden bg-[#EDF3F0] dark:bg-[#242424]">
                       <img src={event.image} alt={event.title} className="absolute inset-0 h-full w-full object-cover transition duration-500 hover:scale-105" />
                       <div className="absolute left-3 top-3 flex w-12 flex-col items-center rounded-lg border border-white/10 bg-[rgba(6,26,18,0.78)] py-1.5 text-[rgba(240,248,244,0.95)] shadow-[0_4px_12px_rgba(0,0,0,0.24)] backdrop-blur-[10px]">
-                        <span className="text-[0.48rem] font-bold uppercase tracking-[0.14em] text-[#00AB8E]">{month}</span>
+                        <span className="text-[0.48rem] font-bold uppercase tracking-[0.14em] text-[#5ecba1]">{month}</span>
                         <span className="text-[1.15rem] font-extrabold leading-none">{day}</span>
                       </div>
-                      <span className={`absolute bottom-3 left-3 rounded bg-white/90 px-2.5 py-1 text-[0.54rem] font-bold uppercase tracking-[0.12em] shadow ${categoryColor(event.category)}`}>{event.category}</span>
-                      {event.format && <span className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[0.5rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62] shadow dark:text-[#334155]">{event.format}</span>}
+                      <span className={`absolute bottom-3 left-3 rounded bg-white/90 px-2.5 py-1 text-[0.54rem] font-bold uppercase tracking-[0.12em] shadow dark:bg-[#121212]/90 ${categoryColor(event.category)}`}>{event.category}</span>
+                      {event.format && <span className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[0.5rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62] shadow dark:bg-[#121212]/90 dark:text-[#8c9691]">{event.format}</span>}
                     </div>
                     <div className="flex h-full flex-col p-6">
                       <h3 className="mb-2 text-[0.94rem] font-bold leading-[1.35] tracking-[-0.015em]">{event.title}</h3>
-                      <p className="mb-4 flex-1 text-[0.78rem] leading-[1.6] text-[#5a6b62] dark:text-[#94A3B8]">{event.description}</p>
-                      <div className="mb-4 space-y-2 text-[0.72rem] text-[#5a6b62]/80 dark:text-[#94A3B8]">
+                      <p className="mb-4 flex-1 text-[0.78rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">{event.description}</p>
+                      <div className="mb-4 space-y-2 text-[0.72rem] text-[#5a6b62]/80 dark:text-[#8c9691]">
                         <div>{weekday} - {event.time}</div>
                         <div>{event.location}</div>
                       </div>
-                      <div className="flex flex-col gap-3 border-t border-[rgba(0,103,81,0.06)] pt-4 dark:border-[#334155] sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-col gap-3 border-t border-[rgba(0,103,81,0.06)] pt-4 dark:border-[#333333] sm:flex-row sm:items-center sm:justify-between">
                         {seatsLeft !== null ? (
                           <div className="flex items-center gap-2">
-                            <div className="h-[5px] w-[110px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#334155]"><div className="h-full rounded bg-[#006751] dark:bg-[#2DD4A8]" style={{ width: `${(event.registered / event.seats) * 100}%` }} /></div>
-                            <span className="text-[0.66rem] font-semibold text-[#006751]/75 dark:text-[#2DD4A8]/80">{seatsLeft} left</span>
+                            <div className="h-[5px] w-[110px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(event.registered / event.seats) * 100}%` }} /></div>
+                            <span className="text-[0.66rem] font-semibold text-[#006751]/75 dark:text-[#5ecba1]/80">{seatsLeft} left</span>
                           </div>
-                        ) : <span className="text-[0.66rem] text-[#5a6b62]/70 dark:text-[#94A3B8]">Open attendance</span>}
-                        <button type="button" className="rounded-md border border-[#d0ddd8] px-4 py-2 text-[0.72rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#334155] dark:text-[#2DD4A8] dark:hover:border-[#2DD4A8] dark:hover:bg-[#0F172A]">{seatsLeft !== null ? 'Register' : 'Learn More'}</button>
+                        ) : <span className="text-[0.66rem] text-[#5a6b62]/70 dark:text-[#8c9691]">Open attendance</span>}
+                        <button type="button" className="rounded-md border border-[#d0ddd8] px-4 py-2 text-[0.72rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">{seatsLeft !== null ? 'Register' : 'Learn More'}</button>
                       </div>
                     </div>
                   </article>
@@ -251,29 +251,29 @@ function Events() {
         </div>
       </section>
 
-      <section className="border-t border-[rgba(0,103,81,0.05)] bg-[rgba(0,103,81,0.03)] px-5 py-14 dark:border-[#334155] dark:bg-[rgba(15,23,42,0.65)]">
+      <section className="border-t border-[rgba(0,103,81,0.05)] bg-[rgba(0,103,81,0.03)] px-5 py-14 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.94)]">
         <div className="mx-auto grid max-w-[var(--container-max)] gap-6 md:grid-cols-2">
           {[
             ['"The poetry evening was one of the most memorable nights of my time at LAU. I did not expect to feel that connected to a room full of strangers."', 'Sara M.', 'English Literature, Senior'],
             ['"I only came for a citation workshop, but I ended up at three more events that semester. Honestly, the library became my favorite place on campus."', 'Karim H.', 'Biology, Graduate Student'],
           ].map(([quote, author, role]) => (
-            <blockquote key={author} className="relative rounded-[14px] border border-[#d0ddd8] bg-[linear-gradient(160deg,rgba(253,250,244,1)_0%,#fff_100%)] p-6 pl-7 shadow-sm dark:border-[#334155] dark:bg-[#1E293B]">
-              <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-[14px] bg-gradient-to-b from-[#006751] to-[rgba(0,103,81,0.15)] dark:from-[#2DD4A8] dark:to-[rgba(45,212,168,0.15)]" />
-              <p className="mb-4 text-[0.86rem] italic leading-[1.75] text-[#1C2B24] dark:text-[#F1F5F9]">{quote}</p>
+            <blockquote key={author} className="relative rounded-[14px] border border-[#d0ddd8] bg-[linear-gradient(160deg,rgba(253,250,244,1)_0%,#fff_100%)] p-6 pl-7 shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f] dark:[background-image:none]">
+              <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-[14px] bg-gradient-to-b from-[#006751] to-[rgba(0,103,81,0.15)] dark:from-[#5ecba1] dark:to-[rgba(94,203,161,0.15)]" />
+              <p className="mb-4 text-[0.86rem] italic leading-[1.75] text-[#1C2B24] dark:text-[#f5f7f6]">{quote}</p>
               <footer className="flex items-center gap-2">
                 <span className="text-[0.74rem] font-bold">{author}</span>
-                <span className="text-[0.68rem] text-[#5a6b62]/70 dark:text-[#94A3B8]">{role}</span>
+                <span className="text-[0.68rem] text-[#5a6b62]/70 dark:text-[#8c9691]">{role}</span>
               </footer>
             </blockquote>
           ))}
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-16 dark:border-t dark:border-[#334155]">
+      <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-16 dark:border-t dark:border-[#333333]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_60%_at_25%_50%,rgba(0,171,142,0.06)_0%,transparent_70%),radial-gradient(ellipse_40%_50%_at_75%_60%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
         <div className="relative mx-auto grid max-w-[var(--container-max)] gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div>
-            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-[11px] border border-[#00AB8E]/20 bg-[#00AB8E]/12 text-[#00AB8E]">
+            <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-[11px] border border-[#5ecba1]/20 bg-[#5ecba1]/12 text-[#5ecba1]">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M2 7l10 7 10-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -283,8 +283,8 @@ function Events() {
             <p className="mb-7 max-w-[44ch] text-[0.88rem] leading-[1.72] text-[rgba(240,248,244,0.5)]">A short monthly note with the events worth knowing about: talks, workshops, exhibitions, and community gatherings at the library.</p>
             <form className="flex max-w-[560px] flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <input type="email" className="flex-1 rounded-lg border border-white/12 bg-white/10 px-4 py-3 text-[0.82rem] text-[rgba(240,248,244,0.9)] outline-none transition placeholder:text-[rgba(240,248,244,0.28)] focus:border-[#00AB8E]/50 focus:ring-4 focus:ring-[#00AB8E]/10" placeholder="Your email address" aria-label="Email address for newsletter" />
-                <button type="submit" className="rounded-lg bg-[#00AB8E] px-6 py-3 text-[0.82rem] font-semibold text-white shadow-[0_1px_4px_rgba(0,171,142,0.3)] transition hover:bg-[#009A7F]">Subscribe</button>
+                <input type="email" className="flex-1 rounded-lg border border-white/12 bg-white/10 px-4 py-3 text-[0.82rem] text-[rgba(240,248,244,0.9)] outline-none transition placeholder:text-[rgba(240,248,244,0.28)] focus:border-[#5ecba1]/50 focus:ring-4 focus:ring-[#5ecba1]/10" placeholder="Your email address" aria-label="Email address for newsletter" />
+                <button type="submit" className="rounded-lg bg-[#1a6644] px-6 py-3 text-[0.82rem] font-semibold text-white shadow-[0_1px_4px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a]">Subscribe</button>
               </div>
               <p className="text-[0.65rem] text-[rgba(240,248,244,0.22)]">One email a month, no spam. Unsubscribe whenever you like.</p>
             </form>
@@ -304,7 +304,7 @@ function Events() {
               <a href="mailto:libraries@lau.edu.lb" className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-5 py-2.5 text-[0.78rem] font-semibold text-[rgba(240,248,244,0.75)] transition hover:bg-white/5 hover:text-[rgba(240,248,244,0.95)]">Get in Touch <span>-&gt;</span></a>
             </div>
             <a href="/visit" className="flex items-center gap-3 rounded-[10px] border border-white/8 bg-white/5 px-5 py-4 text-[0.78rem] text-[rgba(240,248,244,0.5)] transition hover:bg-white/8">
-              <svg className="h-4 w-4 shrink-0 text-[#00AB8E]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <svg className="h-4 w-4 shrink-0 text-[#5ecba1]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M12 2C8.686 2 6 4.686 6 8c0 4.418 6 12 6 12s6-7.582 6-12c0-3.314-2.686-6-6-6Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
                 <circle cx="12" cy="8" r="2" stroke="currentColor" strokeWidth="1.5" />
               </svg>

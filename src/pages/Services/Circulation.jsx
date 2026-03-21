@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // ─── Accent colour for this page: deep forest (dark card) ────────────────────
-// bg-[#1a3a2e]  accent-[#5ecba1]
+// bg-[#5ecba1]  accent-[#5ecba1]
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ const RULES = [
 const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-1.5 text-[#5ecba1] text-[13px] font-medium hover:opacity-80 transition-opacity mb-6"
+    className="mb-6 flex items-center gap-1.5 text-[13px] font-medium text-[#5ecba1] transition-opacity hover:opacity-80"
   >
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -49,7 +49,7 @@ const BackButton = ({ onClick }) => (
 const InfoCard = ({ title, children, accent = false }) => (
   <div className={`rounded-2xl border p-6 mb-4 ${
     accent
-      ? "bg-[#1a3a2e] border-transparent"
+      ? "bg-[#1a6644] border-transparent"
       : "bg-white dark:bg-[#242424] border-[#cfe2d6] dark:border-[#333]"
   }`}>
     <h3 className={`text-[15px] font-bold mb-3 ${accent ? "text-white" : "text-[#162a1f] dark:text-white"}`}>
@@ -71,8 +71,8 @@ const CirculationPage = () => {
     <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
       {/* Hero — deep forest accent */}
-      <section className="bg-[#1a3a2e] px-8 md:px-16 py-12 relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#5ecba1]/5 pointer-events-none" />
+      <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-white/5 pointer-events-none" />
         <BackButton onClick={() => navigate("/Services")} />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Services · Circulation
