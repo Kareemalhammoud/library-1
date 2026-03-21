@@ -8,6 +8,12 @@ import ListView from '@/pages/ListView/ListView'
 import Catalog from '@/pages/Catalog/Catalog'
 import AddEditBook from '@/pages/AddEditBook/AddEditBook'
 import Visit from '@/pages/Visit/Visit'
+import ServicesPage from '@/pages/Services/Services'  
+import CirculationPage from '@/pages/Services/Circulation'
+import StudyRoomsPage from '@/pages/Services/StudyRooms'
+import PrintingPage from '@/pages/Services/Printing'
+import WritingCenterPage from '@/pages/Services/WritingCenter'
+
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -45,10 +51,14 @@ function App() {
           <Route path="/books" element={<ListView />} />
           <Route path="/books/add" element={<AddEditBook />} />
           <Route path="/books/:id" element={<BookDetail />} />
-
          {/*Add/Edit book*/} 
           <Route path="/books/:id/edit" element={<AddEditBook />} />
-
+        {/* Services */}
+          <Route path="/Services" element={<ServicesPage />} />
+          <Route path="/Services/Circulation" element={<CirculationPage />} />
+          <Route path="/Services/StudyRooms" element={<StudyRoomsPage />} />
+          <Route path="/Services/Printing" element={<PrintingPage />} />
+          <Route path="/Services/WritingCenter" element={<WritingCenterPage />} />
         </Routes>
       </main>
 
