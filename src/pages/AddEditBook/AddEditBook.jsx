@@ -22,13 +22,13 @@ const emptyForm = {
 }
 
 const labelClassName =
-  'text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#555]'
+  'text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]'
 const fieldClassName =
-  'mt-2 box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] px-4 py-[0.85rem] text-[0.9rem] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#a7a7a7] focus:border-[#1a1a1a] focus:bg-white dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#f0ede8] dark:placeholder:text-[#666] dark:focus:border-[#aaa] dark:focus:bg-[#333]'
+  'mt-2 box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] px-4 py-[0.85rem] text-[0.9rem] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#a7a7a7] focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#00AB8E] dark:focus:bg-[#2e2e2e]'
 const primaryButtonClassName =
   'cursor-pointer rounded-lg border-0 bg-[#1a4a3a] px-6 py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]'
 const secondaryButtonClassName =
-  'cursor-pointer rounded-lg border border-[#ccc] bg-white px-6 py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#aaa] dark:hover:bg-[#333]'
+  'cursor-pointer rounded-lg border border-[#ccc] bg-white px-6 py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]'
 
 const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
   const { id } = useParams()
@@ -179,29 +179,29 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
   return (
     <div className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
       <nav
-        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#2e2e2e] dark:bg-[#1a1a1a]"
+        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#333] dark:bg-[#1a1a1a]"
         aria-label="Breadcrumb"
       >
         <button
           type="button"
-          className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#3a3a3a] dark:text-[#aaa] dark:hover:bg-[#2a2a2a]"
+          className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#333] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
           onClick={() => navigate(-1)}
         >
           {'\u2190'} Back
         </button>
-        <span className="text-[0.85rem] text-[#999] dark:text-[#555]">Books / {breadcrumbTitle}</span>
+        <span className="text-[0.85rem] text-[#999] dark:text-[#888]">Books / {breadcrumbTitle}</span>
       </nav>
 
       <article className="mx-auto mt-12 max-w-[1000px] px-8">
-        <section className="rounded-xl border border-[#e5e2dc] bg-white p-6 dark:border-[#2e2e2e] dark:bg-[#222] sm:p-8">
-          <div className="border-b border-[#e5e2dc] pb-6 dark:border-[#2e2e2e]">
-            <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#555]">
+        <section className="rounded-xl border border-[#e5e2dc] bg-white p-6 dark:border-[#333] dark:bg-[#242424] sm:p-8">
+          <div className="border-b border-[#e5e2dc] pb-6 dark:border-[#333]">
+            <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#888]">
               Riyad Nassar Library
             </p>
-            <h1 className="m-0 text-[2rem] font-extrabold tracking-tight text-[#1a1a1a] dark:text-[#f0ede8]">
+            <h1 className="m-0 text-[2rem] font-extrabold tracking-tight text-[#1a1a1a] dark:text-white">
               {pageTitle}
             </h1>
-            <p className="mt-3 max-w-2xl text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#999]">
+            <p className="mt-3 max-w-2xl text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
               {pageDescription}
             </p>
           </div>
@@ -371,9 +371,9 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               />
             </div>
 
-            <div className="grid items-start gap-6 border-t border-[#e5e2dc] pt-6 dark:border-[#2e2e2e] sm:grid-cols-[220px_minmax(0,1fr)]">
+            <div className="grid items-start gap-6 border-t border-[#e5e2dc] pt-6 dark:border-[#333] sm:grid-cols-[220px_minmax(0,1fr)]">
               <div className="flex h-full flex-col items-center">
-                <p className="m-0 mb-3 w-full text-center text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#555]">
+                <p className="m-0 mb-3 w-full text-center text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]">
                   Cover Preview
                 </p>
 
@@ -382,18 +382,18 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="h-full min-h-[220px] w-full max-w-[180px] rounded-md border border-[#e5e2dc] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:border-[#3a3a3a]"
+                      className="h-full min-h-[220px] w-full max-w-[180px] rounded-md border border-[#e5e2dc] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:border-[#333]"
                     />
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="mt-3 text-center text-[0.8rem] font-semibold text-[#555] underline underline-offset-2 transition-colors hover:text-[#1a1a1a] dark:text-[#aaa] dark:hover:text-[#f0ede8]"
+                      className="mt-3 text-center text-[0.8rem] font-semibold text-[#555] underline underline-offset-2 transition-colors hover:text-[#1a1a1a] dark:text-[#888] dark:hover:text-white"
                     >
                       Remove image
                     </button>
                   </>
                 ) : (
-                  <p className="m-0 text-center text-[0.82rem] leading-[1.5] text-[#999] dark:text-[#666]">
+                  <p className="m-0 text-center text-[0.82rem] leading-[1.5] text-[#999] dark:text-[#888]">
                     No cover yet.
                   </p>
                 )}
@@ -401,14 +401,14 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
 
               <div>
                 <p className={labelClassName}>Cover Page Available?</p>
-                <div className="mt-4 flex flex-wrap gap-6 text-[0.9rem] font-semibold text-[#555] dark:text-[#d0cdc8]">
+                <div className="mt-4 flex flex-wrap gap-6 text-[0.9rem] font-semibold text-[#555] dark:text-white">
                   <label className="inline-flex items-center gap-3">
                     <input
                       type="radio"
                       value="yes"
                       checked={formData.coverPageAvailable === true}
                       onChange={handleRadioChange}
-                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#2d7a4f]"
+                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#00AB8E]"
                     />
                     Yes
                   </label>
@@ -418,7 +418,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                       value="no"
                       checked={formData.coverPageAvailable === false}
                       onChange={handleRadioChange}
-                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#2d7a4f]"
+                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#00AB8E]"
                     />
                     No
                   </label>
@@ -427,15 +427,15 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 <div className="mt-5">
                   <label
                     htmlFor="cover-upload"
-                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:hover:border-[#aaa] dark:hover:bg-[#333]"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#00AB8E] dark:hover:bg-[#333]"
                   >
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
                       +
                     </span>
-                    <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-[#f0ede8]">
+                    <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-white">
                       Upload cover image
                     </span>
-                    <span className="text-[0.8rem] text-[#999] dark:text-[#666]">
+                    <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
                       Choose an image file to preview the book cover.
                     </span>
                   </label>

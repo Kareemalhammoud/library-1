@@ -50,9 +50,9 @@ function FormInput({
 						focus:ring-2
 						focus:ring-[#006751]/20
 						transition
-						dark:border-[#3a3a3a]
-						dark:bg-[#2a2a2a]
-						dark:text-[#f0ede8]
+						dark:border-[#333]
+						dark:bg-[#2e2e2e]
+						dark:text-white
 						dark:placeholder:text-[#666]
 					"
 				/>
@@ -64,7 +64,7 @@ function FormInput({
 						className="
 							absolute right-3 top-1/2 -translate-y-1/2
 							text-gray-500
-							dark:text-[#aaa]
+							dark:text-[#888]
 						"
 						aria-label={showPassword ? "Hide password" : "Show password"}
 					>
