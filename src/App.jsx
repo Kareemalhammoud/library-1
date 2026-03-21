@@ -6,8 +6,9 @@ import { Home, Login, Register, Dashboard } from '@pages'
 import BookDetail from '@/pages/BookDetail/BookDetail'
 import ListView from '@/pages/ListView/ListView'
 import Catalog from '@/pages/Catalog/Catalog'
-import AddEditBook from '@/pages/AddEditBook/AddEditBook'
 import Visit from '@/pages/Visit/Visit'
+import Events from '@/pages/Events/Events'
+import Services from '@/pages/Services/Services'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -42,12 +43,10 @@ function App() {
           {/* Catalog / Books */}
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/visit" element={<Visit />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/services" element={<Services />} />
           <Route path="/books" element={<ListView />} />
-          <Route path="/books/add" element={<AddEditBook />} />
           <Route path="/books/:id" element={<BookDetail />} />
-
-         {/*Add/Edit book*/} 
-          <Route path="/books/:id/edit" element={<AddEditBook />} />
 
         </Routes>
       </main>

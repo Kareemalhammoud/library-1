@@ -19,20 +19,32 @@ export default function BookDetail() {
   const [confirmed,   setConfirmed]   = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
 
+  function getUserPrefix() {
+    try {
+      const u = JSON.parse(localStorage.getItem('user'))
+      return u?.email ? `${u.email}:` : ''
+    } catch { return '' }
+  }
+
   function handleShare() {
     navigator.clipboard?.writeText(window.location.href)
     setShareCopied(true)
     setTimeout(() => setShareCopied(false), 2000)
   }
 
-  const borrowKey = `borrowed-${book?.id}`
+  const prefix = getUserPrefix()
+  const borrowKey = `${prefix}borrowed-${book?.id}`
 
   useEffect(() => {
-    setBorrowed(localStorage.getItem(borrowKey) === 'true')
+    setBorrowed(!!localStorage.getItem(borrowKey))
   }, [borrowKey])
 
   function handleBorrowClick() { setConfirmed(false); setModalOpen(true) }
-  function handleConfirm() { setBorrowed(true); setConfirmed(true); localStorage.setItem(borrowKey, 'true') }
+  function handleConfirm() {
+    setBorrowed(true)
+    setConfirmed(true)
+    localStorage.setItem(borrowKey, new Date().toISOString())
+  }
   function handleClose() { setModalOpen(false) }
 
   if (!book) {
@@ -53,7 +65,7 @@ export default function BookDetail() {
     return { relatedBooks, relatedTitle }
   }, [book.id, book.genre])
 
-  const storageKey = `reading-progress-${book.id}`
+  const storageKey = `${prefix}reading-progress-${book.id}`
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
@@ -111,13 +123,6 @@ export default function BookDetail() {
               {shareCopied ? '✓ Copied!' : 'Share'}
             </button>
 
-            <button
-              className="w-full py-[0.85rem] rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent text-[#1a4a3a] text-[0.9rem] font-semibold cursor-pointer transition-all hover:bg-[#1a4a3a] hover:text-white"
-              aria-label={`Edit ${book.title}`}
-              onClick={() => navigate(`/books/${book.id}/edit`)}
-            >
-              Edit Book
-            </button>
           </div>
         </aside>
 

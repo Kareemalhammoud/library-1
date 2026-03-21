@@ -4,6 +4,15 @@ import { useNavigate } from 'react-router-dom'
 import { BOOKS, GENRES } from '@/data/bookData'
 import { getCampus, getAvailability, getCopies, getResourceType, getCallNumber } from '@/utils/bookUtils'
 
+const ADMIN_EMAIL = 'admin@lau.edu'
+
+function isAdmin() {
+  try {
+    const u = JSON.parse(localStorage.getItem('user'))
+    return u?.email === ADMIN_EMAIL
+  } catch { return false }
+}
+
 const CAMPUS_OPTIONS   = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS     = ['All Languages', 'English', 'French']
 const AVAIL_OPTIONS    = ['All', 'Available', 'On Loan']
@@ -38,6 +47,34 @@ export default function Catalog() {
   const [advSubject, setAdvSubject] = useState('')
   const [advFormat, setAdvFormat] = useState('All')
   const [advYear,   setAdvYear]   = useState('')
+
+  // Admin state
+  const admin = isAdmin()
+  const [editingBook, setEditingBook] = useState(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+
+  const EMPTY_BOOK = {
+    title: '', author: '', genre: GENRES[0] || '', language: 'EN',
+    year: new Date().getFullYear(), rating: 0, pages: 0,
+    publisher: '', isbn: '', description: '', cover: '',
+  }
+
+  function handleSaveBook(bookData) {
+    if (editingBook) {
+      // Edit existing
+      const idx = BOOKS.findIndex(b => b.id === editingBook.id)
+      if (idx !== -1) Object.assign(BOOKS[idx], bookData)
+    } else {
+      // Add new
+      const maxId = BOOKS.reduce((max, b) => Math.max(max, b.id), 0)
+      BOOKS.push({ ...bookData, id: maxId + 1, color: 'sage', genreColor: '#555', badge: 'New' })
+    }
+    setEditingBook(null)
+    setShowAddModal(false)
+    // Force re-render by toggling a harmless state
+    setSearch(s => s + ' ')
+    setTimeout(() => setSearch(s => s.trimEnd()), 0)
+  }
 
 
   const filtered = useMemo(() => {
@@ -338,6 +375,14 @@ export default function Catalog() {
         <div className={styles.resultsHeader}>
           <span className={styles.resultCount} aria-live="polite">
             <strong>{filtered.length}</strong> {filtered.length === 1 ? 'record' : 'records'} found
+            {admin && (
+              <button
+                className={styles.adminAddBtn}
+                onClick={() => { setEditingBook(null); setShowAddModal(true) }}
+              >
+                + Add Book
+              </button>
+            )}
           </span>
 
           <div className={styles.resultsControls}>
@@ -470,26 +515,13 @@ export default function Catalog() {
                         {bookAvail ? 'Available' : 'On Loan'}
                       </span>
                     </div>
-                    <div className={styles.cardActions}>
-                      <a
-                        href={`/books/${book.id}`}
-                        className={styles.action}
-                        onClick={e => { e.preventDefault(); navigate(`/books/${book.id}`) }}
-                      >
-                        View Record
-                      </a>
-                      <span className={styles.actionSep} aria-hidden="true" />
-                      <button
-                        className={styles.action}
-                        onClick={() => navigate(`/books/${book.id}`)}
-                      >
-                        Holdings
-                      </button>
-                      <span className={styles.actionSep} aria-hidden="true" />
-                      <button className={styles.action} onClick={e => e.preventDefault()}>
-                        Save
-                      </button>
-                    </div>
+                    {admin && (
+                      <div className={styles.cardActions}>
+                        <button className={`${styles.action} ${styles.adminAction}`} onClick={() => setEditingBook(book)}>
+                          Edit
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </li>
               )
@@ -533,26 +565,13 @@ export default function Catalog() {
                         {bookAvail ? 'Available' : 'On Loan'}
                       </span>
                     </div>
-                    <div className={styles.listActions}>
-                      <a
-                        href={`/books/${book.id}`}
-                        className={styles.action}
-                        onClick={e => { e.preventDefault(); navigate(`/books/${book.id}`) }}
-                      >
-                        View Record
-                      </a>
-                      <span className={styles.actionSep} aria-hidden="true" />
-                      <button
-                        className={styles.action}
-                        onClick={() => navigate(`/books/${book.id}`)}
-                      >
-                        Holdings
-                      </button>
-                      <span className={styles.actionSep} aria-hidden="true" />
-                      <button className={styles.action}>
-                        Save
-                      </button>
-                    </div>
+                    {admin && (
+                      <div className={styles.listActions}>
+                        <button className={`${styles.action} ${styles.adminAction}`} onClick={() => setEditingBook(book)}>
+                          Edit
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className={styles.listRight}>
                     <span className={styles.listCallNum}>{callNum}</span>
@@ -569,6 +588,93 @@ export default function Catalog() {
           </ul>
         )}
       </main>
+
+      {/* ── Admin Add/Edit Modal ── */}
+      {(showAddModal || editingBook) && admin && (
+        <AdminBookModal
+          book={editingBook || EMPTY_BOOK}
+          isNew={!editingBook}
+          onSave={handleSaveBook}
+          onClose={() => { setEditingBook(null); setShowAddModal(false) }}
+        />
+      )}
+    </div>
+  )
+}
+
+function AdminBookModal({ book, isNew, onSave, onClose }) {
+  const [form, setForm] = useState({
+    title: book.title || '',
+    author: book.author || '',
+    genre: book.genre || '',
+    language: book.language || 'EN',
+    year: book.year || new Date().getFullYear(),
+    rating: book.rating || 0,
+    pages: book.pages || 0,
+    publisher: book.publisher || '',
+    isbn: book.isbn || '',
+    description: book.description || '',
+    cover: book.cover || '',
+  })
+
+  const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave({ ...form, year: Number(form.year), pages: Number(form.pages), rating: Number(form.rating) })
+  }
+
+  const fields = [
+    { key: 'title', label: 'Title', type: 'text', required: true },
+    { key: 'author', label: 'Author', type: 'text', required: true },
+    { key: 'genre', label: 'Genre / Subject', type: 'text' },
+    { key: 'publisher', label: 'Publisher', type: 'text' },
+    { key: 'isbn', label: 'ISBN', type: 'text' },
+    { key: 'cover', label: 'Cover Image URL', type: 'text' },
+    { key: 'year', label: 'Year', type: 'number' },
+    { key: 'pages', label: 'Pages', type: 'number' },
+    { key: 'rating', label: 'Rating (0–5)', type: 'number' },
+  ]
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <h2 className={styles.modalTitle}>{isNew ? 'Add New Book' : 'Edit Book'}</h2>
+        <form onSubmit={handleSubmit} className={styles.modalForm}>
+          {fields.map(f => (
+            <label key={f.key} className={styles.modalField}>
+              <span className={styles.modalLabel}>{f.label}</span>
+              <input
+                type={f.type}
+                className={styles.modalInput}
+                value={form[f.key]}
+                onChange={e => set(f.key, e.target.value)}
+                required={f.required}
+              />
+            </label>
+          ))}
+          <label className={styles.modalField} style={{ gridColumn: '1 / -1' }}>
+            <span className={styles.modalLabel}>Language</span>
+            <select className={styles.modalInput} value={form.language} onChange={e => set('language', e.target.value)}>
+              <option value="EN">English</option>
+              <option value="FR">French</option>
+            </select>
+          </label>
+          <label className={styles.modalField} style={{ gridColumn: '1 / -1' }}>
+            <span className={styles.modalLabel}>Description</span>
+            <textarea
+              className={styles.modalTextarea}
+              value={form.description}
+              onChange={e => set('description', e.target.value)}
+              rows={4}
+            />
+          </label>
+          <div className={styles.modalActions}>
+            <button type="button" className={styles.modalCancel} onClick={onClose}>Cancel</button>
+            <button type="submit" className={styles.modalSubmit}>{isNew ? 'Add Book' : 'Save Changes'}</button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

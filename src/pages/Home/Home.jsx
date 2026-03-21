@@ -1,8 +1,9 @@
 import styles from './Home.module.css'
 
 import { useLayoutEffect, useRef, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, NavLink } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
+import { EVENTS } from '@/data/eventsData'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
@@ -39,6 +40,7 @@ function Home() {
   const animRef     = useRef(null) // Web Animations API Animation object
   const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const loggedIn = !!localStorage.getItem('user')
 
   useEffect(() => {
     const id = setInterval(() => setCurrentSlide(c => (c + 1) % HERO_SLIDES.length), 7000)
@@ -97,29 +99,39 @@ function Home() {
           />
         ))}
 
-        {/* Upcoming event chip — right side */}
-        <aside className={styles.heroEvent}>
-          <div className={styles.heroEventHeader}>
-            <svg className={styles.heroEventIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <span className={styles.heroEventLabel}>Upcoming Event</span>
-          </div>
-          <p className={styles.heroEventTitle}>Research Skills Workshop</p>
-          <p className={styles.heroEventMeta}>Wed, Mar 12 &nbsp;·&nbsp; 2:00 – 4:00 PM</p>
-          <p className={styles.heroEventLocation}>Riyad Nassar Library, Beirut</p>
-        </aside>
+        {/* Upcoming event card — right side */}
+        {(() => {
+          const today = new Date().toISOString().slice(0, 10)
+          const next = EVENTS
+            .filter(e => e.date >= today)
+            .sort((a, b) => a.date.localeCompare(b.date))[0]
+          if (!next) return null
+          const d = new Date(next.date + 'T00:00:00')
+          const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()]
+          const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()]
+          return (
+            <aside className={styles.heroEvent} onClick={() => navigate('/events')} style={{ cursor: 'pointer' }}>
+              <div className={styles.heroEventHeader}>
+                <svg className={styles.heroEventIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <span className={styles.heroEventLabel}>Upcoming Event</span>
+              </div>
+              <p className={styles.heroEventTitle}>{next.title}</p>
+              <p className={styles.heroEventMeta}>{weekday}, {monthName} {d.getDate()} &nbsp;&middot;&nbsp; {next.time}</p>
+            </aside>
+          )
+        })()}
 
         {/* Floating card overlay */}
         <div className={styles.heroCard}>
-          <p className={styles.heroCardEyebrow}>Riyad Nassar Library</p>
           <h1 className={styles.heroCardTitle}>
-           Your Next Discovery Starts Here!
+           A Place for Curious Minds
           </h1>
           <p className={styles.heroCardBody}>
-           Spend time with a great book, join events, and share ideas with your community.
+           Browse our collections, attend an event, or find a quiet corner to read — the library is yours to explore.
           </p>
 
           <form role="search" className={styles.heroSearch}>
@@ -136,15 +148,37 @@ function Home() {
           </form>
 
           <div className={styles.heroCardActions}>
+            {loggedIn ? (
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={() => navigate('/catalog')}
+              >
+                Explore the Catalog
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={() => navigate('/register')}
+              >
+                Get Started
+              </button>
+            )}
             <button
               type="button"
-              className={styles.btnPrimary}
-              onClick={() => navigate('/register')}
+              className={styles.btnGhost}
+              onClick={() => document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Get Started
+              Learn More
             </button>
-            <button className={styles.btnGhost}>Learn More</button>
           </div>
+          {!loggedIn && (
+            <p className={styles.heroCardHint}>
+              Already have an account?{' '}
+              <NavLink to="/login" className={styles.heroCardHintLink}>Sign in</NavLink>
+            </p>
+          )}
         </div>
       </section>
 
@@ -199,7 +233,7 @@ function Home() {
       </section>
 
       {/* ── Quick actions ── */}
-      <section className={styles.actions}>
+      <section id="explore" className={styles.actions}>
         <div className={styles.actionsHeader}>
           <h2 className={styles.actionsTitle}>Explore the Library</h2>
           <p className={styles.actionsSubtitle}>Browse collections, join events, find study spaces, and plan your visit.</p>
