@@ -46,7 +46,6 @@ const SERVICES = [
   },
 ];
 
-// RNL rooms are on the Beirut campus; JGJL & HSL are on Byblos campus
 const ROOM_OPTIONS = [
   { value: "", label: "Select a room" },
   { value: "RNL-805",  label: "RNL 805 – Jawdat R. Haydar", campus: "Beirut" },
@@ -128,10 +127,9 @@ const Icon = ({ name, className = "" }) => {
   return icons[name] || null;
 };
 
-// ─── Card variant styles — dark mode variants included ────────────────────────
+// ─── Card variant styles ──────────────────────────────────────────────────────
 
 const CARD_VARIANTS = {
-  // deep forest — same in dark mode, already dark enough
   dark: {
     card: "bg-[#1a3a2e]",
     iconWrap: "bg-white/10",
@@ -141,17 +139,15 @@ const CARD_VARIANTS = {
     desc: "text-white/55",
     link: "text-[#5ecba1]",
   },
-  // sage — light in light mode, darker in dark mode
   sage: {
-    card: "bg-[#d6ede0] dark:bg-[#1e3a2a]",
-    iconWrap: "bg-[#b4ddc6] dark:bg-[#2d5a3d]",
-    iconColor: "text-[#1a5c3a] dark:text-[#5ecba1]",
-    tag: "text-[#1a6644] dark:text-[#5ecba1]",
+    card: "bg-[#d6ede0] dark:bg-[#242424]",
+    iconWrap: "bg-[#b4ddc6] dark:bg-[#2e2e2e]",
+    iconColor: "text-[#1a5c3a] dark:text-[#00AB8E]",
+    tag: "text-[#1a6644] dark:text-[#00AB8E]",
     title: "text-[#102a1c] dark:text-white",
-    desc: "text-[#3d6650] dark:text-white/60",
-    link: "text-[#1a6644] dark:text-[#5ecba1]",
+    desc: "text-[#3d6650] dark:text-[#888]",
+    link: "text-[#1a6644] dark:text-[#00AB8E]",
   },
-  // mid forest — same in dark mode, already dark enough
   mid: {
     card: "bg-[#2d6a4f]",
     iconWrap: "bg-white/10",
@@ -161,15 +157,14 @@ const CARD_VARIANTS = {
     desc: "text-white/60",
     link: "text-[#95d5b2]",
   },
-  // mint — light in light mode, darker in dark mode
   mint: {
-    card: "bg-[#eaf5ee] dark:bg-[#1a3a2e]",
-    iconWrap: "bg-[#c7e8d4] dark:bg-[#2d5a3d]",
-    iconColor: "text-[#1a5c3a] dark:text-[#5ecba1]",
-    tag: "text-[#1a6644] dark:text-[#5ecba1]",
+    card: "bg-[#eaf5ee] dark:bg-[#242424]",
+    iconWrap: "bg-[#c7e8d4] dark:bg-[#2e2e2e]",
+    iconColor: "text-[#1a5c3a] dark:text-[#00AB8E]",
+    tag: "text-[#1a6644] dark:text-[#00AB8E]",
     title: "text-[#102a1c] dark:text-white",
-    desc: "text-[#3d6650] dark:text-white/60",
-    link: "text-[#1a6644] dark:text-[#5ecba1]",
+    desc: "text-[#3d6650] dark:text-[#888]",
+    link: "text-[#1a6644] dark:text-[#00AB8E]",
   },
 };
 
@@ -249,23 +244,22 @@ const RoomBookingForm = () => {
     setSubmitted(false);
   };
 
-  // Shared input classes
-  const inputCls = "w-full h-9 rounded-lg border border-[#c5ddd0] dark:border-[#2d4a3a] bg-[#f7fbf8] dark:bg-[#162a1f] px-3 text-[13px] text-[#162a1f] dark:text-white placeholder-[#8aaa95] focus:outline-none focus:border-[#1a6644]";
-  const labelCls = "block text-[11px] font-semibold text-[#2a4535] dark:text-[#7aaa8a] mb-1 tracking-wide";
+  const inputCls = "w-full h-9 rounded-lg border border-[#c5ddd0] dark:border-[#333] bg-[#f7fbf8] dark:bg-[#2e2e2e] px-3 text-[13px] text-[#162a1f] dark:text-white placeholder-[#8aaa95] dark:placeholder-[#666] focus:outline-none focus:border-[#1a6644]";
+  const labelCls = "block text-[11px] font-semibold text-[#2a4535] dark:text-[#888] mb-1 tracking-wide";
 
   if (submitted) {
     return (
-      <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6 flex flex-col items-center justify-center gap-4 min-h-[340px]">
-        <div className="w-14 h-14 rounded-full bg-[#eaf5ee] dark:bg-[#162a1f] flex items-center justify-center">
-          <svg className="w-7 h-7 text-[#1a6644] dark:text-[#5ecba1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col items-center justify-center gap-4 min-h-[340px]">
+        <div className="w-14 h-14 rounded-full bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center">
+          <svg className="w-7 h-7 text-[#1a6644] dark:text-[#00AB8E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
         <p className="text-[#162a1f] dark:text-white font-bold text-base">Reservation confirmed!</p>
-        <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-sm text-center leading-relaxed">
+        <p className="text-[#5e7a68] dark:text-[#888] text-sm text-center leading-relaxed">
           Room <span className="font-semibold text-[#1a3a2e] dark:text-white">{ROOM_OPTIONS.find(r => r.value === form.room)?.label}</span> has been reserved for {form.date} at {form.time}.
         </p>
-        <button onClick={resetForm} className="mt-2 text-sm text-[#1a6644] dark:text-[#5ecba1] font-medium underline underline-offset-2">
+        <button onClick={resetForm} className="mt-2 text-sm text-[#1a6644] dark:text-[#00AB8E] font-medium underline underline-offset-2">
           Make another reservation
         </button>
       </div>
@@ -273,13 +267,12 @@ const RoomBookingForm = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6">
+    <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
       <h3 className="text-[#162a1f] dark:text-white font-bold text-[15px] mb-0.5">Study room reservation</h3>
-      <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-xs mb-5">
+      <p className="text-[#5e7a68] dark:text-[#888] text-xs mb-5">
         Available Mon–Fri · Max 2 hrs per session · Valid LAU ID required
       </p>
 
-      {/* Campus toggle */}
       <div className="mb-3">
         <label className={labelCls}>Campus</label>
         <div className="flex gap-2 mb-2.5">
@@ -290,7 +283,7 @@ const RoomBookingForm = () => {
               className={`flex-1 h-8 rounded-lg text-[12px] font-semibold transition-colors duration-150 border ${
                 campus === c
                   ? "bg-[#1a3a2e] text-white border-[#1a3a2e]"
-                  : "bg-[#f7fbf8] dark:bg-[#162a1f] text-[#3d6650] dark:text-[#7aaa8a] border-[#c5ddd0] dark:border-[#2d4a3a] hover:border-[#1a6644]"
+                  : "bg-[#f7fbf8] dark:bg-[#2e2e2e] text-[#3d6650] dark:text-[#888] border-[#c5ddd0] dark:border-[#333] hover:border-[#1a6644]"
               }`}
             >
               {c === "Beirut" ? "🏙 Beirut (RNL)" : "🌿 Byblos (JGJL / HSL)"}
@@ -299,11 +292,7 @@ const RoomBookingForm = () => {
         </div>
 
         <label className={labelCls}>Room</label>
-        <select
-          value={form.room}
-          onChange={(e) => update("room", e.target.value)}
-          className={inputCls}
-        >
+        <select value={form.room} onChange={(e) => update("room", e.target.value)} className={inputCls}>
           {filteredRooms.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
@@ -311,7 +300,6 @@ const RoomBookingForm = () => {
         {errors.room && <p className="text-red-500 text-[11px] mt-1">{errors.room}</p>}
       </div>
 
-      {/* Date + Duration */}
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div>
           <label className={labelCls}>Date</label>
@@ -329,7 +317,6 @@ const RoomBookingForm = () => {
         </div>
       </div>
 
-      {/* Time + People */}
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div>
           <label className={labelCls}>Time slot</label>
@@ -355,7 +342,6 @@ const RoomBookingForm = () => {
         </div>
       </div>
 
-      {/* Student ID */}
       <div className="mb-4">
         <label className={labelCls}>Student ID</label>
         <input
@@ -368,7 +354,6 @@ const RoomBookingForm = () => {
         {errors.studentId && <p className="text-red-500 text-[11px] mt-1">{errors.studentId}</p>}
       </div>
 
-      {/* Submit */}
       <button
         onClick={handleSubmit}
         className="w-full h-9 bg-[#1a3a2e] hover:bg-[#2d6a4f] text-white rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 transition-colors duration-150"
@@ -396,14 +381,13 @@ const LibrarianChat = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6 flex flex-col">
-      {/* Header */}
+    <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col">
       <div className="flex items-center gap-3 mb-4">
         <div className="relative w-9 h-9 flex-shrink-0">
           <div className="w-9 h-9 rounded-full bg-[#1a3a2e] flex items-center justify-center">
             <Icon name="user" className="w-4 h-4 text-white" />
           </div>
-          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white dark:border-[#1e2e26]" />
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white dark:border-[#242424]" />
         </div>
         <div>
           <p className="text-[#162a1f] dark:text-white text-[14px] font-bold">Ask a Librarian</p>
@@ -414,14 +398,13 @@ const LibrarianChat = () => {
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex flex-col gap-2.5 mb-4 flex-1 overflow-y-auto max-h-56">
         {messages.map((m) => (
           <div
             key={m.id}
             className={`text-[12px] leading-relaxed px-3 py-2 rounded-xl max-w-[88%] ${
               m.from === "lib"
-                ? "bg-[#eaf5ee] dark:bg-[#162a1f] text-[#162a1f] dark:text-white self-start rounded-tl-sm"
+                ? "bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#162a1f] dark:text-white self-start rounded-tl-sm"
                 : "bg-[#2d6a4f] text-white self-end rounded-tr-sm"
             }`}
           >
@@ -430,7 +413,6 @@ const LibrarianChat = () => {
         ))}
       </div>
 
-      {/* Input */}
       <div className="flex gap-2">
         <input
           type="text"
@@ -438,7 +420,7 @@ const LibrarianChat = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
-          className="flex-1 h-9 rounded-lg border border-[#c5ddd0] dark:border-[#2d4a3a] bg-[#f7fbf8] dark:bg-[#162a1f] px-3 text-[13px] text-[#162a1f] dark:text-white placeholder-[#8aaa95] focus:outline-none focus:border-[#1a6644]"
+          className="flex-1 h-9 rounded-lg border border-[#c5ddd0] dark:border-[#333] bg-[#f7fbf8] dark:bg-[#2e2e2e] px-3 text-[13px] text-[#162a1f] dark:text-white placeholder-[#8aaa95] dark:placeholder-[#666] focus:outline-none focus:border-[#1a6644]"
         />
         <button
           onClick={send}
@@ -455,9 +437,8 @@ const LibrarianChat = () => {
 
 const ServicesPage = () => {
   return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#0f1e17]">
+    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
-      {/* Hero — same in both modes, already dark */}
       <section className="bg-[#1a3a2e] px-8 md:px-16 py-12 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#5ecba1]/5 pointer-events-none" />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
@@ -469,14 +450,13 @@ const ServicesPage = () => {
         </p>
       </section>
 
-      {/* Content */}
       <div className="px-8 md:px-16 py-10">
 
-        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
+        <p className="text-[#1a6644] dark:text-[#00AB8E] text-[10px] font-semibold tracking-widest uppercase mb-1">
           What we offer
         </p>
         <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Our Services</h2>
-        <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-sm mb-6 leading-relaxed">
+        <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
           Core services available to all LAU students and faculty at the Riyad Nassar Library.
         </p>
 
@@ -486,13 +466,13 @@ const ServicesPage = () => {
           ))}
         </div>
 
-        <hr className="border-[#cfe2d6] dark:border-[#2d4a3a] mb-10" />
+        <hr className="border-[#cfe2d6] dark:border-[#333] mb-10" />
 
-        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
+        <p className="text-[#1a6644] dark:text-[#00AB8E] text-[10px] font-semibold tracking-widest uppercase mb-1">
           Interactive
         </p>
         <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Book a Room & Ask a Librarian</h2>
-        <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-sm mb-6 leading-relaxed">
+        <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
           Reserve a group study space or get real-time help from library staff.
         </p>
 
@@ -501,10 +481,9 @@ const ServicesPage = () => {
           <LibrarianChat />
         </div>
 
-        {/* Status bar */}
-        <div className="mt-4 bg-white dark:bg-[#1e2e26] rounded-xl border border-[#cfe2d6] dark:border-[#2d4a3a] px-5 py-3 flex items-center gap-3 text-[12px]">
+        <div className="mt-4 bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] px-5 py-3 flex items-center gap-3 text-[12px]">
           <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-          <span className="text-[#5e7a68] dark:text-[#7aaa8a]">
+          <span className="text-[#5e7a68] dark:text-[#888]">
             <strong className="text-[#162a1f] dark:text-white">Currently closed</strong>
             &nbsp;·&nbsp; Mon–Fri 7:30–22:00 &nbsp;·&nbsp; Sat–Sun closed
             &nbsp;·&nbsp; Mme. Curie St, Koraytem, Beirut
