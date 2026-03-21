@@ -56,7 +56,7 @@ const PrintingPage = () => {
   const [tab, setTab] = useState("grants");
 
   return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#0f1e17]">
+    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
       {/* Hero — mid forest accent */}
       <section className="bg-[#2d6a4f] px-8 md:px-16 py-12 relative overflow-hidden">
@@ -83,15 +83,15 @@ const PrintingPage = () => {
             { label: "B&W A4",              value: "$0.06" },
             { label: "Colour A4",           value: "$0.30" },
           ].map((s) => (
-            <div key={s.label} className="bg-white dark:bg-[#1e2e26] rounded-xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-4">
-              <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[11px] mb-1">{s.label}</p>
+            <div key={s.label} className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4">
+              <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mb-1">{s.label}</p>
               <p className="text-[#162a1f] dark:text-white text-xl font-bold">{s.value}</p>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6 mb-4">
+        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
 
           <div className="flex gap-2 mb-5">
             {[
@@ -104,7 +104,7 @@ const PrintingPage = () => {
                 className={`flex-1 h-9 rounded-xl text-[13px] font-semibold transition-colors duration-150 border ${
                   tab === t.key
                     ? "bg-[#2d6a4f] text-white border-[#2d6a4f]"
-                    : "bg-[#f7fbf8] dark:bg-[#162a1f] text-[#3d6650] dark:text-[#7aaa8a] border-[#c5ddd0] dark:border-[#2d4a3a] hover:border-[#2d6a4f]"
+                    : "bg-[#f7fbf8] dark:bg-[#2e2e2e] text-[#3d6650] dark:text-[#888] border-[#c5ddd0] dark:border-[#333] hover:border-[#2d6a4f]"
                 }`}
               >
                 {t.label}
@@ -114,21 +114,21 @@ const PrintingPage = () => {
 
           {tab === "grants" && (
             <>
-              <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[12px] mb-3 leading-relaxed">
+              <p className="text-[#5e7a68] dark:text-[#888] text-[12px] mb-3 leading-relaxed">
                 Each valid library user receives a free page allowance each semester. Faculty and staff print free of charge.
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-[13px]">
                   <thead>
-                    <tr className="border-b border-[#cfe2d6] dark:border-[#2d4a3a]">
+                    <tr className="border-b border-[#cfe2d6] dark:border-[#333]">
                       {["User type", "Fall", "Spring", "Summer"].map((h) => (
-                        <th key={h} className="text-left text-[#5e7a68] dark:text-[#7aaa8a] font-semibold pb-2 pr-4">{h}</th>
+                        <th key={h} className="text-left text-[#5e7a68] dark:text-[#888] font-semibold pb-2 pr-4">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {PAGE_GRANTS.map((g) => (
-                      <tr key={g.type} className="border-b border-[#f0f7f3] dark:border-[#1e2e26]">
+                      <tr key={g.type} className="border-b border-[#f0f7f3] dark:border-[#2e2e2e]">
                         <td className="py-2 pr-4 text-[#162a1f] dark:text-white">{g.type}</td>
                         <td className="py-2 pr-4 text-[#2d6a4f] dark:text-[#95d5b2] font-medium">{g.fall}</td>
                         <td className="py-2 pr-4 text-[#2d6a4f] dark:text-[#95d5b2] font-medium">{g.spring}</td>
@@ -143,7 +143,7 @@ const PrintingPage = () => {
 
           {tab === "pricing" && (
             <>
-              <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[12px] mb-4 leading-relaxed">
+              <p className="text-[#5e7a68] dark:text-[#888] text-[12px] mb-4 leading-relaxed">
                 Top up your print balance via the{" "}
                 <a href="https://webapps.lau.edu.lb/ocrs" target="_blank" rel="noreferrer"
                   className="text-[#2d6a4f] dark:text-[#95d5b2] underline underline-offset-2">
@@ -156,8 +156,8 @@ const PrintingPage = () => {
               <h4 className="text-[#162a1f] dark:text-white text-[13px] font-bold mb-2">Per-page rates</h4>
               <div className="grid grid-cols-2 gap-2 mb-5">
                 {PRICING.map((p) => (
-                  <div key={p.desc} className="bg-[#f7fbf8] dark:bg-[#162a1f] rounded-xl border border-[#cfe2d6] dark:border-[#2d4a3a] px-4 py-3 flex justify-between items-center">
-                    <span className="text-[#5e7a68] dark:text-[#7aaa8a] text-[13px]">{p.desc}</span>
+                  <div key={p.desc} className="bg-[#f7fbf8] dark:bg-[#2e2e2e] rounded-xl border border-[#cfe2d6] dark:border-[#333] px-4 py-3 flex justify-between items-center">
+                    <span className="text-[#5e7a68] dark:text-[#888] text-[13px]">{p.desc}</span>
                     <span className="text-[#2d6a4f] dark:text-[#95d5b2] font-bold text-[13px]">{p.price}</span>
                   </div>
                 ))}
@@ -167,7 +167,7 @@ const PrintingPage = () => {
               <h4 className="text-[#162a1f] dark:text-white text-[13px] font-bold mb-2">Credit bundles</h4>
               <div className="grid grid-cols-3 gap-2">
                 {BUNDLES.map((b) => (
-                  <div key={b.pages} className="bg-[#f7fbf8] dark:bg-[#162a1f] rounded-xl border border-[#cfe2d6] dark:border-[#2d4a3a] px-4 py-3 text-center">
+                  <div key={b.pages} className="bg-[#f7fbf8] dark:bg-[#2e2e2e] rounded-xl border border-[#cfe2d6] dark:border-[#333] px-4 py-3 text-center">
                     <p className="text-[#162a1f] dark:text-white font-bold text-[15px]">{b.pages} pgs</p>
                     <p className="text-[#2d6a4f] dark:text-[#95d5b2] text-[13px] font-medium">{b.cost}</p>
                   </div>
@@ -178,9 +178,9 @@ const PrintingPage = () => {
         </div>
 
         {/* Scanning */}
-        <div className="bg-white dark:bg-[#1e2e26] rounded-2xl border border-[#cfe2d6] dark:border-[#2d4a3a] p-6 mb-4">
+        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-2">Scanning — free of charge</h3>
-          <p className="text-[#5e7a68] dark:text-[#7aaa8a] text-[13px] leading-relaxed">
+          <p className="text-[#5e7a68] dark:text-[#888] text-[13px] leading-relaxed">
             Self-service scanners are available at all LAU Libraries at no cost. Scan to USB drive or email in multiple file formats. For assistance, contact Library IT Helpdesk at Ext. 1645 (Beirut) or Ext. 2948 (Byblos).
           </p>
         </div>
