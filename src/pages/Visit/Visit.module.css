@@ -61,19 +61,14 @@
   margin: 2.5rem auto 0;
   height: 220px;
   border-radius: 12px;
-  background: var(--color-bg-subtle);
-  border: 1px dashed var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
-.introStripPlaceholder {
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  opacity: 0.5;
-  letter-spacing: 0.03em;
+.introStripImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
 }
 
 /* Status pill */
@@ -236,8 +231,10 @@
 /* ── Location & Directions ── */
 .locationGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 1.5rem;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .locationCard {

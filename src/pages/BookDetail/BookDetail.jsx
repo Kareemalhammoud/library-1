@@ -17,18 +17,28 @@ export default function BookDetail() {
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
 
+  function getUserPrefix() {
+    try {
+      const u = JSON.parse(localStorage.getItem('user'))
+      return u?.email ? `${u.email}:` : ''
+    } catch {
+      return ''
+    }
+  }
+
   function handleShare() {
     navigator.clipboard?.writeText(window.location.href)
     setShareCopied(true)
     setTimeout(() => setShareCopied(false), 2000)
   }
 
-  const borrowKey = `borrowed-${book?.id}`
-  const loanKey = `loan-${book?.id}`
+  const prefix = getUserPrefix()
+  const borrowKey = `${prefix}borrowed-${book?.id}`
+  const loanKey = `${prefix}loan-${book?.id}`
 
   useEffect(() => {
     const savedLoan = localStorage.getItem(loanKey)
-    setBorrowed(Boolean(savedLoan) || localStorage.getItem(borrowKey) === 'true')
+    setBorrowed(Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
   }, [borrowKey, loanKey])
 
   function handleBorrowClick() {
@@ -50,7 +60,7 @@ export default function BookDetail() {
 
     setBorrowed(true)
     setConfirmed(true)
-    localStorage.setItem(borrowKey, 'true')
+    localStorage.setItem(borrowKey, borrowedAt.toISOString())
     localStorage.setItem(
       loanKey,
       JSON.stringify({
@@ -92,7 +102,7 @@ export default function BookDetail() {
     return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
   }, [book.id, book.genre])
 
-  const storageKey = `reading-progress-${book.id}`
+  const storageKey = `${prefix}reading-progress-${book.id}`
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {

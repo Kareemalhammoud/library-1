@@ -1,0 +1,239 @@
+.header {
+  background: transparent;
+  position: relative;
+  z-index: 100;
+  padding: 0.5rem 2rem 1.1rem;
+  box-shadow:
+    0 1px 0 rgba(0, 103, 81, 0.06),
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* ── Utility strip ── */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.42rem 0;
+  margin: 0 auto 0.9rem;
+  max-width: var(--container-max);
+  border-bottom: 1px solid rgba(0, 55, 40, 0.10);
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.045em;
+  color: rgba(28, 43, 36, 0.42);
+}
+
+.topbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: rgba(28, 43, 36, 0.4);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.themeToggle:hover {
+  color: rgba(28, 43, 36, 0.7);
+  background: rgba(28, 43, 36, 0.06);
+}
+
+.themeToggle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.topbarSep {
+  color: rgba(28, 43, 36, 0.22);
+  font-size: 0.6rem;
+}
+
+/* Status dot */
+.statusDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusDot[data-open='true'] {
+  background: #4caf7d;
+  box-shadow: 0 0 0 2px rgba(76, 175, 125, 0.2);
+}
+
+.statusDot[data-open='false'] {
+  background: #c0392b;
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.2);
+}
+
+.statusLabel {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.statusLabel[data-open='true']  { color: #3a9466; }
+.statusLabel[data-open='false'] { color: rgba(28, 43, 36, 0.5); }
+
+/* ── Main header row: logo left · nav pill right ── */
+.headerMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+/* ── Logo ── */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+  color: #006751;
+  flex-shrink: 0;
+  transition: opacity 160ms ease;
+}
+
+.logo:hover { opacity: 0.78; }
+
+.logoIcon {
+  width: auto;
+  height: 38px;
+  flex-shrink: 0;
+  color: #006751;
+}
+
+.logoText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.26rem;
+  border-left: 1.5px solid rgba(0, 103, 81, 0.18);
+  padding-left: 0.9rem;
+}
+
+.logoName {
+  font-size: 1.32rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #006751;
+  line-height: 1;
+}
+
+.logoSub {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(0, 103, 81, 0.50);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── Nav pill ── */
+.inner {
+  padding: 0 1.75rem;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  background: rgba(6, 26, 18, 0.84);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 4px 20px rgba(0, 0, 0, 0.24),
+    0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+/* ── Nav links ── */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2.25rem;
+}
+
+.nav a {
+  position: relative;
+  color: rgba(240, 248, 244, 0.45);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition:
+    color      180ms ease,
+    background 180ms ease,
+    transform  180ms ease;
+}
+
+.nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 0.65rem;
+  right: 0.65rem;
+  height: 1px;
+  background: #00AB8E;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms ease;
+}
+
+.nav a:hover {
+  color: rgba(240, 248, 244, 0.92);
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateY(-1px);
+}
+.nav a:hover::after { transform: scaleX(1); }
+
+.nav a.active { color: rgba(240, 248, 244, 0.96); }
+.nav a.active::after {
+  transform: scaleX(1);
+  background: #006751;
+}
+
+/* ── Account link — visually separated from regular nav items ── */
+.accountLink {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.5rem;
+  padding-left: 1.1rem !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.accountIcon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 180ms ease;
+}
+
+.accountLink:hover .accountIcon {
+  opacity: 1;
+}

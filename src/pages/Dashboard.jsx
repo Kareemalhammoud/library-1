@@ -243,17 +243,14 @@ function Dashboard() {
 				</button>
 			</div>
 
-			{/* Profile Section */}
 			<div className="flex flex-col md:flex-row justify-between gap-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#222] dark:border-[#2e2e2e]">
 
-				{/* LEFT SIDE */}
 				<div className="flex-1 space-y-4">
 
 					<h2 className="text-xl font-semibold text-gray-700 dark:text-[#f0ede8]">
 						Profile Information
 					</h2>
 
-					{/* Username Row */}
 					<div className="flex items-center gap-3 flex-wrap">
 
 						<span className="font-medium text-gray-700 dark:text-[#d0cdc8]">Username:</span>
@@ -313,7 +310,6 @@ function Dashboard() {
 
 				</div>
 
-				{/* RIGHT SIDE (Profile Picture) */}
 				<div className="flex flex-col items-center gap-3">
 
 					<img
@@ -343,7 +339,6 @@ function Dashboard() {
 
 			</div>
 
-			{/* Library Section */}
 			<div className="mt-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#222] dark:border-[#2e2e2e]">
 
 				<h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-[#f0ede8]">
@@ -455,8 +450,7 @@ function Dashboard() {
 
 			</div>
 
-			{/* Actions */}
-			<div className="mt-8 flex flex-wrap gap-4">
+			<div className="mt-8 mb-10 flex flex-wrap gap-4">
 
 				<button
 					className="bg-[#006751] text-white px-5 py-2 rounded-md hover:bg-[#005040] transition"
