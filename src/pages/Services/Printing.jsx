@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // ─── Accent colour for this page: mid forest (mid card) ──────────────────────
-// bg-[#2d6a4f]  accent-[#95d5b2]
+// bg-[#2d6a4f]  accent-[#5ecba1]
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ const BUNDLES = [
 const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-1.5 text-[#95d5b2] text-[13px] font-medium hover:opacity-80 transition-opacity mb-6"
+    className="mb-6 flex items-center gap-1.5 text-[13px] font-medium text-[#5ecba1] transition-opacity hover:opacity-80"
   >
     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -59,10 +59,10 @@ const PrintingPage = () => {
     <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
       {/* Hero — mid forest accent */}
-      <section className="bg-[#2d6a4f] px-8 md:px-16 py-12 relative overflow-hidden">
+      <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-white/5 pointer-events-none" />
         <BackButton onClick={() => navigate("/Services")} />
-        <p className="text-[#95d5b2] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
+        <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Services · Printing
         </p>
         <h1 className="text-white text-4xl font-bold leading-tight mb-2">
@@ -130,9 +130,9 @@ const PrintingPage = () => {
                     {PAGE_GRANTS.map((g) => (
                       <tr key={g.type} className="border-b border-[#f0f7f3] dark:border-[#2e2e2e]">
                         <td className="py-2 pr-4 text-[#162a1f] dark:text-white">{g.type}</td>
-                        <td className="py-2 pr-4 text-[#2d6a4f] dark:text-[#95d5b2] font-medium">{g.fall}</td>
-                        <td className="py-2 pr-4 text-[#2d6a4f] dark:text-[#95d5b2] font-medium">{g.spring}</td>
-                        <td className="py-2 text-[#2d6a4f] dark:text-[#95d5b2] font-medium">{g.summer}</td>
+                        <td className="py-2 pr-4 text-[#2d6a4f] dark:text-[#5ecba1] font-medium">{g.fall}</td>
+                        <td className="py-2 pr-4 text-[#2d6a4f] dark:text-[#5ecba1] font-medium">{g.spring}</td>
+                        <td className="py-2 text-[#2d6a4f] dark:text-[#5ecba1] font-medium">{g.summer}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -146,7 +146,7 @@ const PrintingPage = () => {
               <p className="text-[#5e7a68] dark:text-[#888] text-[12px] mb-4 leading-relaxed">
                 Top up your print balance via the{" "}
                 <a href="https://webapps.lau.edu.lb/ocrs" target="_blank" rel="noreferrer"
-                  className="text-[#2d6a4f] dark:text-[#95d5b2] underline underline-offset-2">
+                  className="text-[#2d6a4f] dark:text-[#5ecba1] underline underline-offset-2">
                   Credit Request Form
                 </a>
                 . Credits are added to your student fees statement. Unused credits do not carry over between semesters.
@@ -158,7 +158,7 @@ const PrintingPage = () => {
                 {PRICING.map((p) => (
                   <div key={p.desc} className="bg-[#f7fbf8] dark:bg-[#2e2e2e] rounded-xl border border-[#cfe2d6] dark:border-[#333] px-4 py-3 flex justify-between items-center">
                     <span className="text-[#5e7a68] dark:text-[#888] text-[13px]">{p.desc}</span>
-                    <span className="text-[#2d6a4f] dark:text-[#95d5b2] font-bold text-[13px]">{p.price}</span>
+                    <span className="text-[#2d6a4f] dark:text-[#5ecba1] font-bold text-[13px]">{p.price}</span>
                   </div>
                 ))}
               </div>
@@ -169,7 +169,7 @@ const PrintingPage = () => {
                 {BUNDLES.map((b) => (
                   <div key={b.pages} className="bg-[#f7fbf8] dark:bg-[#2e2e2e] rounded-xl border border-[#cfe2d6] dark:border-[#333] px-4 py-3 text-center">
                     <p className="text-[#162a1f] dark:text-white font-bold text-[15px]">{b.pages} pgs</p>
-                    <p className="text-[#2d6a4f] dark:text-[#95d5b2] text-[13px] font-medium">{b.cost}</p>
+                    <p className="text-[#2d6a4f] dark:text-[#5ecba1] text-[13px] font-medium">{b.cost}</p>
                   </div>
                 ))}
               </div>
@@ -197,7 +197,7 @@ const PrintingPage = () => {
               "The library abides by US Copyright Law Fair Use provisions — excessive reproduction may be refused.",
             ].map((n) => (
               <li key={n} className="flex items-start gap-2.5 text-[13px] text-white/70">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#95d5b2] mt-1.5 flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#5ecba1] mt-1.5 flex-shrink-0" />
                 {n}
               </li>
             ))}

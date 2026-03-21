@@ -2,11 +2,11 @@ import { NavLink } from 'react-router-dom'
 
 function Footer() {
   return (
-    <footer className="mt-20 border-t-2 border-[#006751] bg-[#0C1F16] dark:border-[#333] dark:bg-[#1a1a1a]">
+    <footer className="border-t-2 border-[#006751] bg-[#0C1F16] dark:border-[#333] dark:bg-[#1a1a1a]">
       <div className="mx-auto grid max-w-[var(--container-max)] grid-cols-[1.7fr_1fr_1fr_1fr] items-start gap-y-8 gap-x-10 px-8 pb-10 pt-16 max-md:grid-cols-2 max-sm:grid-cols-1">
         <div className="flex flex-col gap-[0.8rem] max-md:col-span-full">
           <NavLink to="/" className="flex items-center gap-[0.6rem] text-[rgba(246,241,231,0.88)] no-underline transition-opacity duration-150 ease hover:opacity-[0.78]">
-            <svg className="h-7 w-auto flex-shrink-0 text-[#00AB8E]" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <svg className="h-7 w-auto flex-shrink-0 text-[#5ecba1]" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M2 15 Q14 20 26 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               <line x1="14" y1="3" x2="14" y2="15" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
               <path d="M14 3.5 L23 11 L14 14 Z" fill="currentColor" fillOpacity="0.72" />

@@ -72,7 +72,7 @@ function Header() {
                 : 'bg-[#c0392b] shadow-[0_0_0_2px_rgba(192,57,43,0.2)]'
             }`}
           />
-          <span className={`font-semibold tracking-[0.05em] ${open ? 'text-[#3a9466] dark:text-[#00AB8E]' : 'text-[rgba(28,43,36,0.5)] dark:text-[#888]'}`}>
+          <span className={`font-semibold tracking-[0.05em] ${open ? 'text-[#3a9466] dark:text-[#5ecba1]' : 'text-[rgba(28,43,36,0.5)] dark:text-[#888]'}`}>
             {open ? 'Open Now' : 'Closed'}
           </span>
           <span className="text-[0.6rem] text-[rgba(28,43,36,0.22)] dark:text-[#888]">·</span>
@@ -106,9 +106,9 @@ function Header() {
       <div className="mx-auto flex max-w-[var(--container-max)] items-center justify-between">
         <NavLink
           to="/"
-          className="flex flex-shrink-0 items-center gap-[0.85rem] text-[#006751] no-underline transition-opacity duration-[160ms] ease hover:opacity-[0.78] dark:text-[#00AB8E]"
+          className="flex flex-shrink-0 items-center gap-[0.85rem] text-[#006751] no-underline transition-opacity duration-[160ms] ease hover:opacity-[0.78] dark:text-[#5ecba1]"
         >
-          <svg className="h-[38px] w-auto flex-shrink-0 text-[#006751] dark:text-[#00AB8E]" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg className="h-[38px] w-auto flex-shrink-0 text-[#006751] dark:text-[#5ecba1]" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M2 15 Q14 20 26 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             <line x1="14" y1="3" x2="14" y2="15" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
             <path d="M14 3.5 L23 11 L14 14 Z" fill="currentColor" fillOpacity="0.72" />
@@ -117,14 +117,14 @@ function Header() {
             <line x1="14" y1="15" x2="14" y2="19" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
           </svg>
           <div className="flex flex-col gap-[0.26rem] border-l-[1.5px] border-[rgba(0,103,81,0.18)] pl-[0.9rem] dark:border-[#333]">
-            <span className="text-[1.32rem] font-extrabold uppercase leading-none tracking-[0.12em] text-[#006751] dark:text-[#00AB8E]">LAU</span>
+            <span className="text-[1.32rem] font-extrabold uppercase leading-none tracking-[0.12em] text-[#006751] dark:text-[#5ecba1]">LAU</span>
             <span className="whitespace-nowrap text-[0.62rem] font-semibold uppercase leading-none tracking-[0.11em] text-[rgba(0,103,81,0.50)] dark:text-[#888]">
               Riyad Nassar Library
             </span>
           </div>
         </NavLink>
 
-        <div className="flex h-11 items-center rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(6,26,18,0.84)] px-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_20px_rgba(0,0,0,0.24),0_1px_4px_rgba(0,0,0,0.14)] backdrop-blur-[16px] saturate-[1.4]">
+        <div className="flex h-11 items-center rounded-xl border border-[rgba(94,203,161,0.18)] bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_4px_20px_rgba(0,0,0,0.24),0_1px_4px_rgba(0,0,0,0.14)] backdrop-blur-[16px] saturate-[1.4]">
           <nav className="flex items-center gap-9">
             {navItems.map(({ to, label }) => (
               <NavLink
@@ -138,8 +138,12 @@ function Header() {
                   }`
                 }
               >
-                {label}
-                <span className="absolute bottom-[2px] left-[0.65rem] right-[0.65rem] h-px origin-left bg-[#00AB8E] transition-transform duration-[260ms] ease scale-x-0 group-hover:scale-x-100" />
+                {({ isActive }) => (
+                  <>
+                    {label}
+                    <span className={`absolute bottom-[2px] left-[0.65rem] right-[0.65rem] h-px origin-left bg-[#5ecba1] transition-transform duration-[260ms] ease ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>

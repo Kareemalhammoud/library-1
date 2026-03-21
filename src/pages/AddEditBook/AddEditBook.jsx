@@ -24,7 +24,7 @@ const emptyForm = {
 const labelClassName =
   'text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]'
 const fieldClassName =
-  'mt-2 box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] px-4 py-[0.85rem] text-[0.9rem] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#a7a7a7] focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#00AB8E] dark:focus:bg-[#2e2e2e]'
+  'mt-2 box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] px-4 py-[0.85rem] text-[0.9rem] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#a7a7a7] focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#5ecba1] dark:focus:bg-[#2e2e2e]'
 const primaryButtonClassName =
   'cursor-pointer rounded-lg border-0 bg-[#1a4a3a] px-6 py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]'
 const secondaryButtonClassName =
@@ -408,7 +408,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                       value="yes"
                       checked={formData.coverPageAvailable === true}
                       onChange={handleRadioChange}
-                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#00AB8E]"
+                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#5ecba1]"
                     />
                     Yes
                   </label>
@@ -418,7 +418,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                       value="no"
                       checked={formData.coverPageAvailable === false}
                       onChange={handleRadioChange}
-                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#00AB8E]"
+                      className="h-4 w-4 accent-[#1a4a3a] dark:accent-[#5ecba1]"
                     />
                     No
                   </label>
@@ -427,7 +427,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 <div className="mt-5">
                   <label
                     htmlFor="cover-upload"
-                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#00AB8E] dark:hover:bg-[#333]"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#5ecba1] dark:hover:bg-[#333]"
                   >
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
                       +

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 const fieldClassName =
-  'mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/15 dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#00AB8E] dark:focus:ring-[#00AB8E]/20'
+  'mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/15 dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#5ecba1] dark:focus:ring-[#5ecba1]/20'
 
 const BookForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -159,7 +159,7 @@ const BookForm = ({ onSubmit }) => {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="rounded-xl bg-[#006751] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#005040] focus:outline-none focus:ring-2 focus:ring-[#006751]/25 dark:hover:bg-[#0b5b46]"
+          className="rounded-xl bg-[#1a6644] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#14533a] focus:outline-none focus:ring-2 focus:ring-[#1a6644]/25 dark:hover:bg-[#14533a]"
         >
           Save
         </button>
