@@ -54,6 +54,7 @@ function Register() {
 		}
 
 		localStorage.setItem("user", JSON.stringify(user))
+		window.dispatchEvent(new Event("storage"))
 
 		navigate("/dashboard")
 	}

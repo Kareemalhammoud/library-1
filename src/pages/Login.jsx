@@ -29,6 +29,7 @@ function Login() {
 
 		if (email === savedUser.email && password === savedUser.password) {
 			setErrorMessage("")
+			window.dispatchEvent(new Event("storage"))
 			navigate("/dashboard")
 		} else {
 			setErrorMessage("Invalid email or password")
