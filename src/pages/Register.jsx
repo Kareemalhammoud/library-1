@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import FormInput from "../components/FormInput"
 
 function Register() {
 
 	const navigate = useNavigate()
+	const location = useLocation()
 
 	const [username, setUsername] = useState("")
 	const [email, setEmail] = useState("")
@@ -12,6 +13,7 @@ function Register() {
 	const [confirmPassword, setConfirmPassword] = useState("")
 
 	const [showPassword, setShowPassword] = useState(false)
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 	const [errorMessage, setErrorMessage] = useState("")
 
 	const handleSubmit = (e) => {
@@ -54,8 +56,9 @@ function Register() {
 		}
 
 		localStorage.setItem("user", JSON.stringify(user))
+		localStorage.setItem("isLoggedIn", "true")
 
-		navigate("/dashboard")
+		navigate(location.state?.from || "/dashboard")
 	}
 
 	return (
@@ -100,11 +103,13 @@ function Register() {
 
 					<FormInput
 						label="Confirm Password"
-						type="password"
 						id="confirmPassword"
 						value={confirmPassword}
 						onChange={(e) => setConfirmPassword(e.target.value)}
 						placeholder="Confirm password"
+						showToggle={true}
+						showPassword={showConfirmPassword}
+						setShowPassword={setShowConfirmPassword}
 					/>
 
 					{errorMessage && (
@@ -124,7 +129,11 @@ function Register() {
 
 				<p className="text-center text-sm mt-5 text-gray-500 dark:text-[#999]">
 					Already have an account?{" "}
-					<Link to="/login" className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]">
+					<Link
+						to="/login"
+						state={location.state}
+						className="text-[#006751] underline hover:text-[#005040] dark:text-[#00AB8E] dark:hover:text-[#2d7a4f]"
+					>
 						Login
 					</Link>
 				</p>
