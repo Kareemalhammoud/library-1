@@ -3,8 +3,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BOOKS, GENRES } from '@/data/bookData'
 import { getAvailability, getCallNumber, getCampus, getCopies, getResourceType } from '@/utils/bookUtils'
-
-const ADMIN_EMAIL = 'admin@lau.edu'
+import { isAdminUser } from '@/utils'
 
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
@@ -27,15 +26,6 @@ const selectClass =
   'w-full rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]'
 const modalInputClass =
   'w-full rounded-md border border-[#d0ddd8] bg-white px-3 py-2 text-[0.82rem] text-[#1C2B24] outline-none transition focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/10 dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1] dark:focus:ring-[#5ecba1]/20'
-
-function isAdmin() {
-  try {
-    const u = JSON.parse(localStorage.getItem('user'))
-    return u?.email === ADMIN_EMAIL
-  } catch {
-    return false
-  }
-}
 
 function tagClass(type) {
   const base =
@@ -74,7 +64,7 @@ export default function Catalog() {
   const [editingBook, setEditingBook] = useState(null)
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const admin = isAdmin()
+  const admin = isAdminUser()
 
   const EMPTY_BOOK = {
     title: '',
@@ -394,7 +384,19 @@ export default function Catalog() {
               const bookType = getResourceType(book.id)
               const callNum = getCallNumber(book)
               return (
-                <li key={book.id} className={`flex gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#181818] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''}`}>
+                <li
+                  key={book.id}
+                  className={`flex cursor-pointer gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#1d1d1d] dark:hover:shadow-[inset_0_0_0_1px_rgba(94,203,161,0.08)] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''}`}
+                  onClick={() => navigate(`/books/${book.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      navigate(`/books/${book.id}`)
+                    }
+                  }}
+                  role="link"
+                  tabIndex={0}
+                >
                   <img src={book.cover} alt={`Cover of ${book.title}`} className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   <div className="min-w-0 flex-1">
                     <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
@@ -409,7 +411,7 @@ export default function Catalog() {
                       <span className={tagClass('subject')}>{book.genre}</span>
                       <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
                     </div>
-                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
+                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={(e) => { e.stopPropagation(); setEditingBook(book) }}>Edit</button></div>}
                   </div>
                   <div className="hidden shrink-0 flex-col items-end gap-1 pt-1 text-right md:flex">
                     <span className="rounded border border-transparent bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:border-[#1f1f1f] dark:bg-[#121212] dark:text-[#8c9691]">{callNum}</span>

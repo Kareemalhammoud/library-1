@@ -2,10 +2,12 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import { useState, useEffect, useMemo } from 'react'
 import { getCampus, getCopies } from '@/utils/bookUtils'
+import { getStoredUser, isAdminUser } from '@/utils'
 
 export default function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const admin = isAdminUser()
 
   const book = BOOKS.find((b) => b.id === parseInt(id))
   const { total: totalCopies, available: availableCopies } = getCopies(book?.id ?? 0)
@@ -18,12 +20,8 @@ export default function BookDetail() {
   const [shareCopied, setShareCopied] = useState(false)
 
   function getUserPrefix() {
-    try {
-      const u = JSON.parse(localStorage.getItem('user'))
-      return u?.email ? `${u.email}:` : ''
-    } catch {
-      return ''
-    }
+    const user = getStoredUser()
+    return user?.email ? `${user.email}:` : ''
   }
 
   function handleShare() {
@@ -164,13 +162,15 @@ export default function BookDetail() {
               {shareCopied ? '\u2713 Copied!' : 'Share'}
             </button>
 
-            <button
-              className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
-              aria-label={`Edit ${book.title}`}
-              onClick={() => navigate(`/books/${book.id}/edit`)}
-            >
-              Edit Book
-            </button>
+            {admin && (
+              <button
+                className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
+                aria-label={`Edit ${book.title}`}
+                onClick={() => navigate(`/books/${book.id}/edit`)}
+              >
+                Edit Book
+              </button>
+            )}
           </div>
         </aside>
 

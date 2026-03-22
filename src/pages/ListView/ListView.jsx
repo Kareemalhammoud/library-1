@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { GENRES } from '@/data/bookData'
 import { getCampus, getAvailability } from '@/utils/bookUtils'
 import { useBooks } from '@/context/BooksContext'
+import { isAdminUser } from '@/utils'
 
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
@@ -20,6 +21,7 @@ const SORT_OPTIONS = [
 export default function ListView() {
   const navigate = useNavigate()
   const { books } = useBooks()
+  const admin = isAdminUser()
 
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('All')
@@ -132,13 +134,15 @@ export default function ListView() {
             <p className="m-0 pb-1 text-[0.85rem] text-[#aaa]" aria-live="polite" aria-atomic="true">
               <span className="text-[1.1rem] font-bold text-[#555] dark:text-white">{filtered.length}</span> books
             </p>
-            <button
-              className="whitespace-nowrap rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.6rem] text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
-              onClick={() => navigate('/books/add')}
-              aria-label="Add a new book"
-            >
-              + Add Book
-            </button>
+            {admin && (
+              <button
+                className="whitespace-nowrap rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.6rem] text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                onClick={() => navigate('/books/add')}
+                aria-label="Add a new book"
+              >
+                + Add Book
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -282,12 +286,14 @@ export default function ListView() {
             >
               Clear filters
             </button>
-            <button
-              className="whitespace-nowrap rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.6rem] text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
-              onClick={() => navigate('/books/add')}
-            >
-              + Add Book
-            </button>
+            {admin && (
+              <button
+                className="whitespace-nowrap rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.6rem] text-[0.85rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                onClick={() => navigate('/books/add')}
+              >
+                + Add Book
+              </button>
+            )}
           </section>
         ) : (
           <>

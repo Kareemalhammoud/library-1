@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import { useBooks } from '@/context/BooksContext'
 import { getCampus, getCopies } from '@/utils/bookUtils'
+import { isAdminUser } from '@/utils'
 
 const emptyForm = {
   id: null,
@@ -38,6 +39,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
   const contextBooks = booksContext?.books ?? []
   const addBook = booksContext?.addBook
   const availableBooks = books.length > 0 ? books : contextBooks
+  const admin = isAdminUser()
 
   const [formData, setFormData] = useState(emptyForm)
   const [imagePreview, setImagePreview] = useState('')
@@ -179,6 +181,10 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     ? 'Update the catalog entry while keeping the library styling aligned with the rest of the collection.'
     : 'Create a new catalog entry using the same warm neutral theme used across the library pages.'
   const breadcrumbTitle = formData.title || pageTitle
+
+  if (!admin) {
+    return <Navigate to="/books" replace />
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
