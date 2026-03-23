@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import { useBooks } from '@/context/BooksContext'
 import { getCampus, getCopies } from '@/utils/bookUtils'
-import { isAdminUser } from '@/utils'
 
 const emptyForm = {
   id: null,
@@ -39,7 +38,6 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
   const contextBooks = booksContext?.books ?? []
   const addBook = booksContext?.addBook
   const availableBooks = books.length > 0 ? books : contextBooks
-  const admin = isAdminUser()
 
   const [formData, setFormData] = useState(emptyForm)
   const [imagePreview, setImagePreview] = useState('')
@@ -182,14 +180,10 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     : 'Create a new catalog entry using the same warm neutral theme used across the library pages.'
   const breadcrumbTitle = formData.title || pageTitle
 
-  if (!admin) {
-    return <Navigate to="/books" replace />
-  }
-
   return (
     <div className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
       <nav
-        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#333] dark:bg-[#1a1a1a]"
+        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-4 py-4 sm:px-6 md:px-8 dark:border-[#333] dark:bg-[#1a1a1a]"
         aria-label="Breadcrumb"
       >
         <button
@@ -202,7 +196,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
         <span className="text-[0.85rem] text-[#999] dark:text-[#888]">Books / {breadcrumbTitle}</span>
       </nav>
 
-      <article className="mx-auto mt-12 max-w-[1000px] px-8">
+      <article className="mx-auto mt-8 max-w-[1000px] px-4 sm:px-6 sm:mt-10 md:mt-12 md:px-8">
         <section className="rounded-xl border border-[#e5e2dc] bg-white p-6 dark:border-[#333] dark:bg-[#242424] sm:p-8">
           <div className="border-b border-[#e5e2dc] pb-6 dark:border-[#333]">
             <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#888]">
@@ -412,31 +406,29 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   </label>
                 </div>
 
-                {formData.coverPageAvailable && (
-                  <div className="mt-5">
-                    <label
-                      htmlFor="cover-upload"
-                      className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:hover:border-[#aaa] dark:hover:bg-[#333]"
-                    >
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
-                        +
-                      </span>
-                      <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-[#f0ede8]">
-                        Upload cover image
-                      </span>
-                      <span className="text-[0.8rem] text-[#999] dark:text-[#666]">
-                        Choose an image file to preview the book cover.
-                      </span>
-                    </label>
-                    <input
-                      id="cover-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </div>
-                )}
+                <div className="mt-5">
+                  <label
+                    htmlFor="cover-upload"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#5ecba1] dark:hover:bg-[#333]"
+                  >
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
+                      +
+                    </span>
+                    <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-white">
+                      Upload cover image
+                    </span>
+                    <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
+                      Choose an image file to preview the book cover.
+                    </span>
+                  </label>
+                  <input
+                    id="cover-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
               </div>
             </div>
 
