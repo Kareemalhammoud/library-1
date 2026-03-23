@@ -194,13 +194,15 @@ export default function BookDetail() {
               {shareCopied ? '✓ Copied!' : 'Share'}
             </button>
 
-            <button
-              className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
-              aria-label={`Edit ${book.title}`}
-              onClick={() => navigate(`/books/${book.id}/edit`)}
-            >
-              Edit Book
-            </button>
+            {(() => { try { const u = JSON.parse(localStorage.getItem('user')); return u?.email === 'admin@lau.edu' } catch { return false } })() && (
+              <button
+                className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
+                aria-label={`Edit ${book.title}`}
+                onClick={() => navigate(`/books/${book.id}/edit`)}
+              >
+                Edit Book
+              </button>
+            )}
           </div>
         </aside>
 
