@@ -66,8 +66,8 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
       existingBook.campus && existingBook.campus !== 'both'
         ? existingBook.campus
         : getCampus(existingBook.id) === 'both'
-        ? ''
-        : getCampus(existingBook.id) || ''
+          ? ''
+          : getCampus(existingBook.id) || ''
     const existingImage = existingBook.coverImage || existingBook.cover || ''
 
     setFormData({
@@ -90,8 +90,8 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
         existingBook.language === 'FR'
           ? 'French'
           : existingBook.language === 'EN'
-          ? 'English'
-          : existingBook.language || '',
+            ? 'English'
+            : existingBook.language || '',
       description: existingBook.description || '',
       coverImage: existingImage,
       coverPageAvailable:
@@ -129,7 +129,6 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     setFormData((prevData) => ({
       ...prevData,
       coverImage: '',
-      coverPageAvailable: prevData.coverPageAvailable,
     }))
   }
 
@@ -139,7 +138,12 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     setFormData((prevData) => ({
       ...prevData,
       coverPageAvailable: isAvailable,
+      coverImage: isAvailable ? prevData.coverImage : '',
     }))
+
+    if (!isAvailable) {
+      setImagePreview('')
+    }
   }
 
   const handleSubmit = (e) => {
@@ -151,8 +155,8 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
         formData.language === 'French'
           ? 'FR'
           : formData.language === 'English'
-          ? 'EN'
-          : formData.language,
+            ? 'EN'
+            : formData.language,
       pages: formData.pages ? Number(formData.pages) : '',
       rating: formData.rating ? Number(formData.rating) : '',
       copies: formData.copies ? Number(formData.copies) : '',
@@ -187,7 +191,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
           className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#333] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
           onClick={() => navigate(-1)}
         >
-          {'\u2190'} Back
+          ← Back
         </button>
         <span className="text-[0.85rem] text-[#999] dark:text-[#888]">Books / {breadcrumbTitle}</span>
       </nav>
@@ -209,9 +213,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
             <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label htmlFor="title" className={labelClassName}>
-                  Title
-                </label>
+                <label htmlFor="title" className={labelClassName}>Title</label>
                 <input
                   id="title"
                   name="title"
@@ -223,9 +225,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="publisher" className={labelClassName}>
-                  Publisher
-                </label>
+                <label htmlFor="publisher" className={labelClassName}>Publisher</label>
                 <input
                   id="publisher"
                   name="publisher"
@@ -237,9 +237,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="genre" className={labelClassName}>
-                  Genre
-                </label>
+                <label htmlFor="genre" className={labelClassName}>Genre</label>
                 <input
                   id="genre"
                   name="genre"
@@ -250,9 +248,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="isbn" className={labelClassName}>
-                  ISBN
-                </label>
+                <label htmlFor="isbn" className={labelClassName}>ISBN</label>
                 <input
                   id="isbn"
                   name="isbn"
@@ -263,9 +259,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="year" className={labelClassName}>
-                  Year
-                </label>
+                <label htmlFor="year" className={labelClassName}>Year</label>
                 <input
                   id="year"
                   type="number"
@@ -278,9 +272,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="copies" className={labelClassName}>
-                  Copies
-                </label>
+                <label htmlFor="copies" className={labelClassName}>Copies</label>
                 <input
                   id="copies"
                   type="number"
@@ -292,9 +284,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="pages" className={labelClassName}>
-                  Pages
-                </label>
+                <label htmlFor="pages" className={labelClassName}>Pages</label>
                 <input
                   id="pages"
                   type="number"
@@ -306,9 +296,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="rating" className={labelClassName}>
-                  Rating
-                </label>
+                <label htmlFor="rating" className={labelClassName}>Rating</label>
                 <input
                   id="rating"
                   type="number"
@@ -323,9 +311,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="campus" className={labelClassName}>
-                  Campus
-                </label>
+                <label htmlFor="campus" className={labelClassName}>Campus</label>
                 <select
                   id="campus"
                   name="campus"
@@ -340,9 +326,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
 
               <div>
-                <label htmlFor="language" className={labelClassName}>
-                  Language
-                </label>
+                <label htmlFor="language" className={labelClassName}>Language</label>
                 <select
                   id="language"
                   name="language"
@@ -358,9 +342,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
             </div>
 
             <div>
-              <label htmlFor="description" className={labelClassName}>
-                Description
-              </label>
+              <label htmlFor="description" className={labelClassName}>Description</label>
               <textarea
                 id="description"
                 name="description"
