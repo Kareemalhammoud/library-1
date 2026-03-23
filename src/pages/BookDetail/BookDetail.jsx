@@ -116,30 +116,40 @@ export default function BookDetail() {
 
   return (
     <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#121212]">
+
+      {/* ── Breadcrumb ── */}
       <nav
-        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#2a2a2a] dark:bg-[#121212]"
+        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-4 py-4 sm:px-6 md:px-8 dark:border-[#2a2a2a] dark:bg-[#121212]"
         aria-label="Breadcrumb"
       >
         <button
           className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#333] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
           onClick={() => navigate(-1)}
         >
-          {'\u2190'} Back
+          ← Back
         </button>
-        <span className="text-[0.85rem] text-[#999] dark:text-[#888]">Books / {book.title}</span>
+        <span className="truncate text-[0.85rem] text-[#999] dark:text-[#888]">
+          Books / {book.title}
+        </span>
       </nav>
 
-      <article className="mx-auto mt-12 grid max-w-[1000px] items-start gap-12 px-8 [grid-template-columns:280px_1fr]">
-        <aside className="sticky top-[4.5rem] self-start">
+      {/* ── Main article ──
+          Mobile:  single column, cover on top, content below
+          Desktop: two columns, cover sidebar sticky on left, content on right */}
+      <article className="mx-auto mt-8 grid max-w-[1000px] grid-cols-1 items-start gap-8 px-4 sm:px-6 md:mt-12 md:gap-12 md:px-8 md:[grid-template-columns:260px_1fr]">
+
+        {/* ── Sidebar: cover + availability + action buttons ──
+            Only sticky on md+ — on mobile it flows naturally above the content */}
+        <aside className="md:sticky md:top-[4.5rem] md:self-start">
           <img
             src={book.cover}
             alt={`Cover of ${book.title}`}
             className="w-full rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
           />
 
-          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#121212]">
+          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]">
             <p className={`m-0 text-[0.9rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
-              {isAvailable ? '\u25CF Available' : '\u25CF Fully Borrowed'}
+              {isAvailable ? '● Available' : '● Fully Borrowed'}
             </p>
             <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#888]">
               {availableCopies} of {totalCopies} copies available
@@ -153,15 +163,15 @@ export default function BookDetail() {
               onClick={handleBorrowClick}
               aria-label={`Borrow ${book.title}`}
             >
-              {borrowed ? '\u2713 Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
+              {borrowed ? '✓ Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
             </button>
 
             <button
-              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#888] dark:hover:bg-[#181818]"
+              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#242424]"
               aria-label={`Share ${book.title}`}
               onClick={handleShare}
             >
-              {shareCopied ? '\u2713 Copied!' : 'Share'}
+              {shareCopied ? '✓ Copied!' : 'Share'}
             </button>
 
             <button
@@ -174,12 +184,14 @@ export default function BookDetail() {
           </div>
         </aside>
 
+        {/* ── Main content: title, description, metadata, reading progress ── */}
         <section className="flex flex-col gap-3 self-stretch">
           <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#888] dark:text-[#888]">
             {book.genre}
           </span>
 
-          <h1 className="m-0 text-[2.2rem] font-bold leading-[1.2] text-[#1a1a1a] dark:text-white">
+          {/* Title scales down slightly on mobile */}
+          <h1 className="m-0 text-[1.8rem] font-bold leading-[1.2] text-[#1a1a1a] sm:text-[2.2rem] dark:text-white">
             {book.title}
           </h1>
           <p className="m-0 text-base text-[#666] dark:text-[#888]">by {book.author}</p>
@@ -190,8 +202,9 @@ export default function BookDetail() {
             ))}
           </div>
 
+          {/* Metadata grid — 2 cols at all sizes, readable on mobile */}
           <ul
-            className="mt-2 grid list-none grid-cols-2 gap-x-6 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 dark:border-[#333]"
+            className="mt-2 grid list-none grid-cols-2 gap-x-4 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 sm:gap-x-6 dark:border-[#333]"
             aria-label="Book details"
           >
             {[
@@ -200,7 +213,7 @@ export default function BookDetail() {
               ['Publisher', book.publisher],
               ['ISBN', book.isbn],
               ['Language', book.language === 'FR' ? 'French' : 'English'],
-              ['Rating', `\u2B50 ${book.rating}`],
+              ['Rating', `⭐ ${book.rating}`],
               ['Campus', bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus],
             ].map(([label, value]) => (
               <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#888]">
@@ -210,10 +223,12 @@ export default function BookDetail() {
             ))}
           </ul>
 
+          {/* Reading progress tracker */}
           <section
-            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#121212]"
+            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
             aria-label="Reading progress tracker"
           >
+            {/* Label + percentage */}
             <div className="flex items-baseline justify-between">
               <label
                 htmlFor={`progress-${book.id}`}
@@ -229,46 +244,77 @@ export default function BookDetail() {
               </span>
             </div>
 
-            <div
-              className="h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#181818]"
-              role="progressbar"
-              aria-valuenow={progress}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`${progress}% complete`}
-            >
+            {/* Single unified control: visual bar + draggable input overlaid on top */}
+            <div className="relative h-5 w-full">
+              {/* Visual track + filled bar */}
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
-                style={{ width: `${progress}%` }}
+                className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]"
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${progress}% complete`}
+              >
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[200ms] ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              {/* Range input — sits over the bar, transparent track, only thumb is visible */}
+              <input
+                id={`progress-${book.id}`}
+                type="range"
+                min="0"
+                max="100"
+                value={progress}
+                onChange={(e) => handleProgress(Number(e.target.value))}
+                className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent outline-none
+                  [&::-webkit-slider-runnable-track]:bg-transparent
+                  [&::-moz-range-track]:bg-transparent
+                  [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:h-[22px]
+                  [&::-webkit-slider-thumb]:w-[22px]
+                  [&::-webkit-slider-thumb]:rounded-full
+                  [&::-webkit-slider-thumb]:border-[3px]
+                  [&::-webkit-slider-thumb]:border-white
+                  [&::-webkit-slider-thumb]:bg-[#1a4a3a]
+                  [&::-webkit-slider-thumb]:shadow-[0_1px_4px_rgba(0,0,0,0.25)]
+                  [&::-webkit-slider-thumb]:transition-transform
+                  [&::-webkit-slider-thumb]:duration-150
+                  hover:[&::-webkit-slider-thumb]:scale-110
+                  [&::-moz-range-thumb]:h-[22px]
+                  [&::-moz-range-thumb]:w-[22px]
+                  [&::-moz-range-thumb]:rounded-full
+                  [&::-moz-range-thumb]:border-[3px]
+                  [&::-moz-range-thumb]:border-white
+                  [&::-moz-range-thumb]:bg-[#1a4a3a]
+                  [&::-moz-range-thumb]:shadow-[0_1px_4px_rgba(0,0,0,0.25)]
+                  dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]
+                  dark:[&::-webkit-slider-thumb]:bg-[#5ecba1]
+                  dark:[&::-moz-range-thumb]:border-[#1a1a1a]
+                  dark:[&::-moz-range-thumb]:bg-[#5ecba1]"
               />
             </div>
-
-            <input
-              id={`progress-${book.id}`}
-              type="range"
-              min="0"
-              max="100"
-              value={progress}
-              onChange={(e) => handleProgress(Number(e.target.value))}
-              className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#5ecba1] [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:w-[18px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[18px] [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.2] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
-            />
 
             <p className="m-0 text-[0.78rem] italic text-[#bbb] dark:text-[#888]" aria-live="polite">
               {progress === 0 && 'Not started yet'}
               {progress > 0 && progress < 100 && `${100 - progress}% left to go`}
-              {progress === 100 && '\u2713 Finished!'}
+              {progress === 100 && '✓ Finished!'}
             </p>
           </section>
         </section>
       </article>
 
+      {/* ── Related books ──
+          2 columns on mobile, 4 on sm+ */}
       {relatedBooks.length > 0 && (
         <section
-          className="mx-auto mt-12 max-w-[1000px] border-t border-[#e5e2dc] px-8 pt-8 dark:border-[#333]"
+          className="mx-auto mt-10 max-w-[1000px] border-t border-[#e5e2dc] px-4 pt-8 sm:px-6 md:mt-12 md:px-8 dark:border-[#333]"
           aria-label="Related books"
         >
           <h2 className="mb-6 text-[1.3rem] font-bold text-[#1a1a1a] dark:text-white">{relatedTitle}</h2>
-          <ul className="m-0 grid list-none grid-cols-4 gap-6 p-0">
+          <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-4 sm:gap-6">
             {relatedBooks.map((related) => (
               <li key={related.id}>
                 <button
@@ -292,6 +338,7 @@ export default function BookDetail() {
         </section>
       )}
 
+      {/* ── Borrow modal ── */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 dark:bg-[rgba(0,0,0,0.7)]"
@@ -301,13 +348,13 @@ export default function BookDetail() {
           aria-label="Borrow book"
         >
           <div
-            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-8 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] dark:bg-[#242424]"
+            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] sm:p-8 dark:bg-[#242424]"
             onClick={(e) => e.stopPropagation()}
           >
             {confirmed ? (
               <>
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2d7a4f] text-2xl text-white">
-                  {'\u2713'}
+                  ✓
                 </div>
                 <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
                   Borrowed Successfully!

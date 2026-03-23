@@ -183,7 +183,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
   return (
     <div className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
       <nav
-        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#333] dark:bg-[#1a1a1a]"
+        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-4 py-4 sm:px-6 md:px-8 dark:border-[#333] dark:bg-[#1a1a1a]"
         aria-label="Breadcrumb"
       >
         <button
@@ -196,7 +196,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
         <span className="text-[0.85rem] text-[#999] dark:text-[#888]">Books / {breadcrumbTitle}</span>
       </nav>
 
-      <article className="mx-auto mt-12 max-w-[1000px] px-8">
+      <article className="mx-auto mt-8 max-w-[1000px] px-4 sm:px-6 sm:mt-10 md:mt-12 md:px-8">
         <section className="rounded-xl border border-[#e5e2dc] bg-white p-6 dark:border-[#333] dark:bg-[#242424] sm:p-8">
           <div className="border-b border-[#e5e2dc] pb-6 dark:border-[#333]">
             <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#888]">
