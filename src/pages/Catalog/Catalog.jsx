@@ -216,21 +216,21 @@ export default function Catalog() {
             </svg>
           </button>
           {showAdvanced && (
-            <div className="mx-auto mt-[1.15rem] max-w-[600px] rounded-[10px] border border-white/10 bg-white/10 p-5 text-left backdrop-blur-[10px]">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="flex flex-col gap-1">
+            <div className="mx-auto mt-[1.15rem] max-w-[600px] rounded-[10px] border border-white/10 bg-white/10 p-4 text-left backdrop-blur-[10px] sm:p-5">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-3 md:gap-4">
+                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Title</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="text" placeholder="e.g. The Great Gatsby" value={advTitle} onChange={(e) => setAdvTitle(e.target.value)} />
                 </label>
-                <label className="flex flex-col gap-1">
+                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Author</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="text" placeholder="e.g. Khalil Gibran" value={advAuthor} onChange={(e) => setAdvAuthor(e.target.value)} />
                 </label>
-                <label className="flex flex-col gap-1">
+                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Subject</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="text" placeholder="e.g. Philosophy" value={advSubject} onChange={(e) => setAdvSubject(e.target.value)} />
                 </label>
-                <label className="flex flex-col gap-1">
+                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Language</span>
                   <select className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition focus:border-white/35" value={advFormat} onChange={(e) => setAdvFormat(e.target.value)}>
                     <option value="All" className="text-[#1C2B24]">All Languages</option>
@@ -238,7 +238,7 @@ export default function Catalog() {
                     <option value="French" className="text-[#1C2B24]">French</option>
                   </select>
                 </label>
-                <label className="flex flex-col gap-1 md:col-span-2">
+                <label className="col-span-2 flex flex-col gap-[0.18rem] sm:gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Year</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="number" placeholder="e.g. 1925" value={advYear} onChange={(e) => setAdvYear(e.target.value)} />
                 </label>
@@ -248,9 +248,9 @@ export default function Catalog() {
         </div>
       </section>
 
-      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,43,36,0.04)] dark:border-[#2a2a2a] dark:bg-[#121212]">
+      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-4 py-3 shadow-[0_1px_3px_rgba(28,43,36,0.04)] sm:px-5 sm:py-4 dark:border-[#2a2a2a] dark:bg-[#121212]">
         <div className="mx-auto flex max-w-[var(--container-max)] flex-col gap-3">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 md:grid-cols-2 md:gap-3 lg:grid-cols-3 xl:grid-cols-6">
             {[
               { label: 'Availability', value: avail, setValue: setAvail, options: AVAIL_OPTIONS },
               { label: 'Resource Type', value: resType, setValue: setResType, options: TYPE_OPTIONS },
@@ -259,7 +259,7 @@ export default function Catalog() {
               { label: 'Campus', value: campus, setValue: setCampus, options: CAMPUS_OPTIONS },
               { label: 'Year', value: yearRange, setValue: setYearRange, options: YEAR_OPTIONS },
             ].map((filter) => (
-              <label key={filter.label} className="flex min-w-0 flex-col gap-1">
+              <label key={filter.label} className="flex min-w-0 flex-col gap-[0.18rem] sm:gap-1">
                 <span className={fieldLabelClass}>{filter.label}</span>
                 <select className={selectClass} value={filter.value} onChange={(e) => filter.setValue(filter.mapValue ? filter.mapValue(e.target.value) : e.target.value)} aria-label={`Filter by ${filter.label.toLowerCase()}`}>
                   {filter.options.map((option) => {
@@ -346,7 +346,7 @@ export default function Catalog() {
             </button>
           </section>
         ) : view === 'grid' ? (
-          <ul className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-4 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))]">
+          <ul className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] sm:gap-x-4 sm:gap-y-6">
             {filtered.map((book) => {
               const bookAvail = getAvailability(book.id)
               const bookCampus = getCampus(book.id)

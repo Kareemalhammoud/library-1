@@ -3,8 +3,8 @@ import { NavLink } from 'react-router-dom'
 function Footer() {
   return (
     <footer className="border-t-2 border-[#006751] bg-[#0C1F16] dark:border-[#333] dark:bg-[#1a1a1a]">
-      <div className="mx-auto grid max-w-[var(--container-max)] grid-cols-[1.7fr_1fr_1fr_1fr] items-start gap-y-8 gap-x-10 px-8 pb-10 pt-16 max-md:grid-cols-2 max-sm:grid-cols-1">
-        <div className="flex flex-col gap-[0.8rem] max-md:col-span-full">
+      <div className="mx-auto flex max-w-[var(--container-max)] flex-col gap-7 px-5 pb-7 pt-8 sm:gap-10 sm:px-8 sm:pb-10 sm:pt-16">
+        <div className="flex flex-col gap-[0.55rem] max-sm:items-center max-sm:text-center sm:gap-[0.8rem]">
           <NavLink to="/" className="flex items-center gap-[0.6rem] text-[rgba(246,241,231,0.88)] no-underline transition-opacity duration-150 ease hover:opacity-[0.78]">
             <svg className="h-7 w-auto flex-shrink-0 text-[#5ecba1]" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M2 15 Q14 20 26 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -21,39 +21,41 @@ function Footer() {
             <br />
             Lebanese American University
           </p>
-          <p className="m-0 mt-3 text-[0.84rem] leading-[1.8] text-[rgba(246,241,231,0.38)] dark:text-[#888]">
+          <p className="m-0 mt-1 text-[0.84rem] leading-[1.7] text-[rgba(246,241,231,0.38)] dark:text-[#888] sm:mt-3 sm:leading-[1.8]">
             Advancing knowledge and fostering
             <br />
             intellectual growth since 1924.
           </p>
         </div>
 
-        <div className="flex flex-col gap-[0.38rem]">
-          <h4 className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-[rgba(246,241,231,0.32)] dark:text-[#888]">Visit</h4>
-          <p className="m-0 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888]">Mme. Curie Street</p>
-          <p className="m-0 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888]">Koraytem, Beirut</p>
-          <p className="m-0 mt-3 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888]">Mon - Fri 7:30 - 22:00</p>
-          <p className="m-0 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888]">Sat - Sun Closed</p>
-        </div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-6 max-sm:text-center md:grid-cols-3 md:gap-x-8 md:gap-y-8">
+          <div className="flex flex-col gap-[0.28rem] max-sm:items-center sm:gap-[0.38rem]">
+            <h4 className="mb-[0.45rem] text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[rgba(246,241,231,0.32)] dark:text-[#888] sm:mb-[0.65rem] sm:text-[0.62rem]">Visit</h4>
+            <p className="m-0 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888]">Mme. Curie Street</p>
+            <p className="m-0 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888]">Koraytem, Beirut</p>
+            <p className="m-0 mt-2 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888] sm:mt-3">Mon - Fri 7:30 - 22:00</p>
+            <p className="m-0 text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] dark:text-[#888]">Sat - Sun Closed</p>
+          </div>
 
-        <div className="flex flex-col gap-[0.38rem]">
-          <h4 className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-[rgba(246,241,231,0.32)] dark:text-[#888]">Explore</h4>
-          <NavLink to="/catalog" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Catalog</NavLink>
-          <NavLink to="/events" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Events</NavLink>
-          <NavLink to="/services" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Services</NavLink>
-          <NavLink to="/visit" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Plan Your Visit</NavLink>
-          <NavLink to="/dashboard" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">User Profile</NavLink>
-        </div>
+          <div className="flex flex-col gap-[0.28rem] max-sm:items-center sm:gap-[0.38rem]">
+            <h4 className="mb-[0.45rem] text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[rgba(246,241,231,0.32)] dark:text-[#888] sm:mb-[0.65rem] sm:text-[0.62rem]">Explore</h4>
+            <NavLink to="/catalog" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Catalog</NavLink>
+            <NavLink to="/events" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Events</NavLink>
+            <NavLink to="/services" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Services</NavLink>
+            <NavLink to="/visit" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">Plan Your Visit</NavLink>
+            <NavLink to="/dashboard" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">User Profile</NavLink>
+          </div>
 
-        <div className="flex flex-col gap-[0.38rem]">
-          <h4 className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-[rgba(246,241,231,0.32)] dark:text-[#888]">Contact</h4>
-          <a href="mailto:libraries@lau.edu.lb" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">libraries@lau.edu.lb</a>
-          <a href="tel:+9611786456" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">+961 1 786 456</a>
+          <div className="col-span-2 flex flex-col gap-[0.28rem] max-sm:items-center md:col-span-1 sm:gap-[0.38rem]">
+            <h4 className="mb-[0.45rem] text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[rgba(246,241,231,0.32)] dark:text-[#888] sm:mb-[0.65rem] sm:text-[0.62rem]">Contact</h4>
+            <a href="mailto:libraries@lau.edu.lb" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">libraries@lau.edu.lb</a>
+            <a href="tel:+9611786456" className="text-[0.84rem] leading-[1.65] text-[rgba(246,241,231,0.55)] no-underline transition-colors duration-150 ease hover:text-[rgba(246,241,231,0.9)] dark:text-[#888] dark:hover:text-white">+961 1 786 456</a>
+          </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-[var(--container-max)] border-t border-[rgba(255,255,255,0.06)] px-8 pb-[1.4rem] pt-[0.9rem] text-[0.67rem] tracking-[0.05em] text-[rgba(246,241,231,0.22)] dark:border-[#333] dark:text-[#888]">
-        <span>© {new Date().getFullYear()} Lebanese American University. All rights reserved.</span>
+      <div className="mx-auto max-w-[var(--container-max)] border-t border-[rgba(255,255,255,0.06)] px-5 pb-4 pt-3 text-center text-[0.64rem] tracking-[0.04em] text-[rgba(246,241,231,0.22)] dark:border-[#333] dark:text-[#888] sm:px-8 sm:pb-[1.4rem] sm:pt-[0.9rem] sm:text-left sm:text-[0.67rem] sm:tracking-[0.05em]">
+        <span>&copy; {new Date().getFullYear()} Lebanese American University. All rights reserved.</span>
       </div>
     </footer>
   )

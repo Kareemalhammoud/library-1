@@ -55,6 +55,22 @@ export default function BookDetail() {
     const borrowedAt = new Date()
     const dueAt = new Date(borrowedAt)
     dueAt.setDate(dueAt.getDate() + 14)
+    const borrowedBookEntry = {
+      id: book.id,
+      title: book.title,
+      borrowedAt: borrowedAt.toISOString(),
+      dueDate: dueAt.toISOString(),
+      renewCount: 0,
+      isReserved: false,
+    }
+    const borrowedBooksKey = `${prefix}borrowedBooks`
+    let currentBorrowedBooks = []
+
+    try {
+      currentBorrowedBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
+    } catch {
+      currentBorrowedBooks = []
+    }
 
     setBorrowed(true)
     setConfirmed(true)
@@ -67,6 +83,14 @@ export default function BookDetail() {
         dueAt: dueAt.toISOString(),
       })
     )
+
+    const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
+    if (!alreadyTracked) {
+      localStorage.setItem(
+        borrowedBooksKey,
+        JSON.stringify([...currentBorrowedBooks, borrowedBookEntry])
+      )
+    }
   }
 
   function handleClose() {

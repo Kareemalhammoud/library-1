@@ -211,7 +211,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid grid-cols-2 gap-4 sm:gap-5">
               <div>
                 <label htmlFor="title" className={labelClassName}>Title</label>
                 <input
@@ -406,29 +406,31 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   </label>
                 </div>
 
-                <div className="mt-5">
-                  <label
-                    htmlFor="cover-upload"
+                {formData.coverPageAvailable && (
+                  <div className="mt-5">
+                    <label
+                      htmlFor="cover-upload"
                     className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#5ecba1] dark:hover:bg-[#333]"
-                  >
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
-                      +
-                    </span>
+                    >
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
+                        +
+                      </span>
                     <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-white">
-                      Upload cover image
-                    </span>
+                        Upload cover image
+                      </span>
                     <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
-                      Choose an image file to preview the book cover.
-                    </span>
-                  </label>
-                  <input
-                    id="cover-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </div>
+                        Choose an image file to preview the book cover.
+                      </span>
+                    </label>
+                    <input
+                      id="cover-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
