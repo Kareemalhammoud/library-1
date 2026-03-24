@@ -6,12 +6,14 @@ import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
 
+// Images that rotate in the hero banner at the top of the page
 const HERO_SLIDES = [
   { src: slideCampusGarden, alt: 'LAU Beirut campus historic stone buildings and gardens' },
   { src: slideCampusBench, alt: 'Students under the old banyan tree on LAU Beirut campus' },
   { src: slideCampusFountain, alt: 'LAU Beirut campus fountain and palm trees' },
 ]
 
+// The four action cards shown below the hero (catalog, events, study spaces, visit)
 const QUICK_ACTIONS = [
   {
     eyebrow: 'Collections & Archives',
@@ -89,11 +91,14 @@ const QUICK_ACTIONS = [
   },
 ]
 
+// Settings for the infinite scrolling book carousel ("Staff Picks")
+// We duplicate the book list so it loops seamlessly
 const GAP_PX = 32
 const N = BOOKS.length
 const TRACK = [...BOOKS, ...BOOKS]
 const PX_PER_SEC = 55
 
+// Card size adjusts depending on screen width
 function getCardWidth(viewportWidth) {
   if (viewportWidth < 480) return 112
   if (viewportWidth < 768) return 132
@@ -107,11 +112,13 @@ function Home() {
   const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
 
+  // Auto-rotate hero slides every 7 seconds
   useEffect(() => {
     const id = setInterval(() => setCurrentSlide((c) => (c + 1) % HERO_SLIDES.length), 7000)
     return () => clearInterval(id)
   }, [])
 
+  // Set up the book carousel animation — pauses on hover, recalculates on resize
   useLayoutEffect(() => {
     const viewport = viewportRef.current
     const track = trackRef.current
@@ -150,12 +157,14 @@ function Home() {
     }
   }, [])
 
+  // Grab the next upcoming event to show in the hero sidebar card
   const today = new Date().toISOString().slice(0, 10)
   const nextEvent = EVENTS.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
 
   return (
     <div className="w-full bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
       <main>
+        {/* Hero section — full-width slideshow with search overlay and upcoming event card */}
         <section className="relative left-1/2 ml-[-50vw] h-[520px] w-screen overflow-hidden sm:h-[540px]" aria-label="Hero section with rotating images of the library and a search form">
           <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(to_right,rgba(12,10,8,0.38)_0%,rgba(12,10,8,0.18)_35%,transparent_62%)]" />
           {HERO_SLIDES.map((slide, i) => (
@@ -197,7 +206,7 @@ function Home() {
           })()}
 
           <div className="absolute bottom-8 left-1/2 z-10 flex w-[calc(100%-2rem)] max-w-[370px] -translate-x-1/2 flex-col rounded-2xl border border-[rgba(0,103,81,0.28)] border-t-white/70 bg-[linear-gradient(160deg,rgba(240,248,244,0.96)_0%,rgba(225,240,235,0.92)_100%)] p-6 shadow-[0_1px_0_rgba(255,255,255,0.65)_inset,0_8px_32px_rgba(10,20,15,0.20),0_2px_8px_rgba(10,20,15,0.12),0_40px_80px_rgba(5,10,8,0.18)] backdrop-blur-[12px] sm:left-[12%] sm:top-1/2 sm:bottom-auto sm:w-[min(370px,88%)] sm:-translate-x-0 sm:-translate-y-1/2 sm:px-9 sm:py-8 dark:border-[#333333] dark:bg-[linear-gradient(160deg,rgba(18,18,18,0.92)_0%,rgba(20,60,47,0.86)_100%)]">
-            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Riyad Nassar Library</p>
+            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Libraries</p>
             <h1 className="mb-4 text-[clamp(1.6rem,3.2vw,2.15rem)] font-extrabold leading-[1.12] tracking-[-0.03em]">Your Next Discovery Starts Here!</h1>
             <p className="mb-6 text-[0.875rem] leading-[1.7] text-[#4e4e4e] dark:text-[#8c9691]">Spend time with a great book, join events, and share ideas with your community.</p>
             <form role="search" className="relative mb-4">
@@ -214,6 +223,7 @@ function Home() {
           </div>
         </section>
 
+        {/* Stats bar — quick numbers about the library */}
         <section className="grid grid-cols-2 border-y border-[rgba(0,103,81,0.12)] bg-[rgba(0,103,81,0.04)] py-7 text-center sm:grid-cols-4 dark:border-[#333333] dark:bg-[rgba(45,212,168,0.04)]" aria-label="Library statistics">
           {[
             ['1.1M+', 'Library Resources'],
@@ -228,6 +238,7 @@ function Home() {
           ))}
         </section>
 
+        {/* "Explore the Library" — four quick-action cards */}
         <section className="relative px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-[var(--container-max)]">
             <div className="mb-12">
@@ -261,6 +272,7 @@ function Home() {
           </div>
         </section>
 
+        {/* Staff Picks — auto-scrolling book carousel */}
         <section className="relative left-1/2 ml-[-50vw] w-screen overflow-hidden border-y border-[rgba(0,103,81,0.22)] bg-[linear-gradient(180deg,rgba(215,235,228,0.38)_0%,rgba(200,228,220,0.54)_100%)] px-4 pb-2 pt-8 sm:px-6 lg:px-8 dark:border-[#333333] dark:bg-[linear-gradient(180deg,rgba(18,18,18,0.96)_0%,rgba(20,60,47,0.82)_100%)]">
           <div className="mx-auto max-w-[var(--container-max)]">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

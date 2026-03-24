@@ -3,12 +3,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { EVENTS } from '@/data/eventsData'
 import { getStoredUser } from '@/utils'
 
+// Filter options for the upcoming events section
 const CATEGORIES = ['All', 'Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']
 const MONTHS = ['All Months', 'March', 'April', 'May', 'June']
 const FORMATS = ['All Formats', 'In-Person', 'Online']
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+// Date helpers — used across event cards and the featured section
 function formatDate(dateStr) {
   const d = new Date(`${dateStr}T00:00:00`)
   return { month: MONTH_NAMES[d.getMonth()], day: d.getDate(), weekday: DAY_NAMES[d.getDay()] }
@@ -19,6 +21,7 @@ function formatFullDate(dateStr) {
   return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
+// Each event category gets its own accent color
 function categoryColor(category) {
   const map = {
     Workshops: 'text-[#006751] dark:text-[#5ecba1]',
@@ -32,6 +35,7 @@ function categoryColor(category) {
   return map[category] || 'text-[#006751] dark:text-[#5ecba1]'
 }
 
+// Pull the user's registered events from localStorage
 function getRegisteredEvents() {
   const storedUser = getStoredUser()
   const prefix = storedUser?.email ? `${storedUser.email}:` : ''
@@ -49,6 +53,7 @@ function getRegisteredEvents() {
   }
 }
 
+// Figures out seat availability and whether the user is already registered
 function getSeatState(eventItem, registeredEvents) {
   if (!eventItem.seats) {
     return {
@@ -84,12 +89,14 @@ function Events() {
   const dialogTitleId = confirmed ? 'event-registration-success-title' : 'event-registration-confirm-title'
   const dialogDescriptionId = confirmed ? 'event-registration-success-description' : 'event-registration-confirm-description'
 
+  // The one event marked as "featured" gets its own big section
   const featuredEvent = EVENTS.find((e) => e.featured)
 
   useEffect(() => {
     setRegisteredEvents(getRegisteredEvents())
   }, [])
 
+  // Apply category, month, format, and search filters to the event list
   const filtered = useMemo(() => {
     let list = EVENTS.filter((e) => !e.featured)
 
@@ -118,6 +125,7 @@ function Events() {
     setFormat('All Formats')
   }
 
+  // Handle register/unregister — redirects to login if not signed in
   function handleRegister(eventItem) {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
 
@@ -175,11 +183,12 @@ function Events() {
 
   return (
     <main className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
+      {/* Hero section — split layout with intro text and image grid */}
       <section className="grid md:min-h-[480px] md:grid-cols-2">
         <div className="relative flex items-center overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-9 sm:px-6 sm:py-12 md:px-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_80%,rgba(0,171,142,0.07)_0%,transparent_70%),radial-gradient(ellipse_40%_40%_at_80%_20%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
           <div className="relative max-w-[480px]">
-            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Riyad Nassar Library</p>
+            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Our Libraries</p>
             <h1 className="mb-5 text-[clamp(1.8rem,3.5vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.035em] text-[rgba(240,248,244,0.96)]">Library Events</h1>
             <p className="mb-8 max-w-[42ch] text-[0.9rem] leading-[1.75] text-[rgba(240,248,244,0.48)]">Author talks, research workshops, film screenings, poetry evenings: the library is where ideas find their audience and community takes shape.</p>
             <div className="mb-8 flex flex-wrap gap-3">
@@ -207,6 +216,7 @@ function Events() {
         </div>
       </section>
 
+      {/* Featured event — highlighted with its own image, details, and registration */}
       {featuredEvent && (() => {
         const fd = formatDate(featuredEvent.date)
         const featuredSeatState = getSeatState(featuredEvent, registeredEvents)
@@ -282,6 +292,7 @@ function Events() {
         )
       })()}
 
+      {/* Upcoming events — filterable grid with search, category pills, and dropdowns */}
       <section id="upcoming" className="relative overflow-hidden border-b border-[rgba(0,103,81,0.05)] bg-[rgba(200,190,170,0.05)] px-5 py-16 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.88)]">
         <div className="mx-auto max-w-[var(--container-max)]">
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
@@ -401,6 +412,7 @@ function Events() {
         </div>
       </section>
 
+      {/* Student testimonials */}
       <section className="border-t border-[rgba(0,103,81,0.05)] bg-[rgba(0,103,81,0.03)] px-4 py-8 sm:px-5 sm:py-14 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.94)]">
         <div className="mx-auto grid max-w-[var(--container-max)] gap-4 sm:gap-6 md:grid-cols-2">
           {[
@@ -419,6 +431,7 @@ function Events() {
         </div>
       </section>
 
+      {/* Newsletter signup + "Host with us" CTA */}
       <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-16 dark:border-t dark:border-[#333333]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_60%_at_25%_50%,rgba(0,171,142,0.06)_0%,transparent_70%),radial-gradient(ellipse_40%_50%_at_75%_60%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
         <div className="relative mx-auto grid max-w-[var(--container-max)] gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -465,6 +478,7 @@ function Events() {
         </div>
       </section>
 
+      {/* Registration confirmation modal */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 dark:bg-[rgba(0,0,0,0.7)]"
