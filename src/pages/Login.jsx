@@ -6,6 +6,7 @@ function Login() {
 
 	const navigate = useNavigate()
 	const location = useLocation()
+	const errorId = "login-form-error"
 
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
@@ -39,11 +40,14 @@ function Login() {
 
 	return (
 
-		<div className="flex justify-center px-4 py-4 font-sans bg-gray-100 sm:mt-8 sm:min-h-[80vh] sm:items-center sm:py-8 dark:bg-[#1a1a1a]">
+		<main className="flex justify-center bg-gray-100 px-4 py-4 font-sans sm:mt-8 sm:min-h-[80vh] sm:items-center sm:py-8 dark:bg-[#1a1a1a]">
 
-			<div className="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200 w-full max-w-sm dark:bg-[#242424] dark:border-[#333]">
+			<section
+				className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6 shadow-md sm:p-8 dark:border-[#333] dark:bg-[#242424]"
+				aria-labelledby="login-heading"
+			>
 
-				<h1 className="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-white">
+				<h1 id="login-heading" className="mb-6 text-center text-2xl font-semibold text-gray-800 dark:text-white">
 					Login
 				</h1>
 
@@ -56,6 +60,9 @@ function Login() {
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						placeholder="Enter email"
+						autoComplete="email"
+						errorId={errorId}
+						invalid={Boolean(errorMessage)}
 					/>
 
 					<FormInput
@@ -64,13 +71,21 @@ function Login() {
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						placeholder="Enter password"
+						autoComplete="current-password"
+						errorId={errorId}
+						invalid={Boolean(errorMessage)}
 						showToggle={true}
 						showPassword={showPassword}
 						setShowPassword={setShowPassword}
 					/>
 
 					{errorMessage && (
-						<p className="text-red-600 text-sm mb-2 dark:text-red-400" role="alert" aria-live="assertive">
+						<p
+							id={errorId}
+							className="mb-2 text-sm text-red-600 dark:text-red-400"
+							role="alert"
+							aria-live="assertive"
+						>
 							{errorMessage}
 						</p>
 					)}
@@ -95,9 +110,9 @@ function Login() {
 					</Link>
 				</p>
 
-			</div>
+			</section>
 
-		</div>
+		</main>
 	)
 }
 

@@ -1,4 +1,5 @@
 import { FaEye, FaEyeSlash } from "react-icons/fa"
+import PropTypes from "prop-types"
 
 function FormInput({
 	label,
@@ -7,6 +8,11 @@ function FormInput({
 	value,
 	onChange,
 	placeholder,
+	required = true,
+	autoComplete,
+	errorId,
+	invalid = false,
+	describedBy,
 	showToggle = false,
 	showPassword,
 	setShowPassword
@@ -35,7 +41,11 @@ function FormInput({
 					value={value}
 					onChange={onChange}
 					placeholder={placeholder}
-					aria-required="true"
+					required={required}
+					autoComplete={autoComplete}
+					aria-required={required}
+					aria-invalid={invalid}
+					aria-describedby={invalid ? errorId : describedBy}
 					className="
 						w-full
 						px-3 py-2
@@ -76,6 +86,23 @@ function FormInput({
 
 		</div>
 	)
+}
+
+FormInput.propTypes = {
+	label: PropTypes.string.isRequired,
+	type: PropTypes.string,
+	id: PropTypes.string.isRequired,
+	value: PropTypes.string.isRequired,
+	onChange: PropTypes.func.isRequired,
+	placeholder: PropTypes.string,
+	required: PropTypes.bool,
+	autoComplete: PropTypes.string,
+	errorId: PropTypes.string,
+	invalid: PropTypes.bool,
+	describedBy: PropTypes.string,
+	showToggle: PropTypes.bool,
+	showPassword: PropTypes.bool,
+	setShowPassword: PropTypes.func
 }
 
 export default FormInput
