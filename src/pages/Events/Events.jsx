@@ -68,11 +68,11 @@ function Events() {
 
   return (
     <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
-      <section className="grid min-h-[480px] md:grid-cols-2">
-        <div className="relative flex items-center overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-6 py-12 md:px-12">
+      <section className="grid md:min-h-[480px] md:grid-cols-2">
+        <div className="relative flex items-center overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-9 sm:px-6 sm:py-12 md:px-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_80%,rgba(0,171,142,0.07)_0%,transparent_70%),radial-gradient(ellipse_40%_40%_at_80%_20%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
           <div className="relative max-w-[480px]">
-            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Libraries</p>
+            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Riyad Nassar Library</p>
             <h1 className="mb-5 text-[clamp(1.8rem,3.5vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.035em] text-[rgba(240,248,244,0.96)]">Library Events</h1>
             <p className="mb-8 max-w-[42ch] text-[0.9rem] leading-[1.75] text-[rgba(240,248,244,0.48)]">Author talks, research workshops, film screenings, poetry evenings: the library is where ideas find their audience and community takes shape.</p>
             <div className="mb-8 flex flex-wrap gap-3">
@@ -85,7 +85,7 @@ function Events() {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-center bg-[linear-gradient(155deg,rgba(0,103,81,0.06)_0%,rgba(200,190,170,0.05)_100%)] p-6 dark:bg-[linear-gradient(155deg,rgba(18,18,18,0.96)_0%,rgba(31,31,31,0.92)_100%)]">
+        <div className="hidden items-center justify-center bg-[linear-gradient(155deg,rgba(0,103,81,0.06)_0%,rgba(200,190,170,0.05)_100%)] p-6 md:flex dark:bg-[linear-gradient(155deg,rgba(18,18,18,0.96)_0%,rgba(31,31,31,0.92)_100%)]">
           <div className="grid h-full max-h-[400px] w-full max-w-[520px] grid-cols-[1.4fr_1fr] grid-rows-2 gap-3">
             {[
               ['main', 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=600&q=80', 'Library shelves'],
@@ -211,13 +211,13 @@ function Events() {
               <button type="button" className="rounded-md bg-[#1a6644] px-5 py-2 text-[0.8rem] font-semibold text-white transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]" onClick={clearAll}>Clear all filters</button>
             </div>
           ) : (
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
               {filtered.map((event, idx) => {
                 const { month, day, weekday } = formatDate(event.date)
                 const seatsLeft = event.seats ? event.seats - event.registered : null
                 return (
                   <article key={event.id} className={`overflow-hidden rounded-[14px] border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(28,43,36,0.10)] dark:border-[#333333] dark:bg-[#1f1f1f] ${idx === 0 ? 'border-[#d0ddd8] bg-[linear-gradient(150deg,rgba(253,250,244,1)_0%,rgba(247,242,232,1)_100%)] xl:col-span-2 dark:bg-[#1f1f1f] dark:[background-image:none]' : 'border-[#d0ddd8]'}`}>
-                    <div className="relative aspect-video overflow-hidden bg-[#EDF3F0] dark:bg-[#242424]">
+                    <div className="relative aspect-[1.35] overflow-hidden bg-[#EDF3F0] sm:aspect-video dark:bg-[#242424]">
                       <img src={event.image} alt={event.title} className="absolute inset-0 h-full w-full object-cover transition duration-500 hover:scale-105" />
                       <div className="absolute left-3 top-3 flex w-12 flex-col items-center rounded-lg border border-white/10 bg-[rgba(6,26,18,0.78)] py-1.5 text-[rgba(240,248,244,0.95)] shadow-[0_4px_12px_rgba(0,0,0,0.24)] backdrop-blur-[10px]">
                         <span className="text-[0.48rem] font-bold uppercase tracking-[0.14em] text-[#5ecba1]">{month}</span>
@@ -226,21 +226,21 @@ function Events() {
                       <span className={`absolute bottom-3 left-3 rounded bg-white/90 px-2.5 py-1 text-[0.54rem] font-bold uppercase tracking-[0.12em] shadow dark:bg-[#121212]/90 ${categoryColor(event.category)}`}>{event.category}</span>
                       {event.format && <span className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[0.5rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62] shadow dark:bg-[#121212]/90 dark:text-[#8c9691]">{event.format}</span>}
                     </div>
-                    <div className="flex h-full flex-col p-6">
-                      <h3 className="mb-2 text-[0.94rem] font-bold leading-[1.35] tracking-[-0.015em]">{event.title}</h3>
-                      <p className="mb-4 flex-1 text-[0.78rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">{event.description}</p>
-                      <div className="mb-4 space-y-2 text-[0.72rem] text-[#5a6b62]/80 dark:text-[#8c9691]">
+                    <div className="flex flex-col p-3 sm:p-6">
+                      <h3 className="mb-1.5 text-[0.88rem] font-bold leading-[1.3] tracking-[-0.015em] sm:mb-2 sm:text-[0.94rem]">{event.title}</h3>
+                      <p className="mb-3 line-clamp-4 text-[0.72rem] leading-[1.45] text-[#5a6b62] sm:mb-4 sm:line-clamp-5 sm:text-[0.78rem] sm:leading-[1.6] dark:text-[#8c9691]">{event.description}</p>
+                      <div className="mb-3 space-y-1.5 text-[0.66rem] text-[#5a6b62]/80 sm:mb-4 sm:space-y-2 sm:text-[0.72rem] dark:text-[#8c9691]">
                         <div>{weekday} - {event.time}</div>
                         <div>{event.location}</div>
                       </div>
-                      <div className="flex flex-col gap-3 border-t border-[rgba(0,103,81,0.06)] pt-4 dark:border-[#333333] sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-col gap-2 border-t border-[rgba(0,103,81,0.06)] pt-3 dark:border-[#333333] sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
                         {seatsLeft !== null ? (
-                          <div className="flex items-center gap-2">
-                            <div className="h-[5px] w-[110px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(event.registered / event.seats) * 100}%` }} /></div>
-                            <span className="text-[0.66rem] font-semibold text-[#006751]/75 dark:text-[#5ecba1]/80">{seatsLeft} left</span>
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <div className="h-[4px] w-full max-w-[72px] overflow-hidden rounded bg-[#d0ddd8] sm:h-[5px] sm:w-[110px] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(event.registered / event.seats) * 100}%` }} /></div>
+                            <span className="text-[0.62rem] font-semibold text-[#006751]/75 sm:text-[0.66rem] dark:text-[#5ecba1]/80">{seatsLeft} left</span>
                           </div>
-                        ) : <span className="text-[0.66rem] text-[#5a6b62]/70 dark:text-[#8c9691]">Open attendance</span>}
-                        <button type="button" className="rounded-md border border-[#d0ddd8] px-4 py-2 text-[0.72rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">{seatsLeft !== null ? 'Register' : 'Learn More'}</button>
+                        ) : <span className="text-[0.62rem] text-[#5a6b62]/70 sm:text-[0.66rem] dark:text-[#8c9691]">Open attendance</span>}
+                        <button type="button" className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-[0.68rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">{seatsLeft !== null ? 'Register' : 'Learn More'}</button>
                       </div>
                     </div>
                   </article>
@@ -251,18 +251,18 @@ function Events() {
         </div>
       </section>
 
-      <section className="border-t border-[rgba(0,103,81,0.05)] bg-[rgba(0,103,81,0.03)] px-5 py-14 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.94)]">
-        <div className="mx-auto grid max-w-[var(--container-max)] gap-6 md:grid-cols-2">
+      <section className="border-t border-[rgba(0,103,81,0.05)] bg-[rgba(0,103,81,0.03)] px-4 py-8 sm:px-5 sm:py-14 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.94)]">
+        <div className="mx-auto grid max-w-[var(--container-max)] gap-4 sm:gap-6 md:grid-cols-2">
           {[
             ['"The poetry evening was one of the most memorable nights of my time at LAU. I did not expect to feel that connected to a room full of strangers."', 'Sara M.', 'English Literature, Senior'],
             ['"I only came for a citation workshop, but I ended up at three more events that semester. Honestly, the library became my favorite place on campus."', 'Karim H.', 'Biology, Graduate Student'],
           ].map(([quote, author, role]) => (
-            <blockquote key={author} className="relative rounded-[14px] border border-[#d0ddd8] bg-[linear-gradient(160deg,rgba(253,250,244,1)_0%,#fff_100%)] p-6 pl-7 shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f] dark:[background-image:none]">
+            <blockquote key={author} className="relative rounded-[14px] border border-[#d0ddd8] bg-[linear-gradient(160deg,rgba(253,250,244,1)_0%,#fff_100%)] p-4 pl-5 shadow-sm sm:p-6 sm:pl-7 dark:border-[#333333] dark:bg-[#1f1f1f] dark:[background-image:none]">
               <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-[14px] bg-gradient-to-b from-[#006751] to-[rgba(0,103,81,0.15)] dark:from-[#5ecba1] dark:to-[rgba(94,203,161,0.15)]" />
-              <p className="mb-4 text-[0.86rem] italic leading-[1.75] text-[#1C2B24] dark:text-[#f5f7f6]">{quote}</p>
+              <p className="mb-3 text-[0.78rem] italic leading-[1.62] text-[#1C2B24] sm:mb-4 sm:text-[0.86rem] sm:leading-[1.75] dark:text-[#f5f7f6]">{quote}</p>
               <footer className="flex items-center gap-2">
-                <span className="text-[0.74rem] font-bold">{author}</span>
-                <span className="text-[0.68rem] text-[#5a6b62]/70 dark:text-[#8c9691]">{role}</span>
+                <span className="text-[0.7rem] font-bold sm:text-[0.74rem]">{author}</span>
+                <span className="text-[0.64rem] text-[#5a6b62]/70 sm:text-[0.68rem] dark:text-[#8c9691]">{role}</span>
               </footer>
             </blockquote>
           ))}

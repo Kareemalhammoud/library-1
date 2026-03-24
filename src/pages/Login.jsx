@@ -39,7 +39,7 @@ function Login() {
 
 	return (
 
-		<div className="flex justify-center items-center min-h-[80vh] mt-8 px-4 font-sans bg-gray-100 dark:bg-[#1a1a1a]">
+		<div className="flex justify-center px-4 py-4 font-sans bg-gray-100 sm:mt-8 sm:min-h-[80vh] sm:items-center sm:py-8 dark:bg-[#1a1a1a]">
 
 			<div className="bg-white p-6 sm:p-8 rounded-lg shadow-md border border-gray-200 w-full max-w-sm dark:bg-[#242424] dark:border-[#333]">
 

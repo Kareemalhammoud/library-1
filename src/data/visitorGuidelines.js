@@ -1,5 +1,5 @@
 /**
- * Visitor guidelines for the LAU Libraries.
+ * Visitor guidelines for the LAU Riyad Nassar Library.
  * Extracted for reuse across pages (e.g. Visit, Services, FAQ).
  *
  * Each entry includes:

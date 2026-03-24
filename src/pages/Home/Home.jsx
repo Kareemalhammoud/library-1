@@ -193,7 +193,7 @@ function Home() {
           })()}
 
           <div className="absolute bottom-8 left-1/2 z-10 flex w-[calc(100%-2rem)] max-w-[370px] -translate-x-1/2 flex-col rounded-2xl border border-[rgba(0,103,81,0.28)] border-t-white/70 bg-[linear-gradient(160deg,rgba(240,248,244,0.96)_0%,rgba(225,240,235,0.92)_100%)] p-6 shadow-[0_1px_0_rgba(255,255,255,0.65)_inset,0_8px_32px_rgba(10,20,15,0.20),0_2px_8px_rgba(10,20,15,0.12),0_40px_80px_rgba(5,10,8,0.18)] backdrop-blur-[12px] sm:left-[12%] sm:top-1/2 sm:bottom-auto sm:w-[min(370px,88%)] sm:-translate-x-0 sm:-translate-y-1/2 sm:px-9 sm:py-8 dark:border-[#333333] dark:bg-[linear-gradient(160deg,rgba(18,18,18,0.92)_0%,rgba(20,60,47,0.86)_100%)]">
-            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Libraries</p>
+            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Riyad Nassar Library</p>
             <h1 className="mb-4 text-[clamp(1.6rem,3.2vw,2.15rem)] font-extrabold leading-[1.12] tracking-[-0.03em]">Your Next Discovery Starts Here!</h1>
             <p className="mb-6 text-[0.875rem] leading-[1.7] text-[#4e4e4e] dark:text-[#8c9691]">Spend time with a great book, join events, and share ideas with your community.</p>
             <form role="search" className="relative mb-4">
@@ -230,7 +230,7 @@ function Home() {
               <h2 className="mb-3 text-[clamp(1.45rem,2.8vw,1.9rem)] font-extrabold tracking-[-0.032em] text-[#1C2B24] before:mb-[1.15rem] before:block before:h-[3px] before:w-10 before:rounded-full before:bg-gradient-to-r before:from-[#006751] before:to-[rgba(0,103,81,0.35)] dark:text-[#f5f7f6] dark:before:from-[#5ecba1] dark:before:to-[rgba(45,212,168,0.25)]">Explore the Library</h2>
               <p className="max-w-[52ch] text-[0.9rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">Browse collections, join events, find study spaces, and plan your visit.</p>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4">
               {QUICK_ACTIONS.map((card) => (
                 <a
                   key={card.title}
@@ -239,18 +239,18 @@ function Home() {
                     e.preventDefault()
                     navigate(card.href)
                   }}
-                  className={`group rounded-[14px] border p-8 shadow-[0_2px_5px_rgba(28,43,36,0.07),0_8px_20px_rgba(28,43,36,0.07)] transition hover:-translate-y-1 hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_14px_36px_rgba(28,43,36,0.12)] ${card.colors}`}
+                  className={`group rounded-[14px] border p-4 shadow-[0_2px_5px_rgba(28,43,36,0.07),0_8px_20px_rgba(28,43,36,0.07)] transition hover:-translate-y-1 hover:shadow-[0_2px_8px_rgba(28,43,36,0.08),0_14px_36px_rgba(28,43,36,0.12)] sm:p-8 ${card.colors}`}
                 >
-                  <div className={`mb-7 flex h-[52px] w-[52px] items-center justify-center rounded-[14px] border ${card.iconWrap}`}>
-                    <svg className="h-[26px] w-[26px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">{card.icon}</svg>
+                  <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-[12px] border sm:mb-7 sm:h-[52px] sm:w-[52px] sm:rounded-[14px] ${card.iconWrap}`}>
+                    <svg className="h-5 w-5 sm:h-[26px] sm:w-[26px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">{card.icon}</svg>
                   </div>
-                  <p className={`mb-2 text-[0.63rem] font-bold uppercase tracking-[0.14em] ${card.eyebrowColor}`}>{card.eyebrow}</p>
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <h3 className="text-[1.05rem] font-extrabold leading-[1.25] tracking-[-0.022em]">{card.title}</h3>
-                    <span className={`text-[0.82rem] transition group-hover:translate-x-1 ${card.eyebrowColor}`}>-&gt;</span>
+                  <p className={`mb-1.5 text-[0.52rem] font-bold uppercase tracking-[0.12em] sm:mb-2 sm:text-[0.63rem] sm:tracking-[0.14em] ${card.eyebrowColor}`}>{card.eyebrow}</p>
+                  <div className="mb-1.5 flex items-start justify-between gap-2 sm:mb-2">
+                    <h3 className="text-[0.92rem] font-extrabold leading-[1.2] tracking-[-0.02em] sm:text-[1.05rem] sm:leading-[1.25] sm:tracking-[-0.022em]">{card.title}</h3>
+                    <span className={`text-[0.72rem] transition group-hover:translate-x-1 sm:text-[0.82rem] ${card.eyebrowColor}`}>-&gt;</span>
                   </div>
-                  <p className={`text-[0.8rem] leading-[1.72] ${card.title === 'Find Your Next Book' ? 'text-white/65' : 'text-[#5a5a5a] dark:text-[#8c9691]'}`}>{card.body}</p>
-                  <p className={`mt-4 border-t pt-4 text-[0.7rem] font-semibold ${card.detailColor} ${card.title === 'Find Your Next Book' ? 'border-white/10' : 'border-black/5 dark:border-white/10'}`}>{card.detail}</p>
+                  <p className={`text-[0.72rem] leading-[1.5] sm:text-[0.8rem] sm:leading-[1.72] ${card.title === 'Find Your Next Book' ? 'text-white/65' : 'text-[#5a5a5a] dark:text-[#8c9691]'}`}>{card.body}</p>
+                  <p className={`mt-3 border-t pt-3 text-[0.64rem] font-semibold sm:mt-4 sm:pt-4 sm:text-[0.7rem] ${card.detailColor} ${card.title === 'Find Your Next Book' ? 'border-white/10' : 'border-black/5 dark:border-white/10'}`}>{card.detail}</p>
                 </a>
               ))}
             </div>

@@ -136,7 +136,7 @@ function Header() {
           <div className="flex flex-col gap-[0.26rem] border-l-[1.5px] border-[rgba(0,103,81,0.18)] pl-[0.9rem] dark:border-[#333]">
             <span className="text-[1.18rem] font-extrabold uppercase leading-none tracking-[0.12em] text-[#006751] sm:text-[1.32rem] dark:text-[#5ecba1]">LAU</span>
             <span className="whitespace-nowrap text-[0.58rem] font-semibold uppercase leading-none tracking-[0.11em] text-[rgba(0,103,81,0.50)] sm:text-[0.62rem] dark:text-[#888]">
-              Libraries
+              Riyad Nassar Library
             </span>
           </div>
         </NavLink>
@@ -227,7 +227,7 @@ function Header() {
                   : 'bg-[#c0392b] shadow-[0_0_0_2px_rgba(192,57,43,0.2)]'
               }`}
             />
-            <span className={`font-semibold ${open ? 'text-[#3a9466] dark:text-[#5ecba1]' : 'text-[rgba(28,43,36,0.5)]'}`}>
+            <span className={`font-semibold ${open ? 'text-[#3a9466] dark:text-[#5ecba1]' : 'text-[rgba(28,43,36,0.5)] dark:text-[#b7b7b7]'}`}>
               {open ? 'Open Now' : 'Closed'}
             </span>
             <span className="opacity-30">·</span>
