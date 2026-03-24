@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import defaultPic from "../assets/default-profile.png"
 import { BOOKS } from "../data/bookData"
+import { getStoredUser } from "../utils"
 
 function Dashboard() {
 
@@ -15,18 +16,16 @@ function Dashboard() {
 	const [borrowedBooks, setBorrowedBooks] = useState([])
 	const [borrowedBooksLoaded, setBorrowedBooksLoaded] = useState(false)
 
-	function getUserPrefix() {
-		try {
-			const u = JSON.parse(localStorage.getItem("user"))
-			return u?.email ? `${u.email}:` : ""
-		} catch {
-			return ""
-		}
+	const getUserPrefix = () => {
+		const storedUser = getStoredUser()
+		return storedUser?.email ? `${storedUser.email}:` : ""
 	}
 
 	const getLoanDetails = (bookId) => {
 		const prefix = getUserPrefix()
-		const rawLoan = localStorage.getItem(`${prefix}loan-${bookId}`)
+		const rawLoan =
+			localStorage.getItem(`${prefix}loan-${bookId}`) ||
+			localStorage.getItem(`loan-${bookId}`)
 
 		if (!rawLoan) return null
 
@@ -59,7 +58,9 @@ function Dashboard() {
 	useEffect(() => {
 
 		const prefix = getUserPrefix()
-		const savedBorrowedBooks = localStorage.getItem(`${prefix}borrowedBooks`)
+		const savedBorrowedBooks =
+			localStorage.getItem(`${prefix}borrowedBooks`) ||
+			localStorage.getItem("borrowedBooks")
 
 		if (savedBorrowedBooks) {
 			try {
@@ -80,10 +81,11 @@ function Dashboard() {
 			}
 		}
 
-		const rebuildPrefix = getUserPrefix()
 		const rebuiltBorrowedBooks = BOOKS.map((book) => {
 
-			const rawLoan = localStorage.getItem(`${rebuildPrefix}loan-${book.id}`)
+			const rawLoan =
+				localStorage.getItem(`${prefix}loan-${book.id}`) ||
+				localStorage.getItem(`loan-${book.id}`)
 
 			if (!rawLoan) return null
 
@@ -112,19 +114,21 @@ function Dashboard() {
 
 		if (!borrowedBooksLoaded) return
 
-		const savePrefix = getUserPrefix()
-		localStorage.setItem(`${savePrefix}borrowedBooks`, JSON.stringify(borrowedBooks))
+		const prefix = getUserPrefix()
+		localStorage.setItem(`${prefix}borrowedBooks`, JSON.stringify(borrowedBooks))
 
-		const syncPrefix = getUserPrefix()
 		borrowedBooks.forEach((book) => {
-			const legacyLoan = localStorage.getItem(`${syncPrefix}loan-${book.id}`)
+			const loanKey = `${prefix}loan-${book.id}`
+			const legacyLoan =
+				localStorage.getItem(loanKey) ||
+				localStorage.getItem(`loan-${book.id}`)
 
 			if (!legacyLoan) return
 
 			try {
 				const parsedLoan = JSON.parse(legacyLoan)
 				localStorage.setItem(
-					`${syncPrefix}loan-${book.id}`,
+					loanKey,
 					JSON.stringify({
 						...parsedLoan,
 						borrowedAt: book.borrowedAt || parsedLoan.borrowedAt,
@@ -136,7 +140,7 @@ function Dashboard() {
 				)
 			} catch {
 				localStorage.setItem(
-					`${syncPrefix}loan-${book.id}`,
+					loanKey,
 					JSON.stringify({
 						bookId: book.id,
 						borrowedAt: book.borrowedAt || null,
@@ -217,17 +221,10 @@ function Dashboard() {
 		)
 	}
 
-	const handleReturnBook = (bookId) => {
-		const returnPrefix = getUserPrefix()
-		localStorage.removeItem(`${returnPrefix}loan-${bookId}`)
-		localStorage.removeItem(`${returnPrefix}borrowed-${bookId}`)
-		localStorage.removeItem(`${returnPrefix}reading-progress-${bookId}`)
-		setBorrowedBooks((currentBooks) => currentBooks.filter((book) => book.id !== bookId))
-	}
-
 	const handleLoanProgressChange = (bookId, value) => {
-		const progressPrefix = getUserPrefix()
-		localStorage.setItem(`${progressPrefix}reading-progress-${bookId}`, String(value))
+
+		const prefix = getUserPrefix()
+		localStorage.setItem(`${prefix}reading-progress-${bookId}`, String(value))
 		setBorrowedBooks((currentBooks) => [...currentBooks])
 	}
 
@@ -278,9 +275,9 @@ function Dashboard() {
 						<span className="font-medium text-gray-700 dark:text-white">Username:</span>
 
 						{editingUsername ? (
-							<>
+							<div className="flex min-w-0 flex-1 items-center gap-2">
 								<input
-									className="px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/20 dark:bg-[#2e2e2e] dark:border-[#333] dark:text-white"
+									className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/20 dark:bg-[#2e2e2e] dark:border-[#333] dark:text-white"
 									type="text"
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
@@ -288,13 +285,13 @@ function Dashboard() {
 								/>
 
 								<button
-									className="bg-[#1a6644] text-white px-4 py-2 rounded-md hover:bg-[#14533a] transition"
+									className="shrink-0 bg-[#1a6644] text-white px-4 py-2 rounded-md hover:bg-[#14533a] transition"
 									onClick={handleUsernameUpdate}
 									aria-label="Save username"
 								>
 									Save
 								</button>
-							</>
+							</div>
 						) : (
 							<>
 								<span className="text-gray-600 dark:text-[#888]">{user.username}</span>
@@ -373,8 +370,11 @@ function Dashboard() {
 				) : (
 					<ul className="mt-4 space-y-3">
 						{borrowedBooks.map((book) => {
-								const readPrefix = getUserPrefix()
-							const progress = Number(localStorage.getItem(`${readPrefix}reading-progress-${book.id}`) ?? 0)
+							const progress = Number(
+								localStorage.getItem(`${getUserPrefix()}reading-progress-${book.id}`) ??
+								localStorage.getItem(`reading-progress-${book.id}`) ??
+								0
+							)
 							const isRenewDisabled = book.renewCount >= 2 || book.isReserved === true
 							const bookDetails = BOOKS.find((item) => item.id === book.id)
 
@@ -448,13 +448,6 @@ function Dashboard() {
 													disabled={isRenewDisabled}
 												>
 													{isRenewDisabled ? "Renewed Max" : "Renew"}
-												</button>
-												<button
-													type="button"
-													className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20"
-													onClick={() => handleReturnBook(book.id)}
-												>
-													Return
 												</button>
 											</div>
 										</div>

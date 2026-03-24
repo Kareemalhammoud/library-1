@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const CAMPUS_ROOMS = {
   Beirut: {
-    library: "Libraries (RNL)",
+    library: "Riyad Nassar Library (RNL)",
     equipment: "Whiteboards and flipcharts",
     cctv: true,
     rooms: [
