@@ -2,7 +2,31 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import defaultPic from "../assets/default-profile.png"
 import { BOOKS } from "../data/bookData"
+import { EVENTS } from "../data/eventsData"
 import { getStoredUser } from "../utils"
+
+const CALENDAR_DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const CALENDAR_MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+function buildUserPrefix() {
+	const storedUser = getStoredUser()
+	return storedUser?.email ? `${storedUser.email}:` : ""
+}
+
+function getRegisteredEvents(prefix) {
+	const rawRegisteredEvents =
+		localStorage.getItem(`${prefix}registeredEvents`) ||
+		localStorage.getItem("registeredEvents")
+
+	if (!rawRegisteredEvents) return []
+
+	try {
+		const parsed = JSON.parse(rawRegisteredEvents)
+		return Array.isArray(parsed) ? parsed : []
+	} catch {
+		return []
+	}
+}
 
 function Dashboard() {
 
@@ -14,10 +38,11 @@ function Dashboard() {
 	const [editingUsername, setEditingUsername] = useState(false)
 	const [borrowedBooks, setBorrowedBooks] = useState([])
 	const [borrowedBooksLoaded, setBorrowedBooksLoaded] = useState(false)
+	const [registeredEvents, setRegisteredEvents] = useState([])
+	const [calendarViewDate, setCalendarViewDate] = useState(() => new Date())
 
 	const getUserPrefix = () => {
-		const storedUser = getStoredUser()
-		return storedUser?.email ? `${storedUser.email}:` : ""
+		return buildUserPrefix()
 	}
 
 	const getLoanDetails = (bookId) => {
@@ -57,6 +82,8 @@ function Dashboard() {
 	useEffect(() => {
 
 		const prefix = getUserPrefix()
+		setRegisteredEvents(getRegisteredEvents(prefix))
+
 		const savedBorrowedBooks =
 			localStorage.getItem(`${prefix}borrowedBooks`) ||
 			localStorage.getItem("borrowedBooks")
@@ -155,6 +182,71 @@ function Dashboard() {
 	}, [borrowedBooks, borrowedBooksLoaded])
 
 	const overdueBooks = borrowedBooks.filter((book) => new Date(book.dueDate) < new Date())
+	const calendarYear = calendarViewDate.getFullYear()
+	const calendarMonth = calendarViewDate.getMonth()
+	const monthStart = new Date(calendarYear, calendarMonth, 1)
+	const monthEnd = new Date(calendarYear, calendarMonth + 1, 0)
+	const calendarStartOffset = monthStart.getDay()
+	const totalDaysInMonth = monthEnd.getDate()
+	const registeredEventIds = new Set(registeredEvents.map((event) => event.id))
+	const calendarEntriesByDay = {}
+
+	EVENTS.forEach((event) => {
+		const eventDate = new Date(`${event.date}T00:00:00`)
+		if (eventDate.getFullYear() !== calendarYear || eventDate.getMonth() !== calendarMonth) return
+
+		const day = eventDate.getDate()
+		if (!calendarEntriesByDay[day]) calendarEntriesByDay[day] = []
+
+		calendarEntriesByDay[day].push({
+			type: registeredEventIds.has(event.id) ? "registered" : "event",
+			title: event.title,
+		})
+	})
+
+	borrowedBooks.forEach((book) => {
+		if (!book.dueDate) return
+
+		const dueDate = new Date(book.dueDate)
+		if (dueDate.getFullYear() !== calendarYear || dueDate.getMonth() !== calendarMonth) return
+
+		const day = dueDate.getDate()
+		if (!calendarEntriesByDay[day]) calendarEntriesByDay[day] = []
+
+		calendarEntriesByDay[day].push({
+			type: "deadline",
+			title: `${book.title} due back`,
+		})
+	})
+
+	const calendarCells = Array.from({ length: totalDaysInMonth }, (_, index) => {
+		const dayNumber = index + 1
+		const entries = calendarEntriesByDay[dayNumber] || []
+		const hasRegistered = entries.some((entry) => entry.type === "registered")
+		const hasDeadline = entries.some((entry) => entry.type === "deadline")
+		const hasEvent = entries.some((entry) => entry.type === "event")
+		let toneClass = "border-transparent bg-transparent text-gray-400 dark:text-[#9aa1a8]"
+
+		if (hasDeadline) {
+			toneClass = "border-[#b8565c] bg-[#b8565c] text-white dark:border-[#b8565c] dark:bg-[#b8565c] dark:text-white"
+		} else if (hasRegistered) {
+			toneClass = "border-[#1a6644]/50 bg-[#1a6644] text-white dark:border-[#1a6644]/50 dark:bg-[#1a6644] dark:text-white"
+		} else if (hasEvent) {
+			toneClass = "border-[#d7d9db] bg-white text-[#1c2b24] dark:border-[#8f979f] dark:bg-transparent dark:text-white"
+		}
+
+		return {
+			key: `day-${dayNumber}`,
+			dayNumber,
+			entries,
+			toneClass,
+			columnStartClass: dayNumber === 1 ? `col-start-${calendarStartOffset + 1}` : "",
+		}
+	})
+
+	const changeCalendarMonth = (direction) => {
+		setCalendarViewDate((currentDate) => new Date(currentDate.getFullYear(), currentDate.getMonth() + direction, 1))
+	}
 
 	const handleUsernameUpdate = () => {
 
@@ -258,99 +350,204 @@ function Dashboard() {
 			</header>
 
 			<section
-				className="flex flex-col justify-between gap-8 rounded-xl border border-gray-200 bg-white p-6 shadow-md md:flex-row dark:border-[#333] dark:bg-[#242424]"
+				className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]"
 				aria-labelledby="profile-information-heading"
 			>
 
-				<div className="flex-1 space-y-4">
+				<div className="rounded-xl border border-gray-200 bg-white p-6 shadow-md dark:border-[#333] dark:bg-[#242424]">
+					<div className="flex flex-col justify-between gap-8 md:flex-row">
+						<div className="flex-1 space-y-4">
 
-					<h2 id="profile-information-heading" className="text-xl font-semibold text-gray-700 dark:text-white">
-						Profile Information
-					</h2>
+							<h2 id="profile-information-heading" className="text-xl font-semibold text-gray-700 dark:text-white">
+								Profile Information
+							</h2>
 
-					<div className="flex items-center gap-3 flex-wrap">
+							<div className="flex items-center gap-3 flex-wrap">
 
-						<span className="font-medium text-gray-700 dark:text-white">Username:</span>
+								<span className="font-medium text-gray-700 dark:text-white">Username:</span>
 
-						{editingUsername ? (
-							<div className="flex min-w-0 flex-1 items-center gap-2">
-								<input
-									className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/20 dark:bg-[#2e2e2e] dark:border-[#333] dark:text-white"
-									type="text"
-									value={username}
-									onChange={(e) => setUsername(e.target.value)}
-									aria-label="Edit username"
-								/>
+								{editingUsername ? (
+									<div className="flex min-w-0 flex-1 items-center gap-2">
+										<input
+											className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800 focus:outline-none focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/20 dark:bg-[#2e2e2e] dark:border-[#333] dark:text-white"
+											type="text"
+											value={username}
+											onChange={(e) => setUsername(e.target.value)}
+											aria-label="Edit username"
+										/>
 
-								<button
-									className="shrink-0 bg-[#1a6644] text-white px-4 py-2 rounded-md hover:bg-[#14533a] transition"
-									onClick={handleUsernameUpdate}
-									aria-label="Save username"
-								>
-									Save
-								</button>
+										<button
+											className="shrink-0 bg-[#1a6644] text-white px-4 py-2 rounded-md hover:bg-[#14533a] transition"
+											onClick={handleUsernameUpdate}
+											aria-label="Save username"
+										>
+											Save
+										</button>
+									</div>
+								) : (
+									<>
+										<span className="text-gray-600 dark:text-[#888]">{user.username}</span>
+
+										<button
+											className="text-[#006751] underline cursor-pointer text-sm dark:text-[#5ecba1] dark:hover:text-white"
+											onClick={() => setEditingUsername(true)}
+											aria-label="Change username"
+										>
+											Change Username
+										</button>
+									</>
+								)}
+
 							</div>
-						) : (
-							<>
-								<span className="text-gray-600 dark:text-[#888]">{user.username}</span>
 
-								<button
-									className="text-[#006751] underline cursor-pointer text-sm dark:text-[#5ecba1] dark:hover:text-white"
-									onClick={() => setEditingUsername(true)}
-									aria-label="Change username"
-								>
-									Change Username
-								</button>
-							</>
-						)}
+							<p>
+								<span className="font-medium text-gray-700 dark:text-white">Email:</span>
+								<span className="text-gray-600 ml-2 dark:text-[#888]">{user.email}</span>
+							</p>
 
+							<p>
+								<span className="font-medium text-gray-700 dark:text-white">Date Joined:</span>
+								<span className="text-gray-600 ml-2 dark:text-[#888]">
+									{user.createdAt
+										? new Date(user.createdAt).toLocaleDateString()
+										: "N/A"}
+								</span>
+							</p>
+
+							<p>
+								<span className="font-medium text-gray-700 dark:text-white">Account Status:</span>
+								<span className="ml-2 text-[#006751] dark:text-[#5ecba1]">Active</span>
+							</p>
+						</div>
+
+						<div className="flex flex-col items-center gap-3">
+							<img
+								src={profilePic}
+								alt={`${user.username}'s profile picture`}
+								className="w-32 h-32 rounded-full object-cover border-2 border-gray-200 shadow-sm dark:border-[#333]"
+							/>
+
+							<label
+								htmlFor="profile-picture-upload"
+								className="cursor-pointer rounded-md border border-transparent bg-[#1a6644] px-4 py-2 text-sm text-white transition hover:bg-[#14533a] dark:border-[#333]"
+							>
+								Edit Profile Picture
+							</label>
+
+							<input
+								id="profile-picture-upload"
+								type="file"
+								accept="image/*"
+								onChange={handleProfileChange}
+								className="sr-only"
+								aria-label="Choose a new profile picture"
+							/>
+						</div>
 					</div>
-
-					<p>
-						<span className="font-medium text-gray-700 dark:text-white">Email:</span>
-						<span className="text-gray-600 ml-2 dark:text-[#888]">{user.email}</span>
-					</p>
-
-					<p>
-						<span className="font-medium text-gray-700 dark:text-white">Date Joined:</span>
-						<span className="text-gray-600 ml-2 dark:text-[#888]">
-							{user.createdAt
-								? new Date(user.createdAt).toLocaleDateString()
-								: "N/A"}
-						</span>
-					</p>
-
-					<p>
-						<span className="font-medium text-gray-700 dark:text-white">Account Status:</span>
-						<span className="ml-2 text-[#006751] dark:text-[#5ecba1]">Active</span>
-					</p>
-
 				</div>
 
-				<div className="flex flex-col items-center gap-3">
+				<div className="flex flex-col gap-4">
+					<div className="self-start rounded-xl border border-gray-200 bg-white p-3 shadow-md dark:border-[#333] dark:bg-[#242424]">
+						<div className="mb-3 flex items-start justify-between gap-2">
+							<div>
+								<h3 className="text-[0.95rem] font-semibold text-gray-800 dark:text-white">Upcoming Events</h3>
+								<div className="mt-1 flex items-center gap-2">
+									<button
+										type="button"
+										onClick={() => changeCalendarMonth(-1)}
+										className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-[0.72rem] text-gray-500 transition hover:border-[#1a6644] hover:text-[#1a6644] dark:border-[#333] dark:text-[#888] dark:hover:border-[#5ecba1] dark:hover:text-[#5ecba1]"
+										aria-label="Previous month"
+									>
+										&lt;
+									</button>
+									<h4 className="min-w-[60px] text-[0.9rem] font-semibold text-gray-800 dark:text-white">{CALENDAR_MONTH_NAMES[calendarMonth]}</h4>
+									<button
+										type="button"
+										onClick={() => changeCalendarMonth(1)}
+										className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-[0.72rem] text-gray-500 transition hover:border-[#1a6644] hover:text-[#1a6644] dark:border-[#333] dark:text-[#888] dark:hover:border-[#5ecba1] dark:hover:text-[#5ecba1]"
+										aria-label="Next month"
+									>
+										&gt;
+									</button>
+								</div>
+							</div>
+							<div className="rounded-full border border-gray-200 px-2 py-1 text-[0.6rem] font-medium text-gray-500 dark:border-[#333] dark:text-[#888]">
+								{calendarYear}
+							</div>
+						</div>
 
-					<img
-						src={profilePic}
-						alt={`${user.username}'s profile picture`}
-						className="w-36 h-36 rounded-full object-cover border-2 border-gray-200 shadow-sm dark:border-[#333]"
-					/>
+						<div className="mb-2 grid grid-cols-7 gap-1 text-center">
+							{CALENDAR_DAY_NAMES.map((day) => (
+								<span key={day} className="text-[0.54rem] font-semibold uppercase tracking-[0.08em] text-gray-500 dark:text-[#888]">
+									{day}
+								</span>
+							))}
+						</div>
 
-					<label
-						htmlFor="profile-picture-upload"
-						className="cursor-pointer rounded-md border border-transparent bg-[#1a6644] px-4 py-2 text-sm text-white transition hover:bg-[#14533a] dark:border-[#333]"
-					>
-						Edit Profile Picture
-					</label>
+						<div className="grid grid-cols-7 gap-1">
+							{calendarCells.map((cell) => {
+								const tooltipText = cell.entries.map((entry) => entry.title).join("\n")
+								const accessibilityLabel = cell.entries.length > 0
+									? `${CALENDAR_MONTH_NAMES[calendarMonth]} ${cell.dayNumber}: ${cell.entries.map((entry) => entry.title).join(", ")}`
+									: `${CALENDAR_MONTH_NAMES[calendarMonth]} ${cell.dayNumber}`
 
-					<input
-						id="profile-picture-upload"
-						type="file"
-						accept="image/*"
-						onChange={handleProfileChange}
-						className="sr-only"
-						aria-label="Choose a new profile picture"
-					/>
+								return (
+									<div key={cell.key} className={`group relative ${cell.columnStartClass}`}>
+										<button
+											type="button"
+											className={`flex h-7 w-7 items-center justify-center rounded-full border text-[0.72rem] font-semibold leading-none transition ${cell.toneClass}`}
+											title={tooltipText || undefined}
+											aria-label={accessibilityLabel}
+										>
+											{cell.dayNumber}
+										</button>
 
+										{cell.entries.length > 0 && (
+											<div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-40 -translate-x-1/2 rounded-xl border border-gray-200 bg-white p-3 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)] group-hover:block group-focus-within:block dark:border-[#333] dark:bg-[#1b1b1b]">
+												<p className="mb-2 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-gray-500 dark:text-[#888]">
+													{CALENDAR_MONTH_NAMES[calendarMonth]} {cell.dayNumber}
+												</p>
+												<div className="space-y-1.5">
+													{cell.entries.map((entry, entryIndex) => (
+														<div key={`${entry.title}-${entryIndex}`} className="flex items-start gap-2 text-[0.68rem] leading-[1.4] text-gray-700 dark:text-[#d4d4d4]">
+															<span
+																className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${
+																	entry.type === "deadline"
+																		? "bg-[#b8565c]"
+																		: entry.type === "registered"
+																			? "bg-[#1a6644]"
+																			: "bg-[#f5f7f6] ring-1 ring-[#cfd4d8] dark:bg-white dark:ring-[#666]"
+																}`}
+															/>
+															<span>{entry.title}</span>
+														</div>
+													))}
+												</div>
+											</div>
+										)}
+									</div>
+								)
+							})}
+						</div>
+
+						<div className="mt-3 border-t border-gray-200 pt-3 dark:border-[#333]">
+							<p className="mb-2 text-[0.58rem] font-bold uppercase tracking-[0.12em] text-gray-500 dark:text-[#888]">Key</p>
+							<div className="flex flex-wrap gap-x-3 gap-y-2 text-[0.64rem] text-gray-600 dark:text-[#aaa]">
+								<span className="inline-flex items-center gap-2">
+									<span className="h-2.5 w-2.5 rounded-full bg-white ring-1 ring-[#cfd4d8] dark:bg-white dark:ring-[#666]" />
+									Open events
+								</span>
+								<span className="inline-flex items-center gap-2">
+									<span className="h-2.5 w-2.5 rounded-full bg-[#1a6644]" />
+									Registered events
+								</span>
+								<span className="inline-flex items-center gap-2">
+									<span className="h-2.5 w-2.5 rounded-full bg-[#b8565c]" />
+									Return deadlines
+								</span>
+							</div>
+						</div>
+					</div>
 				</div>
 
 			</section>

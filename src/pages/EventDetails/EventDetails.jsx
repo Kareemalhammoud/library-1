@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { EVENTS } from '@/data/eventsData'
+import { getStoredUser } from '@/utils'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -28,9 +30,91 @@ function categoryColor(category) {
   return map[category] || 'text-[#006751] dark:text-[#5ecba1]'
 }
 
+function getSeatState(eventItem, registeredEvents) {
+  if (!eventItem.seats) {
+    return {
+      isRegistered: registeredEvents.some((item) => item.id === eventItem.id),
+      effectiveRegistered: null,
+      seatsLeft: null,
+      isFull: false,
+    }
+  }
+
+  const isRegistered = registeredEvents.some((item) => item.id === eventItem.id)
+  const effectiveRegistered = Math.min(eventItem.seats, eventItem.registered + (isRegistered ? 1 : 0))
+  const seatsLeft = Math.max(0, eventItem.seats - effectiveRegistered)
+
+  return {
+    isRegistered,
+    effectiveRegistered,
+    seatsLeft,
+    isFull: seatsLeft === 0,
+  }
+}
+
 function EventDetails() {
   const { id } = useParams()
   const event = EVENTS.find((item) => String(item.id) === id)
+  const [registeredEvents, setRegisteredEvents] = useState([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
+  const dialogTitleId = confirmed ? 'event-details-registration-success-title' : 'event-details-registration-confirm-title'
+  const dialogDescriptionId = confirmed ? 'event-details-registration-success-description' : 'event-details-registration-confirm-description'
+  const storedUser = getStoredUser()
+  const prefix = storedUser?.email ? `${storedUser.email}:` : ''
+  const registeredEventsKey = `${prefix}registeredEvents`
+  const isRegistered = registeredEvents.some((item) => item.id === event?.id)
+
+  useEffect(() => {
+    const rawRegisteredEvents = localStorage.getItem(registeredEventsKey) || localStorage.getItem('registeredEvents')
+
+    if (!rawRegisteredEvents) {
+      setRegisteredEvents([])
+      return
+    }
+
+    try {
+      const parsed = JSON.parse(rawRegisteredEvents)
+      setRegisteredEvents(Array.isArray(parsed) ? parsed : [])
+    } catch {
+      setRegisteredEvents([])
+    }
+  }, [registeredEventsKey])
+
+  function handleRegister() {
+    if (!event) return
+    const seatState = getSeatState(event, registeredEvents)
+
+    if (seatState.isRegistered) {
+      const nextRegisteredEvents = registeredEvents.filter((item) => item.id !== event.id)
+      localStorage.setItem(registeredEventsKey, JSON.stringify(nextRegisteredEvents))
+      setRegisteredEvents(nextRegisteredEvents)
+      return
+    }
+
+    if (seatState.isFull) return
+
+    setConfirmed(false)
+    setModalOpen(true)
+  }
+
+  function handleConfirmRegistration() {
+    if (!event) return
+    const seatState = getSeatState(event, registeredEvents)
+
+    if (seatState.isRegistered || seatState.isFull) return
+
+    const nextRegisteredEvents = [...registeredEvents, { id: event.id, title: event.title, date: event.date }]
+
+    localStorage.setItem(registeredEventsKey, JSON.stringify(nextRegisteredEvents))
+    setRegisteredEvents(nextRegisteredEvents)
+    setConfirmed(true)
+  }
+
+  function handleCloseModal() {
+    setModalOpen(false)
+    setConfirmed(false)
+  }
 
   if (!event) {
     return (
@@ -50,7 +134,8 @@ function EventDetails() {
   }
 
   const { month, day, fullDate } = formatEventDate(event.date)
-  const seatsLeft = event.seats ? event.seats - event.registered : null
+  const seatState = getSeatState(event, registeredEvents)
+  const seatsLeft = seatState.seatsLeft
   const relatedEvents = EVENTS.filter((item) => item.id !== event.id && item.category === event.category).slice(0, 3)
 
   return (
@@ -153,9 +238,9 @@ function EventDetails() {
                     aria-label={`Registration progress for ${event.title}`}
                     aria-valuemin={0}
                     aria-valuemax={event.seats}
-                    aria-valuenow={event.registered}
+                    aria-valuenow={seatState.effectiveRegistered}
                   >
-                    <div className="h-full rounded-full bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(event.registered / event.seats) * 100}%` }} />
+                    <div className="h-full rounded-full bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(seatState.effectiveRegistered / event.seats) * 100}%` }} />
                   </div>
                   <p className="mb-5 text-[0.84rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">
                     <span className="font-semibold text-[#1C2B24] dark:text-[#f5f7f6]">{seatsLeft}</span> seats left out of {event.seats}.
@@ -165,9 +250,11 @@ function EventDetails() {
                 <p className="mb-5 text-[0.84rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">This event is open attendance, so you can simply drop in during the scheduled hours.</p>
               )}
 
-              <button type="button" className="mb-3 w-full rounded-lg bg-[#1a6644] px-5 py-3 text-[0.82rem] font-semibold text-white transition hover:bg-[#14533a]">
-                {seatsLeft !== null ? 'Reserve a Spot' : 'Add to Your Plans'}
-              </button>
+              <div className="mb-3 flex flex-wrap items-center gap-3">
+                <button type="button" onClick={handleRegister} disabled={seatState.isFull && !seatState.isRegistered} aria-label={`${seatState.isRegistered ? 'Cancel registration for' : seatState.isFull ? 'Seats are full for' : seatsLeft !== null ? 'Reserve a spot for' : 'Add to your plans for'} ${event.title}`} className={`rounded-lg px-5 py-3 text-[0.82rem] font-semibold transition ${seatState.isRegistered ? 'bg-[#cfcfcf] text-[#4f4f4f] hover:bg-[#bdbdbd] dark:bg-[#4a4a4a] dark:text-[#f1f1f1] dark:hover:bg-[#5a5a5a]' : 'bg-[#1a6644] text-white hover:bg-[#14533a]'} disabled:cursor-not-allowed disabled:bg-[#b9b9b9] disabled:text-[#666] dark:disabled:bg-[#355246] dark:disabled:text-[#d7e4de]`}>
+                  {seatState.isRegistered ? 'Cancel Registration' : seatState.isFull ? 'Seats Full' : seatsLeft !== null ? 'Reserve a Spot' : 'Add to Your Plans'}
+                </button>
+              </div>
             </div>
 
             <div className="rounded-[18px] border border-[#d0ddd8] bg-white p-6 shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f]">
@@ -202,6 +289,65 @@ function EventDetails() {
           </aside>
         </div>
       </section>
+
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 dark:bg-[rgba(0,0,0,0.7)]"
+          onClick={handleCloseModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={dialogTitleId}
+          aria-describedby={dialogDescriptionId}
+        >
+          <div
+            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] sm:p-8 dark:bg-[#242424]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {confirmed ? (
+              <>
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2d7a4f] text-2xl text-white">
+                  ✓
+                </div>
+                <h2 id={dialogTitleId} className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
+                  Registered Successfully!
+                </h2>
+                <p id={dialogDescriptionId} className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  You have registered for <strong>{event.title}</strong>.
+                </p>
+                <button
+                  className="mt-2 rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
+                  onClick={handleCloseModal}
+                >
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 id={dialogTitleId} className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
+                  Confirm Registration
+                </h2>
+                <p id={dialogDescriptionId} className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  Do you want to register for <strong>{event.title}</strong>?
+                </p>
+                <div className="mt-2 flex w-full gap-3">
+                  <button
+                    className="flex-1 rounded-lg border border-[#ccc] bg-white px-4 py-[0.75rem] text-[0.9rem] font-semibold text-[#555] hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
+                    onClick={handleCloseModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
+                    onClick={handleConfirmRegistration}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   )
 }
