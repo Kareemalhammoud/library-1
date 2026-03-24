@@ -4,9 +4,74 @@ import { BOOKS } from '@/data/bookData'
 import { useBooks } from '@/context/BooksContext'
 import { getCampus, getCopies } from '@/utils/bookUtils'
 
+const AUTHOR_BIOGRAPHIES = {
+  'Donna Tartt':
+    'An American novelist known for immersive literary fiction. She won the Pulitzer Prize for The Goldfinch, often exploring morality and obsession.',
+  'Brandon Sanderson':
+    'A leading modern fantasy author known for intricate magic systems and the Cosmere universe.',
+  'Struan Murray':
+    'A British children’s fantasy writer blending mythology and science in imaginative stories.',
+  'Christopher Paolini':
+    'American fantasy author who gained fame with Eragon, written as a teenager.',
+  'Maria Zoccola':
+    'A contemporary writer focusing on emotional narratives and character-driven stories.',
+  'Ludwig Wittgenstein':
+    'A major 20th-century philosopher focused on language, logic, and meaning.',
+  'E. Lockhart':
+    'American YA author known for psychological storytelling like We Were Liars.',
+  'Tricia Levenseller':
+    'YA fantasy author known for fast-paced, character-led adventures.',
+  'Tahereh Mafi':
+    'Bestselling author of the Shatter Me series, blending dystopia and lyrical prose.',
+  'John Gwynne':
+    'Epic fantasy writer inspired by Norse mythology and action-driven narratives.',
+  'George Orwell':
+    'Political writer known for 1984 and Animal Farm, exploring power and control.',
+  'Fyodor Dostoevsky':
+    'Russian novelist exploring psychology, morality, and existential themes.',
+  'Franz Kafka':
+    'Writer of surreal, existential works reflecting alienation and absurdity.',
+  'Albert Camus':
+    'Philosopher of absurdism exploring meaning and existence in works like The Stranger.',
+  'J.K. Rowling':
+    'Creator of Harry Potter, a globally influential fantasy series.',
+  'J.R.R. Tolkien':
+    'Father of modern fantasy, author of The Lord of the Rings.',
+  'Jane Austen':
+    'English novelist known for wit and social commentary.',
+  'Colleen Hoover':
+    'Contemporary romance author exploring emotional and personal themes.',
+  'Leigh Bardugo':
+    'Fantasy author known for the Grishaverse series.',
+  'Rick Riordan':
+    'Author blending mythology with modern adventure, like Percy Jackson.',
+  'Stephen King':
+    'Master of horror and suspense with a vast body of work.',
+  'Agatha Christie':
+    'Legendary mystery writer, creator of Hercule Poirot.',
+  'Dan Brown':
+    'Thriller author known for fast-paced conspiracy novels.',
+  'Suzanne Collins':
+    'Author of The Hunger Games, combining dystopia and social themes.',
+  'Veronica Roth':
+    'Known for Divergent, exploring identity and society.',
+  'C.S. Lewis':
+    'Author of The Chronicles of Narnia, blending fantasy and philosophy.',
+  'Neil Gaiman':
+    'Writer combining fantasy, mythology, and dark storytelling.',
+  'Mark Manson':
+    'Self-help author known for direct, modern perspectives on life.',
+  'Robert Greene':
+    'Author of strategic works on power and human behavior.',
+  'Yuval Noah Harari':
+    'Historian exploring humanity and the future in Sapiens.',
+}
+
 const emptyForm = {
   id: null,
   title: '',
+  author: '',
+  authorBiography: '',
   publisher: '',
   genre: '',
   isbn: '',
@@ -23,10 +88,13 @@ const emptyForm = {
 
 const labelClassName =
   'text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]'
+
 const fieldClassName =
-  'mt-2 box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] px-4 py-[0.85rem] text-[0.9rem] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#a7a7a7] focus:border-[#1a1a1a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#5ecba1] dark:focus:bg-[#2e2e2e]'
+  'mt-2 box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] px-4 py-[0.85rem] text-[0.9rem] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#a7a7a7] focus:border-[#1a4a3a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#5ecba1] dark:focus:bg-[#2e2e2e]'
+
 const primaryButtonClassName =
   'cursor-pointer rounded-lg border-0 bg-[#1a4a3a] px-6 py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]'
+
 const secondaryButtonClassName =
   'cursor-pointer rounded-lg border border-[#ccc] bg-white px-6 py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]'
 
@@ -37,15 +105,18 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
 
   const contextBooks = booksContext?.books ?? []
   const addBook = booksContext?.addBook
+  const updateBook = booksContext?.updateBook
   const availableBooks = books.length > 0 ? books : contextBooks
 
   const [formData, setFormData] = useState(emptyForm)
   const [imagePreview, setImagePreview] = useState('')
+  const [showAuthorBioEditor, setShowAuthorBioEditor] = useState(false)
 
   useEffect(() => {
     if (!id) {
       setFormData(emptyForm)
       setImagePreview('')
+      setShowAuthorBioEditor(false)
       return
     }
 
@@ -58,6 +129,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     if (!existingBook) {
       setFormData(emptyForm)
       setImagePreview('')
+      setShowAuthorBioEditor(false)
       return
     }
 
@@ -68,12 +140,19 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
         : getCampus(existingBook.id) === 'both'
           ? ''
           : getCampus(existingBook.id) || ''
+
     const existingImage = existingBook.coverImage || existingBook.cover || ''
+    const resolvedBiography =
+      existingBook.authorBiography ||
+      AUTHOR_BIOGRAPHIES[existingBook.author] ||
+      ''
 
     setFormData({
       id: existingBook.id ?? null,
       title: existingBook.title || '',
-      publisher: existingBook.publisher || existingBook.author || '',
+      author: existingBook.author || '',
+      authorBiography: resolvedBiography,
+      publisher: existingBook.publisher || '',
       genre: existingBook.genre || '',
       isbn: existingBook.isbn || '',
       year: existingBook.year || '',
@@ -101,6 +180,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     })
 
     setImagePreview(existingImage)
+    setShowAuthorBioEditor(Boolean(resolvedBiography))
   }, [availableBooks, id])
 
   const handleChange = (e) => {
@@ -146,6 +226,10 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     }
   }
 
+  const handleToggleBiography = () => {
+    setShowAuthorBioEditor((prev) => !prev)
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -164,20 +248,27 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     }
 
     if (id) {
-      onUpdateBook?.(finalData)
-    } else if (onAddBook) {
-      onAddBook(finalData)
+      if (onUpdateBook) {
+        onUpdateBook(finalData)
+      } else {
+        updateBook?.(finalData)
+      }
     } else {
-      addBook?.(finalData)
+      if (onAddBook) {
+        onAddBook(finalData)
+      } else {
+        addBook?.(finalData)
+      }
     }
 
     navigate('/books')
   }
 
-  const pageTitle = id ? 'Edit Book' : 'Add Book'
+  const pageTitle = id ? 'Edit Book' : 'Add New Book'
   const pageDescription = id
     ? 'Update the catalog entry while keeping the library styling aligned with the rest of the collection.'
-    : 'Create a new catalog entry using the same warm neutral theme used across the library pages.'
+    : 'Create a new catalog entry using the same library form layout and controls.'
+
   const breadcrumbTitle = formData.title || pageTitle
 
   return (
@@ -193,7 +284,9 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
         >
           ← Back
         </button>
-        <span className="text-[0.85rem] text-[#999] dark:text-[#888]">Books / {breadcrumbTitle}</span>
+        <span className="text-[0.85rem] text-[#999] dark:text-[#888]">
+          Books / {breadcrumbTitle}
+        </span>
       </nav>
 
       <article className="mx-auto mt-8 max-w-[1000px] px-4 sm:px-6 sm:mt-10 md:mt-12 md:px-8">
@@ -211,13 +304,34 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-            <div className="grid grid-cols-2 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
               <div>
                 <label htmlFor="title" className={labelClassName}>Title</label>
                 <input
                   id="title"
                   name="title"
                   value={formData.title}
+                  onChange={handleChange}
+                  required
+                  className={fieldClassName}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="author" className={labelClassName}>Author</label>
+                  <button
+                    type="button"
+                    onClick={handleToggleBiography}
+                    className="rounded-md border border-[#d8d4cd] bg-white px-3 py-1 text-[0.72rem] font-semibold text-[#555] transition-colors hover:bg-[#f3f1ed] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#bbb] dark:hover:bg-[#383838]"
+                  >
+                    {showAuthorBioEditor ? 'Hide Biography' : 'Add / Edit Biography'}
+                  </button>
+                </div>
+                <input
+                  id="author"
+                  name="author"
+                  value={formData.author}
                   onChange={handleChange}
                   required
                   className={fieldClassName}
@@ -341,6 +455,26 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               </div>
             </div>
 
+            {showAuthorBioEditor && (
+              <div className="rounded-xl border border-[#e5e2dc] bg-[#faf9f6] p-4 dark:border-[#333] dark:bg-[#1f1f1f]">
+                <label htmlFor="authorBiography" className={labelClassName}>
+                  Author Biography
+                </label>
+                <textarea
+                  id="authorBiography"
+                  name="authorBiography"
+                  value={formData.authorBiography}
+                  onChange={handleChange}
+                  rows="6"
+                  placeholder="Add or edit the author biography here..."
+                  className={`${fieldClassName} resize-y`}
+                />
+                <p className="mt-2 text-[0.78rem] text-[#888] dark:text-[#888]">
+                  This biography can be shown when users hover over the author name.
+                </p>
+              </div>
+            )}
+
             <div>
               <label htmlFor="description" className={labelClassName}>Description</label>
               <textarea
@@ -410,15 +544,15 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   <div className="mt-5">
                     <label
                       htmlFor="cover-upload"
-                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#5ecba1] dark:hover:bg-[#333]"
+                      className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#5ecba1] dark:hover:bg-[#333]"
                     >
                       <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
                         +
                       </span>
-                    <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-white">
+                      <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-white">
                         Upload cover image
                       </span>
-                    <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
+                      <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
                         Choose an image file to preview the book cover.
                       </span>
                     </label>

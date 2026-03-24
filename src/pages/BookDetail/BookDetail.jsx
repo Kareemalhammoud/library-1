@@ -4,25 +4,130 @@ import { useState, useEffect, useMemo } from 'react'
 import { getCampus, getCopies } from '@/utils/bookUtils'
 import { getStoredUser, isAdminUser } from '@/utils'
 
+const AUTHOR_BIOGRAPHIES = {
+  'Donna Tartt':
+    'An American novelist known for immersive literary fiction. She won the Pulitzer Prize for The Goldfinch, often exploring morality and obsession.',
+  'Brandon Sanderson':
+    'A leading modern fantasy author known for intricate magic systems and the Cosmere universe.',
+  'Struan Murray':
+    'A British children’s fantasy writer blending mythology and science in imaginative stories.',
+  'Christopher Paolini':
+    'American fantasy author who gained fame with Eragon, written as a teenager.',
+  'Maria Zoccola':
+    'A contemporary writer focusing on emotional narratives and character-driven stories.',
+  'Ludwig Wittgenstein':
+    'A major 20th-century philosopher focused on language, logic, and meaning.',
+  'E. Lockhart':
+    'American YA author known for psychological storytelling like We Were Liars.',
+  'Tricia Levenseller':
+    'YA fantasy author known for fast-paced, character-led adventures.',
+  'Tahereh Mafi':
+    'Bestselling author of the Shatter Me series, blending dystopia and lyrical prose.',
+  'John Gwynne':
+    'Epic fantasy writer inspired by Norse mythology and action-driven narratives.',
+  'George Orwell':
+    'Political writer known for 1984 and Animal Farm, exploring power and control.',
+  'Fyodor Dostoevsky':
+    'Russian novelist exploring psychology, morality, and existential themes.',
+  'Franz Kafka':
+    'Writer of surreal, existential works reflecting alienation and absurdity.',
+  'Albert Camus':
+    'Philosopher of absurdism exploring meaning and existence in works like The Stranger.',
+  'J.K. Rowling':
+    'Creator of Harry Potter, a globally influential fantasy series.',
+  'J.R.R. Tolkien':
+    'Father of modern fantasy, author of The Lord of the Rings.',
+  'Jane Austen':
+    'English novelist known for wit and social commentary.',
+  'Colleen Hoover':
+    'Contemporary romance author exploring emotional and personal themes.',
+  'Leigh Bardugo':
+    'Fantasy author known for the Grishaverse series.',
+  'Rick Riordan':
+    'Author blending mythology with modern adventure, like Percy Jackson.',
+  'Stephen King':
+    'Master of horror and suspense with a vast body of work.',
+  'Agatha Christie':
+    'Legendary mystery writer, creator of Hercule Poirot.',
+  'Dan Brown':
+    'Thriller author known for fast-paced conspiracy novels.',
+  'Suzanne Collins':
+    'Author of The Hunger Games, combining dystopia and social themes.',
+  'Veronica Roth':
+    'Known for Divergent, exploring identity and society.',
+  'C.S. Lewis':
+    'Author of The Chronicles of Narnia, blending fantasy and philosophy.',
+  'Neil Gaiman':
+    'Writer combining fantasy, mythology, and dark storytelling.',
+  'Mark Manson':
+    'Self-help author known for direct, modern perspectives on life.',
+  'Robert Greene':
+    'Author of strategic works on power and human behavior.',
+  'Yuval Noah Harari':
+    'Historian exploring humanity and the future in Sapiens.',
+}
+
 export default function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const admin = isAdminUser()
 
-  const book = BOOKS.find((b) => b.id === parseInt(id))
-  const { total: totalCopies, available: availableCopies } = getCopies(book?.id ?? 0)
+  const book = BOOKS.find((b) => b.id === parseInt(id, 10))
+  const safeBookId = book?.id ?? 0
+
+  const { total: totalCopies, available: availableCopies } = getCopies(safeBookId)
   const isAvailable = availableCopies > 0
-  const bookCampus = getCampus(book?.id ?? 0)
+  const bookCampus = getCampus(safeBookId)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   function getUserPrefix() {
     const user = getStoredUser()
     return user?.email ? `${user.email}:` : ''
   }
+
+  const prefix = getUserPrefix()
+  const borrowKey = `${prefix}borrowed-${safeBookId}`
+  const loanKey = `${prefix}loan-${safeBookId}`
+  const storageKey = `${prefix}reading-progress-${safeBookId}`
+
+  useEffect(() => {
+    if (!book) return
+    const savedLoan = localStorage.getItem(loanKey)
+    setBorrowed(Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
+  }, [book, borrowKey, loanKey])
+
+  useEffect(() => {
+    if (!book) return
+    setProgress(Number(localStorage.getItem(storageKey) ?? 0))
+  }, [book, storageKey])
+
+  const authorBiography = book
+    ? AUTHOR_BIOGRAPHIES[book.author] || 'No biography available for this author yet.'
+    : ''
+
+  const { relatedBooks, relatedTitle } = useMemo(() => {
+    if (!book) {
+      return { relatedBooks: [], relatedTitle: 'You might also enjoy' }
+    }
+
+    const sameGenre = BOOKS.filter((b) => b.genre === book.genre && b.id !== book.id)
+    const nextRelatedBooks =
+      sameGenre.length >= 2
+        ? sameGenre.slice(0, 4)
+        : BOOKS.filter((b) => b.id !== book.id)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 4)
+
+    const nextRelatedTitle =
+      sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
+
+    return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
+  }, [book])
 
   function handleShare() {
     navigator.clipboard?.writeText(window.location.href)
@@ -30,16 +135,9 @@ export default function BookDetail() {
     setTimeout(() => setShareCopied(false), 2000)
   }
 
-  const prefix = getUserPrefix()
-  const borrowKey = `${prefix}borrowed-${book?.id}`
-  const loanKey = `${prefix}loan-${book?.id}`
-
-  useEffect(() => {
-    const savedLoan = localStorage.getItem(loanKey)
-    setBorrowed(Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
-  }, [borrowKey, loanKey])
-
   function handleBorrowClick() {
+    if (!book) return
+
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
 
     if (!isLoggedIn) {
@@ -52,9 +150,12 @@ export default function BookDetail() {
   }
 
   function handleConfirm() {
+    if (!book) return
+
     const borrowedAt = new Date()
     const dueAt = new Date(borrowedAt)
     dueAt.setDate(dueAt.getDate() + 14)
+
     const borrowedBookEntry = {
       id: book.id,
       title: book.title,
@@ -63,6 +164,7 @@ export default function BookDetail() {
       renewCount: 0,
       isReserved: false,
     }
+
     const borrowedBooksKey = `${prefix}borrowedBooks`
     let currentBorrowedBooks = []
 
@@ -74,6 +176,7 @@ export default function BookDetail() {
 
     setBorrowed(true)
     setConfirmed(true)
+
     localStorage.setItem(borrowKey, borrowedAt.toISOString())
     localStorage.setItem(
       loanKey,
@@ -85,6 +188,7 @@ export default function BookDetail() {
     )
 
     const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
+
     if (!alreadyTracked) {
       localStorage.setItem(
         borrowedBooksKey,
@@ -95,6 +199,11 @@ export default function BookDetail() {
 
   function handleClose() {
     setModalOpen(false)
+  }
+
+  const handleProgress = (val) => {
+    setProgress(val)
+    localStorage.setItem(storageKey, val)
   }
 
   if (!book) {
@@ -111,35 +220,8 @@ export default function BookDetail() {
     )
   }
 
-  const { relatedBooks, relatedTitle } = useMemo(() => {
-    const sameGenre = BOOKS.filter((b) => b.genre === book.genre && b.id !== book.id)
-    const nextRelatedBooks =
-      sameGenre.length >= 2
-        ? sameGenre.slice(0, 4)
-        : BOOKS.filter((b) => b.id !== book.id)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4)
-    const nextRelatedTitle = sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
-
-    return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
-  }, [book.id, book.genre])
-
-  const storageKey = `${prefix}reading-progress-${book.id}`
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    setProgress(Number(localStorage.getItem(storageKey) ?? 0))
-  }, [storageKey])
-
-  const handleProgress = (val) => {
-    setProgress(val)
-    localStorage.setItem(storageKey, val)
-  }
-
   return (
     <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#121212]">
-
-      {/* ── Breadcrumb ── */}
       <nav
         className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-4 py-4 sm:px-6 md:px-8 dark:border-[#2a2a2a] dark:bg-[#121212]"
         aria-label="Breadcrumb"
@@ -155,13 +237,7 @@ export default function BookDetail() {
         </span>
       </nav>
 
-      {/* ── Main article ──
-          Mobile:  single column, cover on top, content below
-          Desktop: two columns, cover sidebar sticky on left, content on right */}
       <article className="mx-auto mt-8 grid max-w-[1000px] grid-cols-1 items-start gap-8 px-4 sm:px-6 md:mt-12 md:gap-12 md:px-8 md:[grid-template-columns:260px_1fr]">
-
-        {/* ── Sidebar: cover + availability + action buttons ──
-            Only sticky on md+ — on mobile it flows naturally above the content */}
         <aside className="md:sticky md:top-[4.5rem] md:self-start">
           <img
             src={book.cover}
@@ -200,7 +276,7 @@ export default function BookDetail() {
               <button
                 className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
                 aria-label={`Edit ${book.title}`}
-                onClick={() => navigate(`/books/${book.id}/edit`)}
+                onClick={() => navigate(`/books/edit/${book.id}`)}
               >
                 Edit Book
               </button>
@@ -208,17 +284,27 @@ export default function BookDetail() {
           </div>
         </aside>
 
-        {/* ── Main content: title, description, metadata, reading progress ── */}
         <section className="flex flex-col gap-3 self-stretch">
           <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#888] dark:text-[#888]">
             {book.genre}
           </span>
 
-          {/* Title scales down slightly on mobile */}
           <h1 className="m-0 text-[1.8rem] font-bold leading-[1.2] text-[#1a1a1a] sm:text-[2.2rem] dark:text-white">
             {book.title}
           </h1>
-          <p className="m-0 text-base text-[#666] dark:text-[#888]">by {book.author}</p>
+
+          <div className="group relative w-fit">
+            <p className="m-0 cursor-help text-base text-[#666] underline decoration-dotted underline-offset-4 dark:text-[#888]">
+              by {book.author}
+            </p>
+
+            <div className="pointer-events-none absolute left-0 top-full z-20 mt-3 w-80 rounded-xl border border-[#e5e2dc] bg-white p-4 text-sm leading-6 text-[#555] opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.14)] transition-all duration-200 group-hover:opacity-100 dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#bbb]">
+              <p className="m-0 mb-2 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#999] dark:text-[#888]">
+                Author Biography
+              </p>
+              <p className="m-0">{authorBiography}</p>
+            </div>
+          </div>
 
           <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
             {book.description.split('\n\n').map((para, i) => (
@@ -226,7 +312,6 @@ export default function BookDetail() {
             ))}
           </div>
 
-          {/* Metadata grid — 2 cols at all sizes, readable on mobile */}
           <ul
             className="mt-2 grid list-none grid-cols-2 gap-x-4 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 sm:gap-x-6 dark:border-[#333]"
             aria-label="Book details"
@@ -247,12 +332,10 @@ export default function BookDetail() {
             ))}
           </ul>
 
-          {/* Reading progress tracker */}
           <section
             className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
             aria-label="Reading progress tracker"
           >
-            {/* Label + percentage */}
             <div className="flex items-baseline justify-between">
               <label
                 htmlFor={`progress-${book.id}`}
@@ -268,9 +351,7 @@ export default function BookDetail() {
               </span>
             </div>
 
-            {/* Single unified control: visual bar + draggable input overlaid on top */}
             <div className="relative h-5 w-full">
-              {/* Visual track + filled bar */}
               <div
                 className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]"
                 role="progressbar"
@@ -285,7 +366,6 @@ export default function BookDetail() {
                 />
               </div>
 
-              {/* Range input — sits over the bar, transparent track, only thumb is visible */}
               <input
                 id={`progress-${book.id}`}
                 type="range"
@@ -330,8 +410,6 @@ export default function BookDetail() {
         </section>
       </article>
 
-      {/* ── Related books ──
-          2 columns on mobile, 4 on sm+ */}
       {relatedBooks.length > 0 && (
         <section
           className="mx-auto mt-10 max-w-[1000px] border-t border-[#e5e2dc] px-4 pt-8 sm:px-6 md:mt-12 md:px-8 dark:border-[#333]"
@@ -362,7 +440,6 @@ export default function BookDetail() {
         </section>
       )}
 
-      {/* ── Borrow modal ── */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 dark:bg-[rgba(0,0,0,0.7)]"
@@ -383,12 +460,11 @@ export default function BookDetail() {
                 <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
                   Borrowed Successfully!
                 </h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
-                  <strong>{book.title}</strong> has been added to your loans. Please pick it up from the library desk
-                  within 48 hours.
+                <p className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  You have borrowed <strong>{book.title}</strong>.
                 </p>
                 <button
-                  className="w-full flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                  className="mt-2 rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
                   onClick={handleClose}
                 >
                   Done
@@ -396,29 +472,24 @@ export default function BookDetail() {
               </>
             ) : (
               <>
-                <img
-                  src={book.cover}
-                  alt={`Cover of ${book.title}`}
-                  className="aspect-[2/3] w-[100px] rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
-                />
-                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">Borrow this book?</h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
-                  <strong>{book.title}</strong> by {book.author}
-                  <br />
-                  <span className="mt-1 block text-[0.8rem] text-[#aaa] dark:text-[#888]">Loan period: 14 days</span>
+                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
+                  Confirm Borrow
+                </h2>
+                <p className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  Do you want to borrow <strong>{book.title}</strong>?
                 </p>
                 <div className="mt-2 flex w-full gap-3">
                   <button
-                    className="flex-1 cursor-pointer rounded-lg border border-[#e0ddd8] bg-white py-3 text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f5f3ef] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]"
+                    className="flex-1 rounded-lg border border-[#ccc] bg-white px-4 py-[0.75rem] text-[0.9rem] font-semibold text-[#555] hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
                     onClick={handleClose}
                   >
                     Cancel
                   </button>
                   <button
-                    className="flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                    className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
                     onClick={handleConfirm}
                   >
-                    Confirm Borrow
+                    Confirm
                   </button>
                 </div>
               </>
