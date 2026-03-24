@@ -108,7 +108,7 @@ function Events() {
         return (
           <section className="border-b border-[rgba(0,103,81,0.06)] bg-[linear-gradient(170deg,rgba(0,103,81,0.035)_0%,rgba(200,190,170,0.055)_100%)] px-5 py-16 dark:border-[#333333] dark:bg-[linear-gradient(170deg,rgba(18,18,18,0.94)_0%,rgba(31,31,31,0.9)_100%)]">
             <div className="mx-auto grid max-w-[var(--container-max)] gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
-              <div className="lg:sticky lg:top-8 lg:self-start">
+              <div className="lg:sticky lg:top-24 lg:self-start">
                 <div className="relative overflow-hidden rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.10),0_1px_3px_rgba(0,0,0,0.06)]">
                   <img src={featuredEvent.image} alt={featuredEvent.title} className="h-full w-full object-cover" />
                   <div className="absolute left-4 top-4 flex w-14 flex-col items-center rounded-[10px] border border-white/12 bg-[rgba(6,26,18,0.78)] py-2 shadow-[0_4px_16px_rgba(0,0,0,0.28)] backdrop-blur-[10px]">
@@ -260,10 +260,10 @@ function Events() {
             <blockquote key={author} className="relative rounded-[14px] border border-[#d0ddd8] bg-[linear-gradient(160deg,rgba(253,250,244,1)_0%,#fff_100%)] p-4 pl-5 shadow-sm sm:p-6 sm:pl-7 dark:border-[#333333] dark:bg-[#1f1f1f] dark:[background-image:none]">
               <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-[14px] bg-gradient-to-b from-[#006751] to-[rgba(0,103,81,0.15)] dark:from-[#5ecba1] dark:to-[rgba(94,203,161,0.15)]" />
               <p className="mb-3 text-[0.78rem] italic leading-[1.62] text-[#1C2B24] sm:mb-4 sm:text-[0.86rem] sm:leading-[1.75] dark:text-[#f5f7f6]">{quote}</p>
-              <footer className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <span className="text-[0.7rem] font-bold sm:text-[0.74rem]">{author}</span>
                 <span className="text-[0.64rem] text-[#5a6b62]/70 sm:text-[0.68rem] dark:text-[#8c9691]">{role}</span>
-              </footer>
+              </div>
             </blockquote>
           ))}
         </div>
