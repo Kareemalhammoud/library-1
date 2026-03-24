@@ -227,7 +227,7 @@ function Header() {
                   : 'bg-[#c0392b] shadow-[0_0_0_2px_rgba(192,57,43,0.2)]'
               }`}
             />
-            <span className={`font-semibold ${open ? 'text-[#3a9466] dark:text-[#5ecba1]' : 'text-[rgba(28,43,36,0.5)]'}`}>
+            <span className={`font-semibold ${open ? 'text-[#3a9466] dark:text-[#5ecba1]' : 'text-[rgba(28,43,36,0.5)] dark:text-[#b7b7b7]'}`}>
               {open ? 'Open Now' : 'Closed'}
             </span>
             <span className="opacity-30">·</span>
