@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+ import { useMemo, useState } from 'react'
 import { EVENTS } from '@/data/eventsData'
 
 const CATEGORIES = ['All', 'Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']

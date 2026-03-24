@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import defaultPic from "../assets/default-profile.png"
 import { BOOKS } from "../data/bookData"
@@ -7,7 +7,6 @@ import { getStoredUser } from "../utils"
 function Dashboard() {
 
 	const navigate = useNavigate()
-	const fileInputRef = useRef(null)
 
 	const [user, setUser] = useState(null)
 	const [username, setUsername] = useState("")
@@ -228,10 +227,6 @@ function Dashboard() {
 		setBorrowedBooks((currentBooks) => [...currentBooks])
 	}
 
-	const openFilePicker = () => {
-		fileInputRef.current.click()
-	}
-
 	const handleLogout = () => {
 		localStorage.setItem("isLoggedIn", "false")
 		navigate("/login")
@@ -246,9 +241,9 @@ function Dashboard() {
 
 	return (
 
-		<div className="max-w-5xl mx-auto mt-10 px-4 sm:px-6">
+		<main className="mx-auto mt-10 max-w-5xl px-4 sm:px-6">
 
-			<div className="mb-6 flex items-center justify-between gap-4">
+			<header className="mb-6 flex items-center justify-between gap-4">
 				<h1 className="text-3xl font-semibold text-gray-800 dark:text-white">
 					User Account
 				</h1>
@@ -260,13 +255,16 @@ function Dashboard() {
 				>
 					Logout
 				</button>
-			</div>
+			</header>
 
-			<div className="flex flex-col md:flex-row justify-between gap-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#242424] dark:border-[#333]">
+			<section
+				className="flex flex-col justify-between gap-8 rounded-xl border border-gray-200 bg-white p-6 shadow-md md:flex-row dark:border-[#333] dark:bg-[#242424]"
+				aria-labelledby="profile-information-heading"
+			>
 
 				<div className="flex-1 space-y-4">
 
-					<h2 className="text-xl font-semibold text-gray-700 dark:text-white">
+					<h2 id="profile-information-heading" className="text-xl font-semibold text-gray-700 dark:text-white">
 						Profile Information
 					</h2>
 
@@ -337,30 +335,32 @@ function Dashboard() {
 						className="w-36 h-36 rounded-full object-cover border-2 border-gray-200 shadow-sm dark:border-[#333]"
 					/>
 
-					<button
-						className="text-sm border border-transparent bg-[#1a6644] text-white px-4 py-2 rounded-md hover:bg-[#14533a] transition dark:border-[#333]"
-						onClick={openFilePicker}
-						aria-label="Upload new profile picture"
+					<label
+						htmlFor="profile-picture-upload"
+						className="cursor-pointer rounded-md border border-transparent bg-[#1a6644] px-4 py-2 text-sm text-white transition hover:bg-[#14533a] dark:border-[#333]"
 					>
 						Edit Profile Picture
-					</button>
+					</label>
 
 					<input
+						id="profile-picture-upload"
 						type="file"
 						accept="image/*"
-						ref={fileInputRef}
 						onChange={handleProfileChange}
-						className="hidden"
-						aria-label="Choose profile picture"
+						className="sr-only"
+						aria-label="Choose a new profile picture"
 					/>
 
 				</div>
 
-			</div>
+			</section>
 
-			<div className="mt-8 bg-white p-6 rounded-xl shadow-md border border-gray-200 dark:bg-[#242424] dark:border-[#333]">
+			<section
+				className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-md dark:border-[#333] dark:bg-[#242424]"
+				aria-labelledby="library-activity-heading"
+			>
 
-				<h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-white">
+				<h2 id="library-activity-heading" className="mb-4 text-xl font-semibold text-gray-700 dark:text-white">
 					Library Activity
 				</h2>
 
@@ -423,7 +423,14 @@ function Dashboard() {
 														</span>
 													</div>
 
-													<div className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2e2e2e]">
+													<div
+														className="mb-1 h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2e2e2e]"
+														role="progressbar"
+														aria-label={`Reading progress for ${book.title}`}
+														aria-valuemin={0}
+														aria-valuemax={100}
+														aria-valuenow={progress}
+													>
 														<div
 															className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
 															style={{ width: `${progress}%` }}
@@ -471,20 +478,21 @@ function Dashboard() {
 					</ul>
 				)}
 
-			</div>
+			</section>
 
-			<div className="mt-8 mb-10 flex flex-wrap gap-4">
+			<nav className="mt-8 mb-10 flex flex-wrap gap-4" aria-label="Dashboard actions">
 
 				<button
 					className="bg-[#1a6644] text-white px-5 py-2 rounded-md hover:bg-[#14533a] transition"
+					type="button"
 					onClick={() => navigate("/books")}
 				>
 					Search Books
 				</button>
 
-			</div>
+			</nav>
 
-		</div>
+		</main>
 	)
 }
 
