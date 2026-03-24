@@ -129,7 +129,7 @@ export default function ListView() {
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-end justify-between gap-3">
           <div>
             <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#888]">
-              Riyad Nassar Library
+              Libraries
             </p>
             <h1 className="m-0 text-[1.6rem] font-extrabold tracking-tight text-[#1a1a1a] sm:text-[2rem] dark:text-white">
               Browse the Collection

@@ -72,7 +72,7 @@ function Events() {
         <div className="relative flex items-center overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-6 py-12 md:px-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_80%,rgba(0,171,142,0.07)_0%,transparent_70%),radial-gradient(ellipse_40%_40%_at_80%_20%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
           <div className="relative max-w-[480px]">
-            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Riyad Nassar Library</p>
+            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Libraries</p>
             <h1 className="mb-5 text-[clamp(1.8rem,3.5vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.035em] text-[rgba(240,248,244,0.96)]">Library Events</h1>
             <p className="mb-8 max-w-[42ch] text-[0.9rem] leading-[1.75] text-[rgba(240,248,244,0.48)]">Author talks, research workshops, film screenings, poetry evenings: the library is where ideas find their audience and community takes shape.</p>
             <div className="mb-8 flex flex-wrap gap-3">

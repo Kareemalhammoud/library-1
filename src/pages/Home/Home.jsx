@@ -193,7 +193,7 @@ function Home() {
           })()}
 
           <div className="absolute bottom-8 left-1/2 z-10 flex w-[calc(100%-2rem)] max-w-[370px] -translate-x-1/2 flex-col rounded-2xl border border-[rgba(0,103,81,0.28)] border-t-white/70 bg-[linear-gradient(160deg,rgba(240,248,244,0.96)_0%,rgba(225,240,235,0.92)_100%)] p-6 shadow-[0_1px_0_rgba(255,255,255,0.65)_inset,0_8px_32px_rgba(10,20,15,0.20),0_2px_8px_rgba(10,20,15,0.12),0_40px_80px_rgba(5,10,8,0.18)] backdrop-blur-[12px] sm:left-[12%] sm:top-1/2 sm:bottom-auto sm:w-[min(370px,88%)] sm:-translate-x-0 sm:-translate-y-1/2 sm:px-9 sm:py-8 dark:border-[#333333] dark:bg-[linear-gradient(160deg,rgba(18,18,18,0.92)_0%,rgba(20,60,47,0.86)_100%)]">
-            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Riyad Nassar Library</p>
+            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Libraries</p>
             <h1 className="mb-4 text-[clamp(1.6rem,3.2vw,2.15rem)] font-extrabold leading-[1.12] tracking-[-0.03em]">Your Next Discovery Starts Here!</h1>
             <p className="mb-6 text-[0.875rem] leading-[1.7] text-[#4e4e4e] dark:text-[#8c9691]">Spend time with a great book, join events, and share ideas with your community.</p>
             <form role="search" className="relative mb-4">

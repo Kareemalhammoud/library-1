@@ -442,7 +442,7 @@ const ServicesPage = () => {
       <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 py-12 md:px-16">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-white/5 pointer-events-none" />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
-          Riyad Nassar Library
+          Libraries
         </p>
         <h1 className="text-white text-4xl font-bold leading-tight mb-2">Library Services</h1>
         <p className="text-white/65 text-sm max-w-md leading-relaxed">
@@ -457,7 +457,7 @@ const ServicesPage = () => {
         </p>
         <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Our Services</h2>
         <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
-          Core services available to all LAU students and faculty at the Riyad Nassar Library.
+          Core services available to all LAU students and faculty at the Libraries.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-10">

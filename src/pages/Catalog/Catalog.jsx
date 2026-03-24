@@ -189,7 +189,7 @@ export default function Catalog() {
   return (
     <div className="min-h-screen bg-[#F2F5F3] dark:bg-[#121212]">
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-10 text-center sm:px-6 md:px-8 md:py-14">
-        <p className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white/45">Riyad Nassar Library</p>
+        <p className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white/45">Libraries</p>
         <h1 className="mb-[0.55rem] text-[clamp(1.8rem,4vw,2.4rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-white">Library Catalog</h1>
         <p className="mx-auto mb-8 max-w-[500px] text-[0.88rem] leading-[1.6] text-white/60">
           Search books, journals, theses, and academic resources across the Beirut and Byblos collections.
