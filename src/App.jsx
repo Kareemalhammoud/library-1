@@ -49,7 +49,7 @@ function App() {
           <Route path="/books" element={<ListView />} />
           <Route path="/books/add" element={<AddEditBook />} />
           <Route path="/books/:id" element={<BookDetail />} />
-          <Route path="/books/:id/edit" element={<AddEditBook />} />
+          <Route path="/books/edit/:id" element={<AddEditBook />} />
 
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/circulation" element={<CirculationPage />} />
