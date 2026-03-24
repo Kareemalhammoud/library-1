@@ -19,7 +19,7 @@ A fully responsive and interactive frontend for the Lebanese American University
 
 | Member | Pages / Features |
 |--------|-----------------|
-| **Kareem Naous** | User Dashboard, Login, Register, Dark Mode |
+| **Kareem Naous** | User Dashboard, Login, Register, EventDetail, Dark Mode |
 | **Perla Imad** | List View, Book Detail, Services, Responsive Design |
 | **Kareem Hammoud** | Homepage, Events, Catalog |
 | **Rayan Madi** | Add Book, Edit Book, Author Detail |
@@ -100,7 +100,7 @@ npm run preview
 
 ### Homepage (`/`)
 
-![Homepage](./screenshots/homepage.png)
+![Homepage](./images/HomeAnimation.gif)
 
 The landing page features a hero section with a Ken Burns-style animation cycling through LAU campus photos. Dynamic CTAs adapt based on login state — "Get Started" for guests, "Explore the Catalog" for authenticated users. Real LAU library statistics are displayed (1.1M+ resources, 185 online databases, 8,000+ students served, 517+ reading seats). An infinite-scroll book carousel with pause-on-hover behavior, built using `useLayoutEffect` and the Web Animations API, is also included alongside an upcoming events preview.
 
@@ -108,7 +108,7 @@ The landing page features a hero section with a Ken Burns-style animation cyclin
 
 ### Book Catalog (`/catalog`)
 
-![Book Catalog](./screenshots/catalog.png)
+![Book Catalog](./images/CatalogAnimation.gif)
 
 A fully searchable catalog of 53 books with advanced filtering. Features a full-text search bar with an advanced search modal (title, author, subject, format, year range). Multi-criteria filter bar covers availability, resource type, language, subject, campus, and year. Grid and list view toggle, sorting options (relevance, title, author, year, availability), and an admin mode — restricted to `admin@lau.edu` — for adding and editing books via a modal form. Responsive across all breakpoints.
 
@@ -116,7 +116,7 @@ A fully searchable catalog of 53 books with advanced filtering. Features a full-
 
 ### List View (`/catalog/list`)
 
-![List View](./screenshots/listview.png)
+![List View](./images/ListViewAnimation.gif)
 
 A searchable, filterable, and paginated catalog view.
 
@@ -131,7 +131,7 @@ A searchable, filterable, and paginated catalog view.
 
 ### Book Detail (`/books/:id`)
 
-![Book Detail](./screenshots/bookdetail.png)
+![Book Detail](./images/BookDetailsAnimation.gif)
 
 A detailed view for individual books.
 
@@ -146,7 +146,7 @@ A detailed view for individual books.
 
 ### Services (`/services`)
 
-![Services](./screenshots/services.png)
+![Services](./images/ServicesAnimation.gif)
 
 A multi-section page reflecting real LAU library services:
 
@@ -162,7 +162,7 @@ All sections are fully responsive.
 
 ### Events (`/events`)
 
-![Events](./screenshots/events.png)
+![Events](./images/EventsAnimation.gif)
 
 - Hero section with a 3-panel image mosaic layout
 - Featured event spotlight with full details (date, time, location, speaker, seats remaining)
@@ -176,7 +176,7 @@ All sections are fully responsive.
 
 ### User Dashboard (`/dashboard`)
 
-> _Screenshot coming soon — Kareem Naous_
+![Dashboard](./images/DashboardAnimation.gif)
 
 A protected route requiring authentication. Displays user profile information, supports editable username and profile picture upload (stored as base64 in `localStorage`), and shows the full loan history with per-loan renewal functionality.
 
@@ -184,7 +184,8 @@ A protected route requiring authentication. Displays user profile information, s
 
 ### Login & Register (`/login`, `/register`)
 
-> _Screenshot coming soon — Kareem Naous_
+![Login](./images/LoginAnimation.gif)
+![Register](./images/RegisterAnimation.gif)
 
 **Login:** Email and password validation with error handling. Redirects to the originally requested page using `location.state.from`. Credentials are verified against data stored in `localStorage`.
 
@@ -194,7 +195,7 @@ A protected route requiring authentication. Displays user profile information, s
 
 ### Add / Edit Book (`/books/add`, `/books/:id/edit`)
 
-![Add/Edit Book](./screenshots/add-edit-book.png)
+![Add/Edit Book](./images/AddEdit.gif)
 
 A dynamic form that handles both adding new books and editing existing entries. When editing, the form is pre-filled with existing data from the global context. Key features include:
 
@@ -204,6 +205,19 @@ A dynamic form that handles both adding new books and editing existing entries. 
 - Data normalization: language (EN / FR), numeric type conversions
 - Form validation and structured data handling
 - Integration with global `BooksContext` for state management
+
+---
+### 🌙 Dark Mode
+
+![Dark Mode](./images/DarkModeAnimation.gif)
+
+The application supports a fully responsive dark mode designed for accessibility and user comfort.
+
+- Toggle available globally via the Header component
+- Preference is saved in `localStorage` and persists across sessions
+- Consistent styling across all pages and components
+- Built using Tailwind CSS dark mode utilities with additional scoped overrides
+
 
 ---
 
