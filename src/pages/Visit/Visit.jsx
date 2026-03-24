@@ -108,11 +108,8 @@ function Visit() {
     <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
       <section className="px-4 py-5 sm:px-6 sm:py-7 md:px-8 md:py-10">
         <div className="mx-auto max-w-[var(--container-max)]">
-          <p className="mb-[0.85rem] text-[0.63rem] font-semibold uppercase tracking-[0.14em] text-[#006751]/70 dark:text-[#5ecba1]/80">
-            Riyad Nassar Library
-          </p>
-          <h1 className={`max-w-3xl text-[clamp(1.45rem,7vw,2.25rem)] font-extrabold leading-[1.05] tracking-[-0.032em] text-[#1C2B24] dark:text-[#f5f7f6] ${sectionTitleBar}`}>
-            Visit Riyad Nassar Library
+<h1 className={`max-w-3xl text-[clamp(1.45rem,7vw,2.25rem)] font-extrabold leading-[1.05] tracking-[-0.032em] text-[#1C2B24] dark:text-[#f5f7f6] ${sectionTitleBar}`}>
+            Visit Our Libraries
           </h1>
           <p className="max-w-[52ch] text-[0.84rem] leading-[1.62] text-[#595959] sm:text-[0.9rem] sm:leading-[1.72] dark:text-[#8c9691]">
             Plan your visit, find our locations on the Beirut and Byblos campuses, and explore the spaces and resources available to you.
@@ -175,8 +172,8 @@ function Visit() {
                 ),
               },
               {
-                title: 'Byblos Campus',
-                value: 'Riyad Nassar Library',
+                title: 'Byblos/Jbeil Campus',
+                value: 'Joseph G. Jabbra Library',
                 detail: 'Blat, Byblos',
                 extraDetail: 'Mount Lebanon, Lebanon',
                 icon: (
@@ -223,7 +220,7 @@ function Visit() {
               Location & Directions
             </h2>
             <p className="max-w-[52ch] text-[0.84rem] leading-[1.62] sm:text-[0.9rem] sm:leading-[1.72] text-[#595959] dark:text-[#8c9691]">
-              The Riyad Nassar Library serves both LAU campuses. Find the location nearest to you and plan your route.
+              Our libraries serve both LAU campuses. Find the location nearest to you and plan your route.
             </p>
           </div>
 

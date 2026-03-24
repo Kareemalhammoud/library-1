@@ -293,7 +293,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
         <section className="rounded-xl border border-[#e5e2dc] bg-white p-6 dark:border-[#333] dark:bg-[#242424] sm:p-8">
           <div className="border-b border-[#e5e2dc] pb-6 dark:border-[#333]">
             <p className="mb-1 text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#aaa] dark:text-[#888]">
-              Riyad Nassar Library
+              Our Libraries
             </p>
             <h1 className="m-0 text-[2rem] font-extrabold tracking-tight text-[#1a1a1a] dark:text-white">
               {pageTitle}
