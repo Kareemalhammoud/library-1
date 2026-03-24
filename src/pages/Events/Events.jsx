@@ -1,4 +1,5 @@
- import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 import { EVENTS } from '@/data/eventsData'
 
 const CATEGORIES = ['All', 'Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']
@@ -156,7 +157,7 @@ function Events() {
                 )}
                 <div className="flex flex-wrap gap-3">
                   <button type="button" className="rounded-lg bg-[#1a6644] px-6 py-2.5 text-[0.82rem] font-semibold text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]">Reserve a Spot</button>
-                  <button type="button" className="rounded-lg border border-[#d0ddd8] px-6 py-2.5 text-[0.82rem] font-semibold text-[#1C2B24] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#333333] dark:text-[#f5f7f6] dark:hover:border-[#5ecba1] dark:hover:bg-[#1f1f1f]">Learn More</button>
+                  <Link to={`/events/${featuredEvent.id}`} className="rounded-lg border border-[#d0ddd8] px-6 py-2.5 text-center text-[0.82rem] font-semibold text-[#1C2B24] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#333333] dark:text-[#f5f7f6] dark:hover:border-[#5ecba1] dark:hover:bg-[#1f1f1f]">Learn More</Link>
                 </div>
               </div>
             </div>
@@ -258,7 +259,7 @@ function Events() {
                             <span className="text-[0.62rem] font-semibold text-[#006751]/75 sm:text-[0.66rem] dark:text-[#5ecba1]/80">{seatsLeft} left</span>
                           </div>
                         ) : <span className="text-[0.62rem] text-[#5a6b62]/70 sm:text-[0.66rem] dark:text-[#8c9691]">Open attendance</span>}
-                        <button type="button" className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-[0.68rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">{seatsLeft !== null ? 'Register' : 'Learn More'}</button>
+                        <Link to={`/events/${event.id}`} className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-center text-[0.68rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">Learn More</Link>
                       </div>
                     </div>
                   </article>
