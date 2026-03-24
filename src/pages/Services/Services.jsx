@@ -80,13 +80,13 @@ const INITIAL_MESSAGES = [
 const Icon = ({ name, className = "" }) => {
   const icons = {
     book: (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
       </svg>
     ),
     calendar: (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <rect x="3" y="4" width="18" height="18" rx="2" />
         <line x1="3" y1="10" x2="21" y2="10" />
         <line x1="8" y1="2" x2="8" y2="6" />
@@ -94,31 +94,31 @@ const Icon = ({ name, className = "" }) => {
       </svg>
     ),
     printer: (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <polyline points="6 9 6 2 18 2 18 9" />
         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
         <rect x="6" y="14" width="12" height="8" />
       </svg>
     ),
     pen: (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <path d="M12 20h9" />
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
       </svg>
     ),
     arrow: (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true" focusable="false">
         <path d="M5 12h14M12 5l7 7-7 7" />
       </svg>
     ),
     send: (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <line x1="22" y1="2" x2="11" y2="13" />
         <polygon points="22 2 15 22 11 13 2 9 22 2" />
       </svg>
     ),
     user: (
-      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
         <circle cx="12" cy="7" r="4" />
       </svg>
@@ -174,11 +174,12 @@ const ServiceCard = ({ service }) => {
   const navigate = useNavigate();
   const v = CARD_VARIANTS[service.variant];
   return (
-    <div
+    <article
       onClick={() => navigate(service.route)}
       className={`${v.card} rounded-2xl p-6 cursor-pointer hover:-translate-y-0.5 transition-transform duration-150`}
+      aria-label={service.title}
     >
-      <div className={`${v.iconWrap} w-10 h-10 rounded-xl flex items-center justify-center mb-4`}>
+      <div className={`${v.iconWrap} w-10 h-10 rounded-xl flex items-center justify-center mb-4`} aria-hidden="true">
         <Icon name={service.icon} className={`${v.iconColor} w-5 h-5`} />
       </div>
       <p className={`${v.tag} text-[10px] font-semibold tracking-widest uppercase mb-1`}>
@@ -188,11 +189,11 @@ const ServiceCard = ({ service }) => {
         {service.title}
       </h3>
       <p className={`${v.desc} text-[13px] leading-relaxed`}>{service.desc}</p>
-      <div className={`${v.link} mt-4 text-[13px] font-medium flex items-center gap-1`}>
+      <span className={`${v.link} mt-4 text-[13px] font-medium flex items-center gap-1`} aria-hidden="true">
         {service.link}
         <Icon name="arrow" className="w-3 h-3" />
-      </div>
-    </div>
+      </span>
+    </article>
   );
 };
 
@@ -249,37 +250,45 @@ const RoomBookingForm = () => {
 
   if (submitted) {
     return (
-      <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col items-center justify-center gap-4 min-h-[340px]">
-        <div className="w-14 h-14 rounded-full bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center">
+      <section
+        className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col items-center justify-center gap-4 min-h-[340px]"
+        aria-live="polite"
+        aria-label="Reservation confirmed"
+      >
+        <div className="w-14 h-14 rounded-full bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center" aria-hidden="true">
           <svg className="w-7 h-7 text-[#1a6644] dark:text-[#5ecba1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
         <p className="text-[#162a1f] dark:text-white font-bold text-base">Reservation confirmed!</p>
         <p className="text-[#5e7a68] dark:text-[#888] text-sm text-center leading-relaxed">
-          Room <span className="font-semibold text-[#5ecba1] dark:text-white">{ROOM_OPTIONS.find(r => r.value === form.room)?.label}</span> has been reserved for {form.date} at {form.time}.
+          Room <strong className="font-semibold text-[#5ecba1] dark:text-white">{ROOM_OPTIONS.find(r => r.value === form.room)?.label}</strong> has been reserved for {form.date} at {form.time}.
         </p>
         <button onClick={resetForm} className="mt-2 text-sm text-[#1a6644] dark:text-[#5ecba1] font-medium underline underline-offset-2">
           Make another reservation
         </button>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
+    <section
+      className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6"
+      aria-label="Study room reservation form"
+    >
       <h3 className="text-[#162a1f] dark:text-white font-bold text-[15px] mb-0.5">Study room reservation</h3>
       <p className="text-[#5e7a68] dark:text-[#888] text-xs mb-5">
         Available Mon–Fri · Max 2 hrs per session · Valid LAU ID required
       </p>
 
-      <div className="mb-3">
-        <label className={labelCls}>Campus</label>
-        <div className="flex gap-2 mb-2.5">
+      <fieldset className="border-0 p-0 m-0 mb-3">
+        <legend className={labelCls}>Campus</legend>
+        <div className="flex gap-2 mb-2.5" role="group" aria-label="Select campus">
           {["Beirut", "Byblos"].map((c) => (
             <button
               key={c}
               onClick={() => switchCampus(c)}
+              aria-pressed={campus === c}
               className={`flex-1 h-8 rounded-lg text-[12px] font-semibold transition-colors duration-150 border ${
                 campus === c
                   ? "bg-[#1a6644] text-white border-[#1a6644]"
@@ -291,36 +300,69 @@ const RoomBookingForm = () => {
           ))}
         </div>
 
-        <label className={labelCls}>Room</label>
-        <select value={form.room} onChange={(e) => update("room", e.target.value)} className={inputCls}>
+        <label htmlFor="room-select" className={labelCls}>Room</label>
+        <select
+          id="room-select"
+          value={form.room}
+          onChange={(e) => update("room", e.target.value)}
+          className={inputCls}
+          aria-required="true"
+          aria-invalid={!!errors.room}
+          aria-describedby={errors.room ? "room-error" : undefined}
+        >
           {filteredRooms.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        {errors.room && <p className="text-red-500 text-[11px] mt-1">{errors.room}</p>}
-      </div>
+        {errors.room && <p id="room-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.room}</p>}
+      </fieldset>
 
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div>
-          <label className={labelCls}>Date</label>
-          <input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} className={inputCls} />
-          {errors.date && <p className="text-red-500 text-[11px] mt-1">{errors.date}</p>}
+          <label htmlFor="date-input" className={labelCls}>Date</label>
+          <input
+            id="date-input"
+            type="date"
+            value={form.date}
+            onChange={(e) => update("date", e.target.value)}
+            className={inputCls}
+            aria-required="true"
+            aria-invalid={!!errors.date}
+            aria-describedby={errors.date ? "date-error" : undefined}
+          />
+          {errors.date && <p id="date-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.date}</p>}
         </div>
         <div>
-          <label className={labelCls}>Duration</label>
-          <select value={form.duration} onChange={(e) => update("duration", e.target.value)} className={inputCls}>
+          <label htmlFor="duration-select" className={labelCls}>Duration</label>
+          <select
+            id="duration-select"
+            value={form.duration}
+            onChange={(e) => update("duration", e.target.value)}
+            className={inputCls}
+            aria-required="true"
+            aria-invalid={!!errors.duration}
+            aria-describedby={errors.duration ? "duration-error" : undefined}
+          >
             <option value="">Select</option>
             <option value="1hr">1 hour</option>
             <option value="2hr">2 hours</option>
           </select>
-          {errors.duration && <p className="text-red-500 text-[11px] mt-1">{errors.duration}</p>}
+          {errors.duration && <p id="duration-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.duration}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div>
-          <label className={labelCls}>Time slot</label>
-          <select value={form.time} onChange={(e) => update("time", e.target.value)} className={inputCls}>
+          <label htmlFor="time-select" className={labelCls}>Time slot</label>
+          <select
+            id="time-select"
+            value={form.time}
+            onChange={(e) => update("time", e.target.value)}
+            className={inputCls}
+            aria-required="true"
+            aria-invalid={!!errors.time}
+            aria-describedby={errors.time ? "time-error" : undefined}
+          >
             <option value="">Select</option>
             {["8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM",
               "1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM",
@@ -328,30 +370,42 @@ const RoomBookingForm = () => {
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
-          {errors.time && <p className="text-red-500 text-[11px] mt-1">{errors.time}</p>}
+          {errors.time && <p id="time-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.time}</p>}
         </div>
         <div>
-          <label className={labelCls}>No. of people</label>
-          <select value={form.people} onChange={(e) => update("people", e.target.value)} className={inputCls}>
+          <label htmlFor="people-select" className={labelCls}>No. of people</label>
+          <select
+            id="people-select"
+            value={form.people}
+            onChange={(e) => update("people", e.target.value)}
+            className={inputCls}
+            aria-required="true"
+            aria-invalid={!!errors.people}
+            aria-describedby={errors.people ? "people-error" : undefined}
+          >
             <option value="">Select</option>
             {[2,3,4,5,6,7,8].map((n) => (
               <option key={n} value={n}>{n} people</option>
             ))}
           </select>
-          {errors.people && <p className="text-red-500 text-[11px] mt-1">{errors.people}</p>}
+          {errors.people && <p id="people-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.people}</p>}
         </div>
       </div>
 
       <div className="mb-4">
-        <label className={labelCls}>Student ID</label>
+        <label htmlFor="student-id-input" className={labelCls}>Student ID</label>
         <input
+          id="student-id-input"
           type="text"
           placeholder="e.g. 202100001"
           value={form.studentId}
           onChange={(e) => update("studentId", e.target.value)}
           className={inputCls}
+          aria-required="true"
+          aria-invalid={!!errors.studentId}
+          aria-describedby={errors.studentId ? "studentId-error" : undefined}
         />
-        {errors.studentId && <p className="text-red-500 text-[11px] mt-1">{errors.studentId}</p>}
+        {errors.studentId && <p id="studentId-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.studentId}</p>}
       </div>
 
       <button
@@ -361,7 +415,7 @@ const RoomBookingForm = () => {
         <Icon name="calendar" className="w-3.5 h-3.5" />
         Confirm reservation
       </button>
-    </div>
+    </section>
   );
 };
 
@@ -381,40 +435,49 @@ const LibrarianChat = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col">
-      <div className="flex items-center gap-3 mb-4">
+    <section
+      className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 flex flex-col"
+      aria-label="Ask a Librarian chat"
+    >
+      <header className="flex items-center gap-3 mb-4">
         <div className="relative w-9 h-9 flex-shrink-0">
-          <div className="w-9 h-9 rounded-full bg-[#1a6644] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-[#1a6644] flex items-center justify-center" aria-hidden="true">
             <Icon name="user" className="w-4 h-4 text-white" />
           </div>
-          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white dark:border-[#242424]" />
+          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white dark:border-[#242424]" aria-hidden="true" />
         </div>
         <div>
           <p className="text-[#162a1f] dark:text-white text-[14px] font-bold">Ask a Librarian</p>
-          <p className="text-[#1a6644] text-[11px] flex items-center gap-1 dark:text-[#5ecba1]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1a6644] inline-block dark:bg-[#5ecba1]" />
+          <p className="text-[#1a6644] text-[11px] flex items-center gap-1 dark:text-[#5ecba1]" aria-label="Librarian is online">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1a6644] inline-block dark:bg-[#5ecba1]" aria-hidden="true" />
             Online now
           </p>
         </div>
-      </div>
+      </header>
 
-      <div className="flex flex-col gap-2.5 mb-4 flex-1 overflow-y-auto max-h-56">
+      <ol
+        className="flex flex-col gap-2.5 mb-4 flex-1 overflow-y-auto max-h-56"
+        aria-live="polite"
+        aria-label="Chat messages"
+      >
         {messages.map((m) => (
-          <div
+          <li
             key={m.id}
-            className={`text-[12px] leading-relaxed px-3 py-2 rounded-xl max-w-[88%] ${
+            className={`text-[12px] leading-relaxed px-3 py-2 rounded-xl max-w-[88%] list-none ${
               m.from === "lib"
                 ? "bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#162a1f] dark:text-white self-start rounded-tl-sm"
                 : "bg-[#1a6644] text-white self-end rounded-tr-sm"
             }`}
           >
             {m.text}
-          </div>
+          </li>
         ))}
-      </div>
+      </ol>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="group" aria-label="Send a message">
+        <label htmlFor="chat-input" className="sr-only">Type your question</label>
         <input
+          id="chat-input"
           type="text"
           placeholder="Type your question..."
           value={input}
@@ -424,12 +487,13 @@ const LibrarianChat = () => {
         />
         <button
           onClick={send}
+          aria-label="Send message"
           className="w-9 h-9 bg-[#1a6644] hover:bg-[#14533a] rounded-lg flex items-center justify-center transition-colors duration-150 flex-shrink-0"
         >
           <Icon name="send" className="w-3.5 h-3.5 text-white" />
         </button>
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -437,10 +501,10 @@ const LibrarianChat = () => {
 
 const ServicesPage = () => {
   return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#121212]">
+    <main className="min-h-screen bg-[#f2f6f3] dark:bg-[#121212]">
 
-      <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 py-12 md:px-16">
-        <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-white/5 pointer-events-none" />
+      <header className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 py-12 md:px-16">
+        <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-white/5 pointer-events-none" aria-hidden="true" />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Riyad Nassar Library
         </p>
@@ -448,50 +512,61 @@ const ServicesPage = () => {
         <p className="text-white/65 text-sm max-w-md leading-relaxed">
           Borrow materials, reserve study spaces, get writing support, and print — everything you need on campus.
         </p>
-      </section>
+      </header>
 
       <div className="px-8 md:px-16 py-10">
 
-        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
-          What we offer
-        </p>
-        <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Our Services</h2>
-        <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
-          Core services available to all LAU students and faculty at the Riyad Nassar Library.
-        </p>
+        <section aria-labelledby="services-heading">
+          <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1" aria-hidden="true">
+            What we offer
+          </p>
+          <h2 id="services-heading" className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Our Services</h2>
+          <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
+            Core services available to all LAU students and faculty at the Riyad Nassar Library.
+          </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-10">
-          {SERVICES.map((s) => (
-            <ServiceCard key={s.id} service={s} />
-          ))}
-        </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-10 list-none p-0">
+            {SERVICES.map((s) => (
+              <li key={s.id}>
+                <ServiceCard service={s} />
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <hr className="border-[#cfe2d6] dark:border-[#333] mb-10" />
 
-        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
-          Interactive
-        </p>
-        <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Book a Room & Ask a Librarian</h2>
-        <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
-          Reserve a group study space or get real-time help from library staff.
-        </p>
+        <section aria-labelledby="interactive-heading">
+          <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1" aria-hidden="true">
+            Interactive
+          </p>
+          <h2 id="interactive-heading" className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">
+            Book a Room & Ask a Librarian
+          </h2>
+          <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
+            Reserve a group study space or get real-time help from library staff.
+          </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          <RoomBookingForm />
-          <LibrarianChat />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <RoomBookingForm />
+            <LibrarianChat />
+          </div>
+        </section>
 
-        <div className="mt-4 bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] px-5 py-3 flex items-center gap-3 text-[12px]">
-          <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-          <span className="text-[#5e7a68] dark:text-[#888]">
+        <aside
+          className="mt-4 bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] px-5 py-3 flex items-center gap-3 text-[12px]"
+          aria-label="Library hours and location"
+        >
+          <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" aria-hidden="true" />
+          <p className="text-[#5e7a68] dark:text-[#888]">
             <strong className="text-[#162a1f] dark:text-white">Currently closed</strong>
             &nbsp;·&nbsp; Mon–Fri 7:30–22:00 &nbsp;·&nbsp; Sat–Sun closed
             &nbsp;·&nbsp; Mme. Curie St, Koraytem, Beirut
-          </span>
-        </div>
+          </p>
+        </aside>
 
       </div>
-    </div>
+    </main>
   );
 };
 

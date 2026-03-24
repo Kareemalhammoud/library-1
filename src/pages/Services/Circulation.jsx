@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 // ─── Accent colour for this page: deep forest (dark card) ────────────────────
 // bg-[#5ecba1]  accent-[#5ecba1]
 
+
 // ─── Mock Data ────────────────────────────────────────────────────────────────
+
 
 const LOAN_TABLE = [
   { category: "Faculty, full-time",        items: 50,  period: "90 days",  renewals: 3 },
@@ -20,6 +23,7 @@ const LOAN_TABLE = [
   { category: "Unaffiliated users",        items: 3,   period: "4 weeks",  renewals: 3 },
 ];
 
+
 const RULES = [
   "No food or drink is allowed in any library area.",
   "Smoking or vaping is not permitted in the library.",
@@ -30,7 +34,9 @@ const RULES = [
   "Library privileges may be revoked for violations or disruptive behaviour.",
 ];
 
+
 // ─── Shared back button ───────────────────────────────────────────────────────
+
 
 const BackButton = ({ onClick }) => (
   <button
@@ -44,7 +50,9 @@ const BackButton = ({ onClick }) => (
   </button>
 );
 
+
 // ─── Info card ────────────────────────────────────────────────────────────────
+
 
 const InfoCard = ({ title, children, accent = false }) => (
   <div className={`rounded-2xl border p-6 mb-4 ${
@@ -59,7 +67,9 @@ const InfoCard = ({ title, children, accent = false }) => (
   </div>
 );
 
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
 
 const CirculationPage = () => {
   const navigate = useNavigate();
@@ -67,8 +77,10 @@ const CirculationPage = () => {
   const [showFullTable, setShowFullTable] = useState(false);
   const visibleRows = showFullTable ? LOAN_TABLE : LOAN_TABLE.slice(0, 4);
 
+
   return (
     <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
+
 
       {/* Hero — deep forest accent */}
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
@@ -83,7 +95,9 @@ const CirculationPage = () => {
         </p>
       </section>
 
+
       <div className="px-8 md:px-16 py-10 max-w-4xl">
+
 
         {/* Quick stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -99,6 +113,7 @@ const CirculationPage = () => {
             </div>
           ))}
         </div>
+
 
         {/* Loan period table */}
         <InfoCard title="Loan periods by borrower type">
@@ -131,6 +146,7 @@ const CirculationPage = () => {
           </button>
         </InfoCard>
 
+
         {/* Renewals & returns */}
         <InfoCard title="Renewals, returns & reservations">
           <p className="text-[#5e7a68] dark:text-[#888] text-[13px] leading-relaxed mb-3">
@@ -149,6 +165,7 @@ const CirculationPage = () => {
           </p>
         </InfoCard>
 
+
         {/* Rules */}
         <InfoCard title="Discipline & responsibilities">
           <ul className="space-y-2">
@@ -160,6 +177,7 @@ const CirculationPage = () => {
             ))}
           </ul>
         </InfoCard>
+
 
         {/* Contact */}
         <InfoCard title="Contact circulation" accent>
@@ -180,9 +198,14 @@ const CirculationPage = () => {
           </div>
         </InfoCard>
 
+
       </div>
     </div>
   );
 };
 
+
 export default CirculationPage;
+
+
+
