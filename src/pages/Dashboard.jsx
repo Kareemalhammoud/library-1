@@ -450,7 +450,7 @@ function Dashboard() {
 				</div>
 
 				<div className="flex flex-col gap-4">
-					<div className="self-start rounded-xl border border-gray-200 bg-white p-3 shadow-md dark:border-[#333] dark:bg-[#242424]">
+					<div className="mx-auto self-center rounded-xl border border-gray-200 bg-white p-3 shadow-md lg:mx-0 lg:self-start dark:border-[#333] dark:bg-[#242424]">
 						<div className="mb-3 flex items-start justify-between gap-2">
 							<div>
 								<h3 className="text-[0.95rem] font-semibold text-gray-800 dark:text-white">Upcoming Events</h3>
