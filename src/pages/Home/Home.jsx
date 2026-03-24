@@ -173,9 +173,13 @@ function Home() {
             const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][eventDate.getMonth()]
 
             return (
-              <aside
+              <a
+                href="/events"
                 className="absolute right-[5%] top-1/2 z-10 hidden w-[min(240px,36%)] -translate-y-1/2 cursor-pointer flex-col rounded-xl border border-white/10 bg-[rgba(6,26,18,0.72)] p-5 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_8px_24px_rgba(0,0,0,0.32),0_2px_6px_rgba(0,0,0,0.18)] backdrop-blur-[14px] xl:flex"
-                onClick={() => navigate('/events')}
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate('/events')
+                }}
               >
                 <div className="mb-3 flex items-center gap-2">
                   <svg className="h-[13px] w-[13px] text-[#5ecba1]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -188,7 +192,7 @@ function Home() {
                 <p className="mb-2 text-[0.88rem] font-bold leading-[1.3] tracking-[-0.015em] text-[rgba(240,248,244,0.95)]">{nextEvent.title}</p>
                 <p className="text-[0.72rem] font-medium tracking-[0.01em] text-[rgba(240,248,244,0.55)]">{weekday}, {monthName} {eventDate.getDate()} - {nextEvent.time}</p>
                 <p className="text-[0.67rem] tracking-[0.01em] text-[rgba(240,248,244,0.35)]">{nextEvent.location}</p>
-              </aside>
+              </a>
             )
           })()}
 
@@ -269,7 +273,16 @@ function Home() {
             <div ref={viewportRef} className="overflow-hidden">
               <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
                 {TRACK.map((book, i) => (
-                  <article key={`${book.id}-${i}`} className="group shrink-0 cursor-pointer" onClick={() => navigate(`/books/${book.id}`)} aria-label={`View details for ${book.title} by ${book.author}`}>
+                  <a
+                    key={`${book.id}-${i}`}
+                    href={`/books/${book.id}`}
+                    className="group block shrink-0 cursor-pointer text-inherit no-underline"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      navigate(`/books/${book.id}`)
+                    }}
+                    aria-label={`View details for ${book.title} by ${book.author}`}
+                  >
                     <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-[3px_7px_7px_3px] shadow-[-3px_0_5px_rgba(0,0,0,0.20),0_2px_0_rgba(0,0,0,0.10),0_5px_16px_rgba(28,43,36,0.18)] transition group-hover:-translate-y-1 group-hover:shadow-[-6px_0_14px_rgba(0,0,0,0.32),0_2px_0_rgba(0,0,0,0.16),0_22px_52px_rgba(28,43,36,0.32)]">
                       <img src={book.cover} alt={book.title} className="absolute inset-0 h-full w-full object-cover object-top" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                       <span className="absolute left-0 top-0 h-full w-[9px] bg-gradient-to-r from-black/30 to-black/10" />
@@ -280,7 +293,7 @@ function Home() {
                       <h3 className="text-[0.78rem] font-bold leading-[1.25] tracking-[-0.015em] text-[#1C2B24] dark:text-[#f5f7f6]">{book.title}</h3>
                       <p className="text-[0.66rem] italic text-[#8a8a8a] dark:text-[#8c9691]">{book.author}</p>
                     </div>
-                  </article>
+                  </a>
                 ))}
               </div>
             </div>
