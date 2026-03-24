@@ -2,12 +2,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import { useState, useEffect, useMemo } from 'react'
 import { getCampus, getCopies } from '@/utils/bookUtils'
-import { getStoredUser, isAdminUser } from '@/utils'
 
 export default function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const admin = isAdminUser()
 
   const book = BOOKS.find((b) => b.id === parseInt(id))
   const { total: totalCopies, available: availableCopies } = getCopies(book?.id ?? 0)
@@ -20,8 +18,12 @@ export default function BookDetail() {
   const [shareCopied, setShareCopied] = useState(false)
 
   function getUserPrefix() {
-    const user = getStoredUser()
-    return user?.email ? `${user.email}:` : ''
+    try {
+      const u = JSON.parse(localStorage.getItem('user'))
+      return u?.email ? `${u.email}:` : ''
+    } catch {
+      return ''
+    }
   }
 
   function handleShare() {
@@ -55,22 +57,6 @@ export default function BookDetail() {
     const borrowedAt = new Date()
     const dueAt = new Date(borrowedAt)
     dueAt.setDate(dueAt.getDate() + 14)
-    const borrowedBookEntry = {
-      id: book.id,
-      title: book.title,
-      borrowedAt: borrowedAt.toISOString(),
-      dueDate: dueAt.toISOString(),
-      renewCount: 0,
-      isReserved: false,
-    }
-    const borrowedBooksKey = `${prefix}borrowedBooks`
-    let currentBorrowedBooks = []
-
-    try {
-      currentBorrowedBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
-    } catch {
-      currentBorrowedBooks = []
-    }
 
     setBorrowed(true)
     setConfirmed(true)
@@ -84,12 +70,24 @@ export default function BookDetail() {
       })
     )
 
-    const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
-    if (!alreadyTracked) {
-      localStorage.setItem(
-        borrowedBooksKey,
-        JSON.stringify([...currentBorrowedBooks, borrowedBookEntry])
-      )
+    // Update the borrowedBooks list so the Dashboard shows this book
+    const borrowedBooksKey = `${prefix}borrowedBooks`
+    let currentBooks = []
+    try {
+      currentBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
+    } catch { /* ignore */ }
+
+    const alreadyExists = currentBooks.some((b) => b.id === book.id)
+    if (!alreadyExists) {
+      currentBooks.push({
+        id: book.id,
+        title: book.title,
+        borrowedAt: borrowedAt.toISOString(),
+        dueDate: dueAt.toISOString(),
+        renewCount: 0,
+        isReserved: false,
+      })
+      localStorage.setItem(borrowedBooksKey, JSON.stringify(currentBooks))
     }
   }
 
@@ -196,7 +194,7 @@ export default function BookDetail() {
               {shareCopied ? '✓ Copied!' : 'Share'}
             </button>
 
-            {admin && (
+            {(() => { try { const u = JSON.parse(localStorage.getItem('user')); return u?.email === 'admin@lau.edu' } catch { return false } })() && (
               <button
                 className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
                 aria-label={`Edit ${book.title}`}

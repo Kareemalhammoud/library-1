@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BOOKS, GENRES } from '@/data/bookData'
 import { getAvailability, getCallNumber, getCampus, getCopies, getResourceType } from '@/utils/bookUtils'
-import { isAdminUser } from '@/utils'
+
+const ADMIN_EMAIL = 'admin@lau.edu'
 
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
@@ -26,6 +27,15 @@ const selectClass =
   'w-full rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]'
 const modalInputClass =
   'w-full rounded-md border border-[#d0ddd8] bg-white px-3 py-2 text-[0.82rem] text-[#1C2B24] outline-none transition focus:border-[#006751] focus:ring-2 focus:ring-[#006751]/10 dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1] dark:focus:ring-[#5ecba1]/20'
+
+function isAdmin() {
+  try {
+    const u = JSON.parse(localStorage.getItem('user'))
+    return u?.email === ADMIN_EMAIL
+  } catch {
+    return false
+  }
+}
 
 function tagClass(type) {
   const base =
@@ -64,7 +74,7 @@ export default function Catalog() {
   const [editingBook, setEditingBook] = useState(null)
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const admin = isAdminUser()
+  const admin = isAdmin()
 
   const EMPTY_BOOK = {
     title: '',
@@ -179,7 +189,7 @@ export default function Catalog() {
   return (
     <div className="min-h-screen bg-[#F2F5F3] dark:bg-[#121212]">
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-10 text-center sm:px-6 md:px-8 md:py-14">
-        <p className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white/45">Riyad Nassar Library</p>
+        <p className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white/45">Libraries</p>
         <h1 className="mb-[0.55rem] text-[clamp(1.8rem,4vw,2.4rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-white">Library Catalog</h1>
         <p className="mx-auto mb-8 max-w-[500px] text-[0.88rem] leading-[1.6] text-white/60">
           Search books, journals, theses, and academic resources across the Beirut and Byblos collections.
@@ -216,21 +226,21 @@ export default function Catalog() {
             </svg>
           </button>
           {showAdvanced && (
-            <div className="mx-auto mt-[1.15rem] max-w-[600px] rounded-[10px] border border-white/10 bg-white/10 p-4 text-left backdrop-blur-[10px] sm:p-5">
-              <div className="grid grid-cols-2 gap-x-3 gap-y-3 md:gap-4">
-                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
+            <div className="mx-auto mt-[1.15rem] max-w-[600px] rounded-[10px] border border-white/10 bg-white/10 p-5 text-left backdrop-blur-[10px]">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="flex flex-col gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Title</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="text" placeholder="e.g. The Great Gatsby" value={advTitle} onChange={(e) => setAdvTitle(e.target.value)} />
                 </label>
-                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
+                <label className="flex flex-col gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Author</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="text" placeholder="e.g. Khalil Gibran" value={advAuthor} onChange={(e) => setAdvAuthor(e.target.value)} />
                 </label>
-                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
+                <label className="flex flex-col gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Subject</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="text" placeholder="e.g. Philosophy" value={advSubject} onChange={(e) => setAdvSubject(e.target.value)} />
                 </label>
-                <label className="flex flex-col gap-[0.18rem] sm:gap-1">
+                <label className="flex flex-col gap-1">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Language</span>
                   <select className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition focus:border-white/35" value={advFormat} onChange={(e) => setAdvFormat(e.target.value)}>
                     <option value="All" className="text-[#1C2B24]">All Languages</option>
@@ -238,7 +248,7 @@ export default function Catalog() {
                     <option value="French" className="text-[#1C2B24]">French</option>
                   </select>
                 </label>
-                <label className="col-span-2 flex flex-col gap-[0.18rem] sm:gap-1">
+                <label className="flex flex-col gap-1 md:col-span-2">
                   <span className="text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-white/45">Year</span>
                   <input className="rounded-md border border-white/15 bg-white/10 px-3 py-2 text-[0.8rem] text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:bg-white/15" type="number" placeholder="e.g. 1925" value={advYear} onChange={(e) => setAdvYear(e.target.value)} />
                 </label>
@@ -248,9 +258,9 @@ export default function Catalog() {
         </div>
       </section>
 
-      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-4 py-3 shadow-[0_1px_3px_rgba(28,43,36,0.04)] sm:px-5 sm:py-4 dark:border-[#2a2a2a] dark:bg-[#121212]">
+      <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(28,43,36,0.04)] dark:border-[#2a2a2a] dark:bg-[#121212]">
         <div className="mx-auto flex max-w-[var(--container-max)] flex-col gap-3">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 md:grid-cols-2 md:gap-3 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {[
               { label: 'Availability', value: avail, setValue: setAvail, options: AVAIL_OPTIONS },
               { label: 'Resource Type', value: resType, setValue: setResType, options: TYPE_OPTIONS },
@@ -259,7 +269,7 @@ export default function Catalog() {
               { label: 'Campus', value: campus, setValue: setCampus, options: CAMPUS_OPTIONS },
               { label: 'Year', value: yearRange, setValue: setYearRange, options: YEAR_OPTIONS },
             ].map((filter) => (
-              <label key={filter.label} className="flex min-w-0 flex-col gap-[0.18rem] sm:gap-1">
+              <label key={filter.label} className="flex min-w-0 flex-col gap-1">
                 <span className={fieldLabelClass}>{filter.label}</span>
                 <select className={selectClass} value={filter.value} onChange={(e) => filter.setValue(filter.mapValue ? filter.mapValue(e.target.value) : e.target.value)} aria-label={`Filter by ${filter.label.toLowerCase()}`}>
                   {filter.options.map((option) => {
@@ -346,7 +356,7 @@ export default function Catalog() {
             </button>
           </section>
         ) : view === 'grid' ? (
-          <ul className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] sm:gap-x-4 sm:gap-y-6">
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-4 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))]">
             {filtered.map((book) => {
               const bookAvail = getAvailability(book.id)
               const bookCampus = getCampus(book.id)
@@ -384,19 +394,7 @@ export default function Catalog() {
               const bookType = getResourceType(book.id)
               const callNum = getCallNumber(book)
               return (
-                <li
-                  key={book.id}
-                  className={`flex cursor-pointer gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#1d1d1d] dark:hover:shadow-[inset_0_0_0_1px_rgba(94,203,161,0.08)] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''}`}
-                  onClick={() => navigate(`/books/${book.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      navigate(`/books/${book.id}`)
-                    }
-                  }}
-                  role="link"
-                  tabIndex={0}
-                >
+                <li key={book.id} className={`flex gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#181818] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''}`}>
                   <img src={book.cover} alt={`Cover of ${book.title}`} className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   <div className="min-w-0 flex-1">
                     <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
@@ -411,7 +409,7 @@ export default function Catalog() {
                       <span className={tagClass('subject')}>{book.genre}</span>
                       <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
                     </div>
-                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={(e) => { e.stopPropagation(); setEditingBook(book) }}>Edit</button></div>}
+                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
                   </div>
                   <div className="hidden shrink-0 flex-col items-end gap-1 pt-1 text-right md:flex">
                     <span className="rounded border border-transparent bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:border-[#1f1f1f] dark:bg-[#121212] dark:text-[#8c9691]">{callNum}</span>
