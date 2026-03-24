@@ -17,7 +17,7 @@ function Footer() {
             <span className="text-[0.9rem] font-extrabold uppercase leading-none tracking-[0.16em] text-[rgba(246,241,231,0.92)] dark:text-white">LAU</span>
           </NavLink>
           <p className="m-0 text-[0.84rem] leading-[1.8] text-[rgba(246,241,231,0.38)] dark:text-[#888]">
-            Riyad Nassar Library
+            Libraries
             <br />
             Lebanese American University
           </p>

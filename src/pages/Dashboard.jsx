@@ -15,8 +15,18 @@ function Dashboard() {
 	const [borrowedBooks, setBorrowedBooks] = useState([])
 	const [borrowedBooksLoaded, setBorrowedBooksLoaded] = useState(false)
 
+	function getUserPrefix() {
+		try {
+			const u = JSON.parse(localStorage.getItem("user"))
+			return u?.email ? `${u.email}:` : ""
+		} catch {
+			return ""
+		}
+	}
+
 	const getLoanDetails = (bookId) => {
-		const rawLoan = localStorage.getItem(`loan-${bookId}`)
+		const prefix = getUserPrefix()
+		const rawLoan = localStorage.getItem(`${prefix}loan-${bookId}`)
 
 		if (!rawLoan) return null
 
@@ -48,7 +58,8 @@ function Dashboard() {
 
 	useEffect(() => {
 
-		const savedBorrowedBooks = localStorage.getItem("borrowedBooks")
+		const prefix = getUserPrefix()
+		const savedBorrowedBooks = localStorage.getItem(`${prefix}borrowedBooks`)
 
 		if (savedBorrowedBooks) {
 			try {
@@ -69,9 +80,10 @@ function Dashboard() {
 			}
 		}
 
+		const rebuildPrefix = getUserPrefix()
 		const rebuiltBorrowedBooks = BOOKS.map((book) => {
 
-			const rawLoan = localStorage.getItem(`loan-${book.id}`)
+			const rawLoan = localStorage.getItem(`${rebuildPrefix}loan-${book.id}`)
 
 			if (!rawLoan) return null
 
@@ -100,17 +112,19 @@ function Dashboard() {
 
 		if (!borrowedBooksLoaded) return
 
-		localStorage.setItem("borrowedBooks", JSON.stringify(borrowedBooks))
+		const savePrefix = getUserPrefix()
+		localStorage.setItem(`${savePrefix}borrowedBooks`, JSON.stringify(borrowedBooks))
 
+		const syncPrefix = getUserPrefix()
 		borrowedBooks.forEach((book) => {
-			const legacyLoan = localStorage.getItem(`loan-${book.id}`)
+			const legacyLoan = localStorage.getItem(`${syncPrefix}loan-${book.id}`)
 
 			if (!legacyLoan) return
 
 			try {
 				const parsedLoan = JSON.parse(legacyLoan)
 				localStorage.setItem(
-					`loan-${book.id}`,
+					`${syncPrefix}loan-${book.id}`,
 					JSON.stringify({
 						...parsedLoan,
 						borrowedAt: book.borrowedAt || parsedLoan.borrowedAt,
@@ -122,7 +136,7 @@ function Dashboard() {
 				)
 			} catch {
 				localStorage.setItem(
-					`loan-${book.id}`,
+					`${syncPrefix}loan-${book.id}`,
 					JSON.stringify({
 						bookId: book.id,
 						borrowedAt: book.borrowedAt || null,
@@ -203,9 +217,17 @@ function Dashboard() {
 		)
 	}
 
-	const handleLoanProgressChange = (bookId, value) => {
+	const handleReturnBook = (bookId) => {
+		const returnPrefix = getUserPrefix()
+		localStorage.removeItem(`${returnPrefix}loan-${bookId}`)
+		localStorage.removeItem(`${returnPrefix}borrowed-${bookId}`)
+		localStorage.removeItem(`${returnPrefix}reading-progress-${bookId}`)
+		setBorrowedBooks((currentBooks) => currentBooks.filter((book) => book.id !== bookId))
+	}
 
-		localStorage.setItem(`reading-progress-${bookId}`, String(value))
+	const handleLoanProgressChange = (bookId, value) => {
+		const progressPrefix = getUserPrefix()
+		localStorage.setItem(`${progressPrefix}reading-progress-${bookId}`, String(value))
 		setBorrowedBooks((currentBooks) => [...currentBooks])
 	}
 
@@ -351,7 +373,8 @@ function Dashboard() {
 				) : (
 					<ul className="mt-4 space-y-3">
 						{borrowedBooks.map((book) => {
-							const progress = Number(localStorage.getItem(`reading-progress-${book.id}`) ?? 0)
+								const readPrefix = getUserPrefix()
+							const progress = Number(localStorage.getItem(`${readPrefix}reading-progress-${book.id}`) ?? 0)
 							const isRenewDisabled = book.renewCount >= 2 || book.isReserved === true
 							const bookDetails = BOOKS.find((item) => item.id === book.id)
 
@@ -425,6 +448,13 @@ function Dashboard() {
 													disabled={isRenewDisabled}
 												>
 													{isRenewDisabled ? "Renewed Max" : "Renew"}
+												</button>
+												<button
+													type="button"
+													className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20"
+													onClick={() => handleReturnBook(book.id)}
+												>
+													Return
 												</button>
 											</div>
 										</div>

@@ -4,7 +4,7 @@ export const EVENTS = [
     title: 'Research Skills Workshop: Finding Academic Sources',
     date: '2026-03-25',
     time: '2:00 PM - 4:00 PM',
-    location: 'Riyad Nassar Library, Beirut',
+    location: 'Libraries, Beirut',
     category: 'Workshops',
     format: 'In-Person',
     featured: true,
