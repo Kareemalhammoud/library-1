@@ -8,6 +8,13 @@ import ListView from '@/pages/ListView/ListView'
 import Catalog from '@/pages/Catalog/Catalog'
 import AddEditBook from '@/pages/AddEditBook/AddEditBook'
 import Visit from '@/pages/Visit/Visit'
+import Events from '@/pages/Events/Events'
+import EventDetails from '@/pages/EventDetails/EventDetails'
+import ServicesPage from '@/pages/Services/Services'
+import CirculationPage from '@/pages/Services/Circulation'
+import StudyRoomsPage from '@/pages/Services/StudyRooms'
+import PrintingPage from '@/pages/Services/Printing'
+import WritingCenterPage from '@/pages/Services/WritingCenter'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -30,25 +37,34 @@ function App() {
 
       <main className="main-content">
         <Routes>
-
-          {/* Home */}
           <Route path="/" element={<Home />} />
 
-          {/* Authentication */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* Catalog / Books */}
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/visit" element={<Visit />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/events/:id" element={<EventDetails />} />
+
           <Route path="/books" element={<ListView />} />
           <Route path="/books/add" element={<AddEditBook />} />
           <Route path="/books/:id" element={<BookDetail />} />
+          <Route path="/books/edit/:id" element={<AddEditBook />} />
 
-         {/*Add/Edit book*/} 
-          <Route path="/books/:id/edit" element={<AddEditBook />} />
+          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/services/circulation" element={<CirculationPage />} />
+          <Route path="/services/studyrooms" element={<StudyRoomsPage />} />
+          <Route path="/services/StudyRooms" element={<StudyRoomsPage />} />
+          <Route path="/services/printing" element={<PrintingPage />} />
+          <Route path="/services/writingcenter" element={<WritingCenterPage />} />
 
+          <Route path="/Services" element={<ServicesPage />} />
+          <Route path="/Services/Circulation" element={<CirculationPage />} />
+          <Route path="/Services/StudyRooms" element={<StudyRoomsPage />} />
+          <Route path="/Services/Printing" element={<PrintingPage />} />
+          <Route path="/Services/WritingCenter" element={<WritingCenterPage />} />
         </Routes>
       </main>
 

@@ -1,4 +1,5 @@
 import { FaEye, FaEyeSlash } from "react-icons/fa"
+import PropTypes from "prop-types"
 
 function FormInput({
 	label,
@@ -7,6 +8,11 @@ function FormInput({
 	value,
 	onChange,
 	placeholder,
+	required = true,
+	autoComplete,
+	errorId,
+	invalid = false,
+	describedBy,
 	showToggle = false,
 	showPassword,
 	setShowPassword
@@ -35,7 +41,11 @@ function FormInput({
 					value={value}
 					onChange={onChange}
 					placeholder={placeholder}
-					aria-required="true"
+					required={required}
+					autoComplete={autoComplete}
+					aria-required={required}
+					aria-invalid={invalid}
+					aria-describedby={invalid ? errorId : describedBy}
 					className="
 						w-full
 						px-3 py-2
@@ -50,9 +60,9 @@ function FormInput({
 						focus:ring-2
 						focus:ring-[#006751]/20
 						transition
-						dark:border-[#3a3a3a]
-						dark:bg-[#2a2a2a]
-						dark:text-[#f0ede8]
+						dark:border-[#333]
+						dark:bg-[#2e2e2e]
+						dark:text-white
 						dark:placeholder:text-[#666]
 					"
 				/>
@@ -64,11 +74,11 @@ function FormInput({
 						className="
 							absolute right-3 top-1/2 -translate-y-1/2
 							text-gray-500
-							dark:text-[#aaa]
+							dark:text-[#888]
 						"
 						aria-label={showPassword ? "Hide password" : "Show password"}
 					>
-						{showPassword ? <FaEyeSlash /> : <FaEye />}
+						{showPassword ? <FaEye /> : <FaEyeSlash />}
 					</button>
 				)}
 
@@ -76,6 +86,23 @@ function FormInput({
 
 		</div>
 	)
+}
+
+FormInput.propTypes = {
+	label: PropTypes.string.isRequired,
+	type: PropTypes.string,
+	id: PropTypes.string.isRequired,
+	value: PropTypes.string.isRequired,
+	onChange: PropTypes.func.isRequired,
+	placeholder: PropTypes.string,
+	required: PropTypes.bool,
+	autoComplete: PropTypes.string,
+	errorId: PropTypes.string,
+	invalid: PropTypes.bool,
+	describedBy: PropTypes.string,
+	showToggle: PropTypes.bool,
+	showPassword: PropTypes.bool,
+	setShowPassword: PropTypes.func
 }
 
 export default FormInput

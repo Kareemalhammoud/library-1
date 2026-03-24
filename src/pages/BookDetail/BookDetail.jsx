@@ -2,20 +2,132 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import { useState, useEffect, useMemo } from 'react'
 import { getCampus, getCopies } from '@/utils/bookUtils'
+import { getStoredUser, isAdminUser } from '@/utils'
+
+const AUTHOR_BIOGRAPHIES = {
+  'Donna Tartt':
+    'An American novelist known for immersive literary fiction. She won the Pulitzer Prize for The Goldfinch, often exploring morality and obsession.',
+  'Brandon Sanderson':
+    'A leading modern fantasy author known for intricate magic systems and the Cosmere universe.',
+  'Struan Murray':
+    'A British children’s fantasy writer blending mythology and science in imaginative stories.',
+  'Christopher Paolini':
+    'American fantasy author who gained fame with Eragon, written as a teenager.',
+  'Maria Zoccola':
+    'A contemporary writer focusing on emotional narratives and character-driven stories.',
+  'Ludwig Wittgenstein':
+    'A major 20th-century philosopher focused on language, logic, and meaning.',
+  'E. Lockhart':
+    'American YA author known for psychological storytelling like We Were Liars.',
+  'Tricia Levenseller':
+    'YA fantasy author known for fast-paced, character-led adventures.',
+  'Tahereh Mafi':
+    'Bestselling author of the Shatter Me series, blending dystopia and lyrical prose.',
+  'John Gwynne':
+    'Epic fantasy writer inspired by Norse mythology and action-driven narratives.',
+  'George Orwell':
+    'Political writer known for 1984 and Animal Farm, exploring power and control.',
+  'Fyodor Dostoevsky':
+    'Russian novelist exploring psychology, morality, and existential themes.',
+  'Franz Kafka':
+    'Writer of surreal, existential works reflecting alienation and absurdity.',
+  'Albert Camus':
+    'Philosopher of absurdism exploring meaning and existence in works like The Stranger.',
+  'J.K. Rowling':
+    'Creator of Harry Potter, a globally influential fantasy series.',
+  'J.R.R. Tolkien':
+    'Father of modern fantasy, author of The Lord of the Rings.',
+  'Jane Austen':
+    'English novelist known for wit and social commentary.',
+  'Colleen Hoover':
+    'Contemporary romance author exploring emotional and personal themes.',
+  'Leigh Bardugo':
+    'Fantasy author known for the Grishaverse series.',
+  'Rick Riordan':
+    'Author blending mythology with modern adventure, like Percy Jackson.',
+  'Stephen King':
+    'Master of horror and suspense with a vast body of work.',
+  'Agatha Christie':
+    'Legendary mystery writer, creator of Hercule Poirot.',
+  'Dan Brown':
+    'Thriller author known for fast-paced conspiracy novels.',
+  'Suzanne Collins':
+    'Author of The Hunger Games, combining dystopia and social themes.',
+  'Veronica Roth':
+    'Known for Divergent, exploring identity and society.',
+  'C.S. Lewis':
+    'Author of The Chronicles of Narnia, blending fantasy and philosophy.',
+  'Neil Gaiman':
+    'Writer combining fantasy, mythology, and dark storytelling.',
+  'Mark Manson':
+    'Self-help author known for direct, modern perspectives on life.',
+  'Robert Greene':
+    'Author of strategic works on power and human behavior.',
+  'Yuval Noah Harari':
+    'Historian exploring humanity and the future in Sapiens.',
+}
 
 export default function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const admin = isAdminUser()
 
-  const book = BOOKS.find((b) => b.id === parseInt(id))
-  const { total: totalCopies, available: availableCopies } = getCopies(book?.id ?? 0)
+  const book = BOOKS.find((b) => b.id === parseInt(id, 10))
+  const safeBookId = book?.id ?? 0
+
+  const { total: totalCopies, available: availableCopies } = getCopies(safeBookId)
   const isAvailable = availableCopies > 0
-  const bookCampus = getCampus(book?.id ?? 0)
+  const bookCampus = getCampus(safeBookId)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  function getUserPrefix() {
+    const user = getStoredUser()
+    return user?.email ? `${user.email}:` : ''
+  }
+
+  const prefix = getUserPrefix()
+  const borrowKey = `${prefix}borrowed-${safeBookId}`
+  const loanKey = `${prefix}loan-${safeBookId}`
+  const storageKey = `${prefix}reading-progress-${safeBookId}`
+
+  useEffect(() => {
+    if (!book) return
+    const savedLoan = localStorage.getItem(loanKey)
+    setBorrowed(Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
+  }, [book, borrowKey, loanKey])
+
+  useEffect(() => {
+    if (!book) return
+    setProgress(Number(localStorage.getItem(storageKey) ?? 0))
+  }, [book, storageKey])
+
+  const authorBiography = book
+    ? AUTHOR_BIOGRAPHIES[book.author] || 'No biography available for this author yet.'
+    : ''
+
+  const { relatedBooks, relatedTitle } = useMemo(() => {
+    if (!book) {
+      return { relatedBooks: [], relatedTitle: 'You might also enjoy' }
+    }
+
+    const sameGenre = BOOKS.filter((b) => b.genre === book.genre && b.id !== book.id)
+    const nextRelatedBooks =
+      sameGenre.length >= 2
+        ? sameGenre.slice(0, 4)
+        : BOOKS.filter((b) => b.id !== book.id)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 4)
+
+    const nextRelatedTitle =
+      sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
+
+    return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
+  }, [book])
 
   function handleShare() {
     navigator.clipboard?.writeText(window.location.href)
@@ -23,27 +135,49 @@ export default function BookDetail() {
     setTimeout(() => setShareCopied(false), 2000)
   }
 
-  const borrowKey = `borrowed-${book?.id}`
-  const loanKey = `loan-${book?.id}`
-
-  useEffect(() => {
-    const savedLoan = localStorage.getItem(loanKey)
-    setBorrowed(Boolean(savedLoan) || localStorage.getItem(borrowKey) === 'true')
-  }, [borrowKey, loanKey])
-
   function handleBorrowClick() {
+    if (!book) return
+
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
+      return
+    }
+
     setConfirmed(false)
     setModalOpen(true)
   }
 
   function handleConfirm() {
+    if (!book) return
+
     const borrowedAt = new Date()
     const dueAt = new Date(borrowedAt)
     dueAt.setDate(dueAt.getDate() + 14)
 
+    const borrowedBookEntry = {
+      id: book.id,
+      title: book.title,
+      borrowedAt: borrowedAt.toISOString(),
+      dueDate: dueAt.toISOString(),
+      renewCount: 0,
+      isReserved: false,
+    }
+
+    const borrowedBooksKey = `${prefix}borrowedBooks`
+    let currentBorrowedBooks = []
+
+    try {
+      currentBorrowedBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
+    } catch {
+      currentBorrowedBooks = []
+    }
+
     setBorrowed(true)
     setConfirmed(true)
-    localStorage.setItem(borrowKey, 'true')
+
+    localStorage.setItem(borrowKey, borrowedAt.toISOString())
     localStorage.setItem(
       loanKey,
       JSON.stringify({
@@ -52,10 +186,24 @@ export default function BookDetail() {
         dueAt: dueAt.toISOString(),
       })
     )
+
+    const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
+
+    if (!alreadyTracked) {
+      localStorage.setItem(
+        borrowedBooksKey,
+        JSON.stringify([...currentBorrowedBooks, borrowedBookEntry])
+      )
+    }
   }
 
   function handleClose() {
     setModalOpen(false)
+  }
+
+  const handleProgress = (val) => {
+    setProgress(val)
+    localStorage.setItem(storageKey, val)
   }
 
   if (!book) {
@@ -72,59 +220,36 @@ export default function BookDetail() {
     )
   }
 
-  const { relatedBooks, relatedTitle } = useMemo(() => {
-    const sameGenre = BOOKS.filter((b) => b.genre === book.genre && b.id !== book.id)
-    const nextRelatedBooks =
-      sameGenre.length >= 2
-        ? sameGenre.slice(0, 4)
-        : BOOKS.filter((b) => b.id !== book.id)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4)
-    const nextRelatedTitle = sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
-
-    return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
-  }, [book.id, book.genre])
-
-  const storageKey = `reading-progress-${book.id}`
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    setProgress(Number(localStorage.getItem(storageKey) ?? 0))
-  }, [storageKey])
-
-  const handleProgress = (val) => {
-    setProgress(val)
-    localStorage.setItem(storageKey, val)
-  }
-
   return (
-    <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
+    <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#121212]">
       <nav
-        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-8 py-4 dark:border-[#2e2e2e] dark:bg-[#1a1a1a]"
+        className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-4 py-4 sm:px-6 md:px-8 dark:border-[#2a2a2a] dark:bg-[#121212]"
         aria-label="Breadcrumb"
       >
         <button
-          className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#3a3a3a] dark:text-[#aaa] dark:hover:bg-[#2a2a2a]"
+          className="cursor-pointer rounded-md border border-[#ccc] bg-transparent px-[0.9rem] py-[0.4rem] text-[0.85rem] text-[#555] hover:bg-[#eee] dark:border-[#333] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
           onClick={() => navigate(-1)}
         >
-          {'\u2190'} Back
+          ← Back
         </button>
-        <span className="text-[0.85rem] text-[#999] dark:text-[#555]">Books / {book.title}</span>
+        <span className="truncate text-[0.85rem] text-[#999] dark:text-[#888]">
+          Books / {book.title}
+        </span>
       </nav>
 
-      <article className="mx-auto mt-12 grid max-w-[1000px] items-start gap-12 px-8 [grid-template-columns:280px_1fr]">
-        <aside className="sticky top-[4.5rem] self-start">
+      <article className="mx-auto mt-8 grid max-w-[1000px] grid-cols-1 items-start gap-8 px-4 sm:px-6 md:mt-12 md:gap-12 md:px-8 md:[grid-template-columns:260px_1fr]">
+        <aside className="md:sticky md:top-[4.5rem] md:self-start">
           <img
             src={book.cover}
             alt={`Cover of ${book.title}`}
             className="w-full rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
           />
 
-          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2e2e2e] dark:bg-[#252525]">
+          <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]">
             <p className={`m-0 text-[0.9rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
-              {isAvailable ? '\u25CF Available' : '\u25CF Fully Borrowed'}
+              {isAvailable ? '● Available' : '● Fully Borrowed'}
             </p>
-            <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#555]">
+            <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#888]">
               {availableCopies} of {totalCopies} copies available
             </p>
           </div>
@@ -136,45 +261,59 @@ export default function BookDetail() {
               onClick={handleBorrowClick}
               aria-label={`Borrow ${book.title}`}
             >
-              {borrowed ? '\u2713 Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
+              {borrowed ? '✓ Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
             </button>
 
             <button
-              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#aaa] dark:hover:bg-[#333]"
+              className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#242424]"
               aria-label={`Share ${book.title}`}
               onClick={handleShare}
             >
-              {shareCopied ? '\u2713 Copied!' : 'Share'}
+              {shareCopied ? '✓ Copied!' : 'Share'}
             </button>
 
-            <button
-              className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
-              aria-label={`Edit ${book.title}`}
-              onClick={() => navigate(`/books/${book.id}/edit`)}
-            >
-              Edit Book
-            </button>
+            {admin && (
+              <button
+                className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
+                aria-label={`Edit ${book.title}`}
+                onClick={() => navigate(`/books/edit/${book.id}`)}
+              >
+                Edit Book
+              </button>
+            )}
           </div>
         </aside>
 
         <section className="flex flex-col gap-3 self-stretch">
-          <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#888] dark:text-[#666]">
+          <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#888] dark:text-[#888]">
             {book.genre}
           </span>
 
-          <h1 className="m-0 text-[2.2rem] font-bold leading-[1.2] text-[#1a1a1a] dark:text-[#f0ede8]">
+          <h1 className="m-0 text-[1.8rem] font-bold leading-[1.2] text-[#1a1a1a] sm:text-[2.2rem] dark:text-white">
             {book.title}
           </h1>
-          <p className="m-0 text-base text-[#666] dark:text-[#888]">by {book.author}</p>
 
-          <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#999]">
+          <div className="group relative w-fit">
+            <p className="m-0 cursor-help text-base text-[#666] underline decoration-dotted underline-offset-4 dark:text-[#888]">
+              by {book.author}
+            </p>
+
+            <div className="pointer-events-none absolute left-0 top-full z-20 mt-3 w-80 rounded-xl border border-[#e5e2dc] bg-white p-4 text-sm leading-6 text-[#555] opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.14)] transition-all duration-200 group-hover:opacity-100 dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#bbb]">
+              <p className="m-0 mb-2 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#999] dark:text-[#888]">
+                Author Biography
+              </p>
+              <p className="m-0">{authorBiography}</p>
+            </div>
+          </div>
+
+          <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
             {book.description.split('\n\n').map((para, i) => (
               <p key={i}>{para}</p>
             ))}
           </div>
 
           <ul
-            className="mt-2 grid list-none grid-cols-2 gap-x-6 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 dark:border-[#2e2e2e]"
+            className="mt-2 grid list-none grid-cols-2 gap-x-4 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 sm:gap-x-6 dark:border-[#333]"
             aria-label="Book details"
           >
             {[
@@ -183,63 +322,89 @@ export default function BookDetail() {
               ['Publisher', book.publisher],
               ['ISBN', book.isbn],
               ['Language', book.language === 'FR' ? 'French' : 'English'],
-              ['Rating', `\u2B50 ${book.rating}`],
+              ['Rating', `⭐ ${book.rating}`],
               ['Campus', bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus],
             ].map(([label, value]) => (
-              <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#555]">
+              <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#888]">
                 <span>{label}</span>
-                <strong className="mt-[0.15rem] text-[0.9rem] text-[#222] dark:text-[#d0cdc8]">{value}</strong>
+                <strong className="mt-[0.15rem] text-[0.9rem] text-[#222] dark:text-white">{value}</strong>
               </li>
             ))}
           </ul>
 
           <section
-            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2e2e2e] dark:bg-[#222]"
+            className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
             aria-label="Reading progress tracker"
           >
             <div className="flex items-baseline justify-between">
               <label
                 htmlFor={`progress-${book.id}`}
-                className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#555]"
+                className="text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]"
               >
                 Reading Progress
               </label>
               <span
-                className="text-[1.6rem] font-extrabold leading-none tracking-tight text-[#1a1a1a] dark:text-[#f0ede8]"
+                className="text-[1.6rem] font-extrabold leading-none tracking-tight text-[#1a1a1a] dark:text-white"
                 aria-live="polite"
               >
                 {progress}%
               </span>
             </div>
 
-            <div
-              className="h-2 w-full overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]"
-              role="progressbar"
-              aria-valuenow={progress}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`${progress}% complete`}
-            >
+            <div className="relative h-5 w-full">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
-                style={{ width: `${progress}%` }}
+                className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]"
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${progress}% complete`}
+              >
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#2d7a4f] to-[#1a4a3a] transition-[width] duration-[200ms] ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <input
+                id={`progress-${book.id}`}
+                type="range"
+                min="0"
+                max="100"
+                value={progress}
+                onChange={(e) => handleProgress(Number(e.target.value))}
+                className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent outline-none
+                  [&::-webkit-slider-runnable-track]:bg-transparent
+                  [&::-moz-range-track]:bg-transparent
+                  [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:h-[22px]
+                  [&::-webkit-slider-thumb]:w-[22px]
+                  [&::-webkit-slider-thumb]:rounded-full
+                  [&::-webkit-slider-thumb]:border-[3px]
+                  [&::-webkit-slider-thumb]:border-white
+                  [&::-webkit-slider-thumb]:bg-[#1a4a3a]
+                  [&::-webkit-slider-thumb]:shadow-[0_1px_4px_rgba(0,0,0,0.25)]
+                  [&::-webkit-slider-thumb]:transition-transform
+                  [&::-webkit-slider-thumb]:duration-150
+                  hover:[&::-webkit-slider-thumb]:scale-110
+                  [&::-moz-range-thumb]:h-[22px]
+                  [&::-moz-range-thumb]:w-[22px]
+                  [&::-moz-range-thumb]:rounded-full
+                  [&::-moz-range-thumb]:border-[3px]
+                  [&::-moz-range-thumb]:border-white
+                  [&::-moz-range-thumb]:bg-[#1a4a3a]
+                  [&::-moz-range-thumb]:shadow-[0_1px_4px_rgba(0,0,0,0.25)]
+                  dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]
+                  dark:[&::-webkit-slider-thumb]:bg-[#5ecba1]
+                  dark:[&::-moz-range-thumb]:border-[#1a1a1a]
+                  dark:[&::-moz-range-thumb]:bg-[#5ecba1]"
               />
             </div>
 
-            <input
-              id={`progress-${book.id}`}
-              type="range"
-              min="0"
-              max="100"
-              value={progress}
-              onChange={(e) => handleProgress(Number(e.target.value))}
-              className="m-0 h-1 w-full cursor-pointer appearance-none bg-transparent outline-none accent-[#1a4a3a] dark:accent-[#2d7a4f] [&::-moz-range-thumb]:h-[18px] [&::-moz-range-thumb]:w-[18px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#1a4a3a] dark:[&::-moz-range-thumb]:border-[#1a1a1a] [&::-webkit-slider-thumb]:h-[18px] [&::-webkit-slider-thumb]:w-[18px] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#1a4a3a] [&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#ccc,0_2px_6px_rgba(0,0,0,0.2)] hover:[&::-webkit-slider-thumb]:scale-[1.2] hover:[&::-webkit-slider-thumb]:shadow-[0_0_0_1px_#999,0_4px_10px_rgba(0,0,0,0.25)] dark:[&::-webkit-slider-thumb]:border-[#1a1a1a]"
-            />
-
-            <p className="m-0 text-[0.78rem] italic text-[#bbb] dark:text-[#555]" aria-live="polite">
+            <p className="m-0 text-[0.78rem] italic text-[#bbb] dark:text-[#888]" aria-live="polite">
               {progress === 0 && 'Not started yet'}
               {progress > 0 && progress < 100 && `${100 - progress}% left to go`}
-              {progress === 100 && '\u2713 Finished!'}
+              {progress === 100 && '✓ Finished!'}
             </p>
           </section>
         </section>
@@ -247,11 +412,11 @@ export default function BookDetail() {
 
       {relatedBooks.length > 0 && (
         <section
-          className="mx-auto mt-12 max-w-[1000px] border-t border-[#e5e2dc] px-8 pt-8 dark:border-[#2e2e2e]"
+          className="mx-auto mt-10 max-w-[1000px] border-t border-[#e5e2dc] px-4 pt-8 sm:px-6 md:mt-12 md:px-8 dark:border-[#333]"
           aria-label="Related books"
         >
-          <h2 className="mb-6 text-[1.3rem] font-bold text-[#1a1a1a] dark:text-[#f0ede8]">{relatedTitle}</h2>
-          <ul className="m-0 grid list-none grid-cols-4 gap-6 p-0">
+          <h2 className="mb-6 text-[1.3rem] font-bold text-[#1a1a1a] dark:text-white">{relatedTitle}</h2>
+          <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-4 sm:gap-6">
             {relatedBooks.map((related) => (
               <li key={related.id}>
                 <button
@@ -264,10 +429,10 @@ export default function BookDetail() {
                     alt={`Cover of ${related.title}`}
                     className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-transform duration-200 group-hover:-translate-y-1"
                   />
-                  <p className="mb-[0.2rem] mt-[0.6rem] text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-[#f0ede8]">
+                  <p className="mb-[0.2rem] mt-[0.6rem] text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-white">
                     {related.title}
                   </p>
-                  <p className="m-0 text-[0.75rem] text-[#888] dark:text-[#666]">{related.author}</p>
+                  <p className="m-0 text-[0.75rem] text-[#888] dark:text-[#888]">{related.author}</p>
                 </button>
               </li>
             ))}
@@ -284,23 +449,22 @@ export default function BookDetail() {
           aria-label="Borrow book"
         >
           <div
-            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-8 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] dark:bg-[#222]"
+            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] sm:p-8 dark:bg-[#242424]"
             onClick={(e) => e.stopPropagation()}
           >
             {confirmed ? (
               <>
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2d7a4f] text-2xl text-white">
-                  {'\u2713'}
+                  ✓
                 </div>
-                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-[#f0ede8]">
+                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
                   Borrowed Successfully!
                 </h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#999]">
-                  <strong>{book.title}</strong> has been added to your loans. Please pick it up from the library desk
-                  within 48 hours.
+                <p className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  You have borrowed <strong>{book.title}</strong>.
                 </p>
                 <button
-                  className="w-full flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                  className="mt-2 rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
                   onClick={handleClose}
                 >
                   Done
@@ -308,29 +472,24 @@ export default function BookDetail() {
               </>
             ) : (
               <>
-                <img
-                  src={book.cover}
-                  alt={`Cover of ${book.title}`}
-                  className="aspect-[2/3] w-[100px] rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
-                />
-                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-[#f0ede8]">Borrow this book?</h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#999]">
-                  <strong>{book.title}</strong> by {book.author}
-                  <br />
-                  <span className="mt-1 block text-[0.8rem] text-[#aaa]">Loan period: 14 days</span>
+                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
+                  Confirm Borrow
+                </h2>
+                <p className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  Do you want to borrow <strong>{book.title}</strong>?
                 </p>
                 <div className="mt-2 flex w-full gap-3">
                   <button
-                    className="flex-1 cursor-pointer rounded-lg border border-[#e0ddd8] bg-white py-3 text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f5f3ef] dark:border-[#3a3a3a] dark:bg-[#2a2a2a] dark:text-[#aaa] dark:hover:bg-[#333]"
+                    className="flex-1 rounded-lg border border-[#ccc] bg-white px-4 py-[0.75rem] text-[0.9rem] font-semibold text-[#555] hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
                     onClick={handleClose}
                   >
                     Cancel
                   </button>
                   <button
-                    className="flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                    className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
                     onClick={handleConfirm}
                   >
-                    Confirm Borrow
+                    Confirm
                   </button>
                 </div>
               </>

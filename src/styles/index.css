@@ -25,24 +25,305 @@ body {
 
 .main-content {
   flex: 1;
-  padding: 0 var(--spacing-4) var(--spacing-6);
-  max-width: var(--container-max);
-  margin: 0 auto;
   width: 100%;
 }
+/* ──────────────────────────────────────
+   DARK MODE — Premium layered dark theme
+   ────────────────────────────────────── */
+
 body.dark {
-  background: #1a1a1a;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 body.dark .main-content {
-  background: #1a1a1a;
-}
-body.dark {
-  background: #1a1a1a;
-  color: #f0ede8;
+  background: var(--color-bg);
 }
 
+/* Header */
 body.dark header {
-  background: #1a1a1a;
+  background: var(--color-bg);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Hero sections — muted deep green, not bright */
+body.dark [class*="hero"] {
+  --hero-bg-start: #143c2f;
+  --hero-bg-end: #121212;
+}
+
+/* White cards → elevated dark surfaces */
+body.dark [class*="card"],
+body.dark [class*="Card"],
+body.dark [class*="policyItem"],
+body.dark [class*="locationCard"],
+body.dark [class*="infoCard"] {
+  background: var(--color-bg-subtle) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text);
+}
+
+body.dark [class*="card"]:hover,
+body.dark [class*="Card"]:hover {
+  background: var(--color-bg-elevated) !important;
+  border-color: rgba(94, 203, 161, 0.18) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+/* Filter dropdowns & inputs */
+body.dark select,
+body.dark input[type="text"],
+body.dark input[type="search"],
+body.dark input[type="email"],
+body.dark input[type="password"],
+body.dark input[type="number"],
+body.dark textarea {
+  background: var(--color-bg-subtle) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+body.dark select:focus,
+body.dark input:focus,
+body.dark textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(0, 171, 142, 0.14) !important;
+}
+
+/* Buttons — muted green primary */
+body.dark [class*="btnPrimary"],
+body.dark [class*="ctaBtn"]:not([class*="Ghost"]),
+body.dark button[class*="Primary"] {
+  background: #006751 !important;
+  color: #f5f7f6 !important;
+}
+
+body.dark [class*="btnPrimary"]:hover,
+body.dark [class*="ctaBtn"]:not([class*="Ghost"]):hover {
+  background: #005040 !important;
+}
+
+/* Ghost / outlined buttons */
+body.dark [class*="btnGhost"],
+body.dark [class*="BtnGhost"],
+body.dark [class*="ctaBtnGhost"] {
+  border-color: var(--color-border) !important;
+  color: var(--color-text-muted) !important;
+}
+
+body.dark [class*="btnGhost"]:hover,
+body.dark [class*="BtnGhost"]:hover,
+body.dark [class*="ctaBtnGhost"]:hover {
+  border-color: var(--color-text-muted) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--color-text) !important;
+}
+
+/* Section backgrounds */
+body.dark [class*="Section"],
+body.dark [class*="section"] {
+  background-color: transparent;
+}
+
+body.dark [class*="filterBar"],
+body.dark [class*="policiesSection"],
+body.dark [class*="supportSection"] {
+  background: rgba(20, 60, 47, 0.24) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Stats bar */
+body.dark [class*="stats"] {
+  background: rgba(20, 60, 47, 0.18) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Tags / badges */
+body.dark [class*="tag"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--color-text-muted) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Links */
+body.dark a[class*="Link"],
+body.dark [class*="cardLink"],
+body.dark [class*="ctaLink"] {
+  color: var(--color-primary) !important;
+}
+
+/* Modals */
+body.dark [class*="modal"]:not([class*="Overlay"]) {
+  background: var(--color-bg-subtle) !important;
+  border: 1px solid var(--color-border);
+}
+
+body.dark [class*="modalOverlay"] {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+body.dark [class*="modalInput"],
+body.dark [class*="modalTextarea"] {
+  background: var(--color-bg) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+/* Welcome / empty states */
+body.dark [class*="welcome"],
+body.dark [class*="empty"] {
+  background: var(--color-bg-subtle) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text);
+}
+
+/* Footer */
+body.dark footer {
+  background: #121212 !important;
+  border-top-color: var(--color-border) !important;
+}
+
+/* Hero card overlay — deep surface instead of white frost */
+body.dark [class*="heroCard"] {
+  background: linear-gradient(
+    160deg,
+    rgba(18, 18, 18, 0.92) 0%,
+    rgba(20, 60, 47, 0.86) 100%
+  ) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark [class*="heroCard"] h1,
+body.dark [class*="heroCard"] p,
+body.dark [class*="heroCard"] span {
+  color: var(--color-text) !important;
+}
+
+body.dark [class*="heroCardBody"],
+body.dark [class*="heroCardHint"] {
+  color: var(--color-text-muted) !important;
+}
+
+/* Hero search bar */
+body.dark [class*="heroSearch"] {
+  background: rgba(18, 18, 18, 0.72) !important;
+  border-color: var(--color-border) !important;
+}
+
+body.dark [class*="heroSearch"] input {
+  color: var(--color-text) !important;
+}
+
+/* Action cards on homepage */
+body.dark [class*="actionCard"] {
+  background: var(--color-bg-subtle) !important;
+  border-color: var(--color-border) !important;
+}
+
+body.dark [class*="actionCard"]:hover {
+  background: var(--color-bg-elevated) !important;
+  border-color: rgba(94, 203, 161, 0.2) !important;
+}
+
+/* Book cards / covers */
+body.dark [class*="bookCard"] {
+  background: transparent !important;
+}
+
+body.dark [class*="bookMeta"] {
+  color: var(--color-text);
+}
+
+/* Nav pill in dark mode */
+body.dark [class*="inner"] {
+  background: rgba(18, 18, 18, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Filter bar */
+body.dark [class*="filterBar"] select,
+body.dark [class*="filterGroup"] select {
+  background: var(--color-bg) !important;
+  color: var(--color-text-muted) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Catalog hero — dark green gradient */
+body.dark [class*="hero"] {
+  background: linear-gradient(165deg, #143c2f 0%, #19372d 60%, #121212 100%) !important;
+}
+
+/* Advanced search panel */
+body.dark [class*="advancedPanel"] {
+  background: rgba(18, 18, 18, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+
+/* List rows */
+body.dark [class*="listRow"] {
+  border-color: var(--color-border) !important;
+}
+
+/* Topbar in dark */
+body.dark [class*="topbar"] {
+  border-bottom-color: var(--color-border) !important;
+  color: var(--color-text-muted) !important;
+}
+
+body.dark [class*="themeToggle"] {
+  color: var(--color-text-muted) !important;
+}
+
+body.dark [class*="themeToggle"]:hover {
+  color: var(--color-text) !important;
+  background: rgba(94, 203, 161, 0.08) !important;
+}
+
+/* Dashboard (Tailwind pages) */
+body.dark .bg-white {
+  background: var(--color-bg-subtle) !important;
+  border-color: var(--color-border) !important;
+}
+
+body.dark .bg-gray-100,
+body.dark .bg-gray-50 {
+  background: var(--color-bg) !important;
+}
+
+body.dark .text-gray-800,
+body.dark .text-gray-700 {
+  color: var(--color-text) !important;
+}
+
+body.dark .text-gray-600,
+body.dark .text-gray-500 {
+  color: var(--color-text-muted) !important;
+}
+
+body.dark .border-gray-200,
+body.dark .border-gray-300 {
+  border-color: var(--color-border) !important;
+}
+
+body.dark .shadow-md {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Scrollbar */
+body.dark ::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+}
+
+/* Smooth toggle transition */
+body,
+body header,
+body footer,
+body main {
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
