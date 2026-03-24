@@ -20,6 +20,7 @@ function Register() {
 
 		e.preventDefault()
 
+		// Keep registration validation on the frontend for this phase.
 		if (!username || !email || !password || !confirmPassword) {
 			setErrorMessage("Please fill in all fields")
 			return
@@ -52,6 +53,7 @@ function Register() {
 			username,
 			email,
 			password,
+			// Save the join date now so it can be shown later in the dashboard.
 			createdAt: new Date().toISOString()
 		}
 
