@@ -181,7 +181,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
   const breadcrumbTitle = formData.title || pageTitle
 
   return (
-    <div className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
+    <main className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#1a1a1a]">
       <nav
         className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-4 py-4 sm:px-6 md:px-8 dark:border-[#333] dark:bg-[#1a1a1a]"
         aria-label="Breadcrumb"
@@ -217,9 +217,11 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 <input
                   id="title"
                   name="title"
+                  type="text"
                   value={formData.title}
                   onChange={handleChange}
                   required
+                  autoComplete="off"
                   className={fieldClassName}
                 />
               </div>
@@ -229,9 +231,11 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 <input
                   id="publisher"
                   name="publisher"
+                  type="text"
                   value={formData.publisher}
                   onChange={handleChange}
                   required
+                  autoComplete="organization"
                   className={fieldClassName}
                 />
               </div>
@@ -241,8 +245,10 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 <input
                   id="genre"
                   name="genre"
+                  type="text"
                   value={formData.genre}
                   onChange={handleChange}
+                  autoComplete="off"
                   className={fieldClassName}
                 />
               </div>
@@ -252,8 +258,10 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 <input
                   id="isbn"
                   name="isbn"
+                  type="text"
                   value={formData.isbn}
                   onChange={handleChange}
+                  autoComplete="off"
                   className={fieldClassName}
                 />
               </div>
@@ -363,7 +371,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   <>
                     <img
                       src={imagePreview}
-                      alt="Preview"
+                      alt={formData.title ? `Cover preview for ${formData.title}` : 'Book cover preview'}
                       className="h-full min-h-[220px] w-full max-w-[180px] rounded-md border border-[#e5e2dc] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:border-[#333]"
                     />
                     <button
@@ -381,11 +389,12 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 )}
               </div>
 
-              <div>
-                <p className={labelClassName}>Cover Page Available?</p>
+              <fieldset>
+                <legend className={labelClassName}>Cover Page Available?</legend>
                 <div className="mt-4 flex flex-wrap gap-6 text-[0.9rem] font-semibold text-[#555] dark:text-white">
                   <label className="inline-flex items-center gap-3">
                     <input
+                      name="coverPageAvailable"
                       type="radio"
                       value="yes"
                       checked={formData.coverPageAvailable === true}
@@ -396,6 +405,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   </label>
                   <label className="inline-flex items-center gap-3">
                     <input
+                      name="coverPageAvailable"
                       type="radio"
                       value="no"
                       checked={formData.coverPageAvailable === false}
@@ -418,7 +428,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                     <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-white">
                         Upload cover image
                       </span>
-                    <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
+                      <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
                         Choose an image file to preview the book cover.
                       </span>
                     </label>
@@ -427,11 +437,12 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                       type="file"
                       accept="image/*"
                       onChange={handleFileChange}
-                      className="hidden"
+                      className="sr-only"
+                      aria-label="Upload a cover image"
                     />
                   </div>
                 )}
-              </div>
+              </fieldset>
             </div>
 
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
@@ -449,7 +460,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
           </form>
         </section>
       </article>
-    </div>
+    </main>
   )
 }
 

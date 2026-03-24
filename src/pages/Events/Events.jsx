@@ -67,7 +67,7 @@ function Events() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
+    <main className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
       <section className="grid md:min-h-[480px] md:grid-cols-2">
         <div className="relative flex items-center overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-9 sm:px-6 sm:py-12 md:px-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_80%,rgba(0,171,142,0.07)_0%,transparent_70%),radial-gradient(ellipse_40%_40%_at_80%_20%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
@@ -141,7 +141,16 @@ function Events() {
                 </div>
                 {featuredEvent.seats && (
                   <div className="mb-7 flex items-center gap-3">
-                    <div className="h-[5px] w-[140px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${pct}%` }} /></div>
+                    <div
+                      className="h-[5px] w-[140px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#333333]"
+                      role="progressbar"
+                      aria-label={`Registration progress for ${featuredEvent.title}`}
+                      aria-valuemin={0}
+                      aria-valuemax={featuredEvent.seats}
+                      aria-valuenow={featuredEvent.registered}
+                    >
+                      <div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${pct}%` }} />
+                    </div>
                     <span className="text-[0.72rem] font-semibold text-[#006751]/70 dark:text-[#5ecba1]/80">{seatsLeft} of {featuredEvent.seats} seats remaining</span>
                   </div>
                 )}
@@ -236,7 +245,16 @@ function Events() {
                       <div className="flex flex-col gap-2 border-t border-[rgba(0,103,81,0.06)] pt-3 dark:border-[#333333] sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
                         {seatsLeft !== null ? (
                           <div className="flex items-center gap-1.5 sm:gap-2">
-                            <div className="h-[4px] w-full max-w-[72px] overflow-hidden rounded bg-[#d0ddd8] sm:h-[5px] sm:w-[110px] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(event.registered / event.seats) * 100}%` }} /></div>
+                            <div
+                              className="h-[4px] w-full max-w-[72px] overflow-hidden rounded bg-[#d0ddd8] sm:h-[5px] sm:w-[110px] dark:bg-[#333333]"
+                              role="progressbar"
+                              aria-label={`Registration progress for ${event.title}`}
+                              aria-valuemin={0}
+                              aria-valuemax={event.seats}
+                              aria-valuenow={event.registered}
+                            >
+                              <div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(event.registered / event.seats) * 100}%` }} />
+                            </div>
                             <span className="text-[0.62rem] font-semibold text-[#006751]/75 sm:text-[0.66rem] dark:text-[#5ecba1]/80">{seatsLeft} left</span>
                           </div>
                         ) : <span className="text-[0.62rem] text-[#5a6b62]/70 sm:text-[0.66rem] dark:text-[#8c9691]">Open attendance</span>}
@@ -314,7 +332,7 @@ function Events() {
           </div>
         </div>
       </section>
-    </div>
+    </main>
   )
 }
 

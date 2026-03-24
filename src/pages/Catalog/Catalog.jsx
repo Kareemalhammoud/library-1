@@ -353,24 +353,31 @@ export default function Catalog() {
               const bookType = getResourceType(book.id)
               return (
                 <li key={book.id} className="flex flex-col gap-2">
-                  <div className="group relative aspect-[2/3] cursor-pointer overflow-hidden rounded-[3px_7px_7px_3px] bg-[#e5e2dc] shadow-[-2px_0_4px_rgba(28,43,36,0.14),0_2px_0_rgba(28,43,36,0.06),0_4px_14px_rgba(28,43,36,0.12)] transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[-4px_0_10px_rgba(28,43,36,0.18),0_2px_0_rgba(28,43,36,0.08),0_12px_28px_rgba(28,43,36,0.16)] dark:bg-[#121212]" onClick={() => navigate(`/books/${book.id}`)} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/books/${book.id}`) }}>
-                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.03)_40%,transparent_65%)]" />
-                    <img src={book.cover} alt={`Cover of ${book.title}`} className="h-full w-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                  </div>
-                  <div className="flex flex-col gap-1 pt-1">
-                    <h2 className="line-clamp-2 text-[0.82rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
-                      <a href={`/books/${book.id}`} className="transition hover:text-[#006751] dark:hover:text-[#5ecba1]" onClick={(e) => { e.preventDefault(); navigate(`/books/${book.id}`) }}>
-                        {book.title}
-                      </a>
-                    </h2>
-                    <p className="text-[0.72rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
-                    <p className="text-[0.64rem] tracking-[0.01em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</p>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      <span className={tagClass('resource')}>{bookType}</span>
-                      <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
+                  <a
+                    href={`/books/${book.id}`}
+                    className="block text-inherit no-underline"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      navigate(`/books/${book.id}`)
+                    }}
+                  >
+                    <div className="group relative aspect-[2/3] cursor-pointer overflow-hidden rounded-[3px_7px_7px_3px] bg-[#e5e2dc] shadow-[-2px_0_4px_rgba(28,43,36,0.14),0_2px_0_rgba(28,43,36,0.06),0_4px_14px_rgba(28,43,36,0.12)] transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[-4px_0_10px_rgba(28,43,36,0.18),0_2px_0_rgba(28,43,36,0.08),0_12px_28px_rgba(28,43,36,0.16)] dark:bg-[#121212]">
+                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.14)_0%,rgba(255,255,255,0.03)_40%,transparent_65%)]" />
+                      <img src={book.cover} alt={`Cover of ${book.title}`} className="h-full w-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                     </div>
-                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
-                  </div>
+                    <div className="flex flex-col gap-1 pt-1">
+                      <h2 className="line-clamp-2 text-[0.82rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] transition hover:text-[#006751] dark:text-[#f5f7f6] dark:hover:text-[#5ecba1]">
+                        {book.title}
+                      </h2>
+                      <p className="text-[0.72rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
+                      <p className="text-[0.64rem] tracking-[0.01em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <span className={tagClass('resource')}>{bookType}</span>
+                        <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
+                      </div>
+                    </div>
+                  </a>
+                  {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button type="button" className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
                 </li>
               )
             })}
@@ -386,38 +393,36 @@ export default function Catalog() {
               return (
                 <li
                   key={book.id}
-                  className={`flex cursor-pointer gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#1d1d1d] dark:hover:shadow-[inset_0_0_0_1px_rgba(94,203,161,0.08)] ${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''}`}
-                  onClick={() => navigate(`/books/${book.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                  className={`${index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''}`}
+                >
+                  <a
+                    href={`/books/${book.id}`}
+                    className="flex gap-4 bg-white px-4 py-4 text-inherit no-underline transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#1d1d1d] dark:hover:shadow-[inset_0_0_0_1px_rgba(94,203,161,0.08)]"
+                    onClick={(e) => {
                       e.preventDefault()
                       navigate(`/books/${book.id}`)
-                    }
-                  }}
-                  role="link"
-                  tabIndex={0}
-                >
-                  <img src={book.cover} alt={`Cover of ${book.title}`} className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
-                      <a href={`/books/${book.id}`} className="transition hover:text-[#006751] dark:hover:text-[#5ecba1]" onClick={(e) => { e.preventDefault(); navigate(`/books/${book.id}`) }}>
+                    }}
+                  >
+                    <img src={book.cover} alt={`Cover of ${book.title}`} className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] transition hover:text-[#006751] dark:text-[#f5f7f6] dark:hover:text-[#5ecba1]">
                         {book.title}
-                      </a>
-                    </h2>
-                    <p className="text-[0.78rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
-                    <p className="truncate text-[0.7rem] tracking-[0.005em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{book.publisher}, {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {book.pages} pp. - ISBN {book.isbn}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      <span className={tagClass('resource')}>{bookType}</span>
-                      <span className={tagClass('subject')}>{book.genre}</span>
-                      <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
+                      </h2>
+                      <p className="text-[0.78rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
+                      <p className="truncate text-[0.7rem] tracking-[0.005em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{book.publisher}, {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {book.pages} pp. - ISBN {book.isbn}</p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className={tagClass('resource')}>{bookType}</span>
+                        <span className={tagClass('subject')}>{book.genre}</span>
+                        <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>{bookAvail ? 'Available' : 'On Loan'}</span>
+                      </div>
                     </div>
-                    {admin && <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]"><button className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={(e) => { e.stopPropagation(); setEditingBook(book) }}>Edit</button></div>}
-                  </div>
-                  <div className="hidden shrink-0 flex-col items-end gap-1 pt-1 text-right md:flex">
-                    <span className="rounded border border-transparent bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:border-[#1f1f1f] dark:bg-[#121212] dark:text-[#8c9691]">{callNum}</span>
-                    <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">{bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</span>
-                    <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{available} of {total} available</span>
-                  </div>
+                    <div className="hidden shrink-0 flex-col items-end gap-1 pt-1 text-right md:flex">
+                      <span className="rounded border border-transparent bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:border-[#1f1f1f] dark:bg-[#121212] dark:text-[#8c9691]">{callNum}</span>
+                      <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">{bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}</span>
+                      <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">{available} of {total} available</span>
+                    </div>
+                  </a>
+                  {admin && <div className="mt-2 border-t border-[#EDF3F0] px-4 pt-2 dark:border-[#333333]"><button type="button" className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white" onClick={() => setEditingBook(book)}>Edit</button></div>}
                 </li>
               )
             })}
@@ -467,8 +472,14 @@ function AdminBookModal({ book, isNew, onSave, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 p-6" onClick={onClose}>
-      <div className="max-h-[85vh] w-full max-w-[620px] overflow-y-auto rounded-[14px] bg-white p-8 shadow-[0_24px_60px_rgba(0,0,0,0.22)] dark:bg-[#1f1f1f]" onClick={(e) => e.stopPropagation()}>
-        <h2 className="mb-5 text-[1.15rem] font-bold text-[#1a1a1a] dark:text-[#f5f7f6]">{isNew ? 'Add New Book' : 'Edit Book'}</h2>
+      <div
+        className="max-h-[85vh] w-full max-w-[620px] overflow-y-auto rounded-[14px] bg-white p-8 shadow-[0_24px_60px_rgba(0,0,0,0.22)] dark:bg-[#1f1f1f]"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-book-modal-title"
+      >
+        <h2 id="admin-book-modal-title" className="mb-5 text-[1.15rem] font-bold text-[#1a1a1a] dark:text-[#f5f7f6]">{isNew ? 'Add New Book' : 'Edit Book'}</h2>
         <form onSubmit={handleSubmit} className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           {fields.map((field) => (
             <label key={field.key} className="flex flex-col gap-1">
