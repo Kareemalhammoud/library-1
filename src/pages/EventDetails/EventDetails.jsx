@@ -66,6 +66,7 @@ function EventDetails() {
   const isRegistered = registeredEvents.some((item) => item.id === event?.id)
 
   useEffect(() => {
+    // Load this user's registered events so the page can reflect the current seat state.
     const rawRegisteredEvents = localStorage.getItem(registeredEventsKey) || localStorage.getItem('registeredEvents')
 
     if (!rawRegisteredEvents) {
@@ -104,6 +105,7 @@ function EventDetails() {
 
     if (seatState.isRegistered || seatState.isFull) return
 
+    // Update localStorage so the registration also shows up in the dashboard calendar.
     const nextRegisteredEvents = [...registeredEvents, { id: event.id, title: event.title, date: event.date }]
 
     localStorage.setItem(registeredEventsKey, JSON.stringify(nextRegisteredEvents))

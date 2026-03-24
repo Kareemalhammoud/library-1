@@ -17,6 +17,7 @@ function Login() {
 
 		e.preventDefault()
 
+		// Basic frontend-only login check using the saved user from localStorage.
 		if (!email || !password) {
 			setErrorMessage("Please fill in all fields")
 			return

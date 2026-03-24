@@ -191,6 +191,7 @@ function Dashboard() {
 	const registeredEventIds = new Set(registeredEvents.map((event) => event.id))
 	const calendarEntriesByDay = {}
 
+	// Merge event dates and book deadlines into one calendar view.
 	EVENTS.forEach((event) => {
 		const eventDate = new Date(`${event.date}T00:00:00`)
 		if (eventDate.getFullYear() !== calendarYear || eventDate.getMonth() !== calendarMonth) return
@@ -219,6 +220,7 @@ function Dashboard() {
 		})
 	})
 
+	// Pick one visual style per day depending on what matters most on that date.
 	const calendarCells = Array.from({ length: totalDaysInMonth }, (_, index) => {
 		const dayNumber = index + 1
 		const entries = calendarEntriesByDay[dayNumber] || []
@@ -290,6 +292,7 @@ function Dashboard() {
 
 				if (book.id !== bookId) return book
 
+				// Match the borrowing rules already shown in the UI.
 				if (book.renewCount >= 2) {
 					alert("Renewal limit reached")
 					return book
