@@ -6,36 +6,81 @@ function Login() {
 
 	const navigate = useNavigate()
 	const location = useLocation()
-	const errorId = "login-form-error"
 
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
 	const [showPassword, setShowPassword] = useState(false)
-	const [errorMessage, setErrorMessage] = useState("")
+	const [fieldErrors, setFieldErrors] = useState({})
+	const [formError, setFormError] = useState("")
+	const [authError, setAuthError] = useState(false)
+
+	const clearFieldError = (field) => {
+		setFieldErrors((currentErrors) => {
+			if (!currentErrors[field]) {
+				return currentErrors
+			}
+
+			const nextErrors = { ...currentErrors }
+			delete nextErrors[field]
+			return nextErrors
+		})
+	}
+
+	const clearErrorsOnChange = (field) => {
+		clearFieldError(field)
+		if (formError) {
+			setFormError("")
+		}
+		if (authError) {
+			setAuthError(false)
+		}
+	}
 
 	const handleSubmit = (e) => {
 
 		e.preventDefault()
+		const nextErrors = {}
+		setFormError("")
+		setAuthError(false)
+
+		const trimmedEmail = email.trim()
 
 		// Basic frontend-only login check using the saved user from localStorage.
-		if (!email || !password) {
-			setErrorMessage("Please fill in all fields")
+		if (!trimmedEmail) {
+			nextErrors.email = "Email is required."
+		}
+
+		if (!password) {
+			nextErrors.password = "Password is required."
+		}
+
+		if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
+			nextErrors.email = "Enter a valid email address."
+		}
+
+		if (Object.keys(nextErrors).length > 0) {
+			setFieldErrors(nextErrors)
 			return
 		}
 
 		const savedUser = JSON.parse(localStorage.getItem("user"))
 
 		if (!savedUser) {
-			setErrorMessage("No account found. Please register first.")
+			setFieldErrors({})
+			setFormError("No account found. Please register first.")
 			return
 		}
 
-		if (email === savedUser.email && password === savedUser.password) {
-			setErrorMessage("")
+		if (trimmedEmail === savedUser.email && password === savedUser.password) {
+			setFieldErrors({})
+			setFormError("")
+			setAuthError(false)
 			localStorage.setItem("isLoggedIn", "true")
 			navigate(location.state?.from || "/dashboard")
 		} else {
-			setErrorMessage("Invalid email or password")
+			setFieldErrors({})
+			setAuthError(true)
+			setFormError("Invalid email or password.")
 		}
 	}
 
@@ -52,42 +97,45 @@ function Login() {
 					Login
 				</h1>
 
-				<form onSubmit={handleSubmit} aria-label="Login form">
+				<form onSubmit={handleSubmit} aria-label="Login form" noValidate>
 
 					<FormInput
 						label="Email"
 						type="email"
 						id="email"
 						value={email}
-						onChange={(e) => setEmail(e.target.value)}
+						onChange={(e) => {
+							setEmail(e.target.value)
+							clearErrorsOnChange("email")
+						}}
 						placeholder="Enter email"
 						autoComplete="email"
-						errorId={errorId}
-						invalid={Boolean(errorMessage)}
+						errorId="login-email-error"
+						errorText={fieldErrors.email}
+						invalid={Boolean(fieldErrors.email) || authError}
 					/>
 
 					<FormInput
 						label="Password"
 						id="password"
 						value={password}
-						onChange={(e) => setPassword(e.target.value)}
+						onChange={(e) => {
+							setPassword(e.target.value)
+							clearErrorsOnChange("password")
+						}}
 						placeholder="Enter password"
 						autoComplete="current-password"
-						errorId={errorId}
-						invalid={Boolean(errorMessage)}
+						errorId="login-password-error"
+						errorText={fieldErrors.password}
+						invalid={Boolean(fieldErrors.password) || authError}
 						showToggle={true}
 						showPassword={showPassword}
 						setShowPassword={setShowPassword}
 					/>
 
-					{errorMessage && (
-						<p
-							id={errorId}
-							className="mb-2 text-sm text-red-600 dark:text-red-400"
-							role="alert"
-							aria-live="assertive"
-						>
-							{errorMessage}
+					{formError && (
+						<p className="mb-4 text-sm text-red-600 dark:text-red-400" role="alert" aria-live="assertive">
+							{formError}
 						</p>
 					)}
 

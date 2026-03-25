@@ -6,7 +6,6 @@ function Register() {
 
 	const navigate = useNavigate()
 	const location = useLocation()
-	const errorId = "register-form-error"
 
 	const [username, setUsername] = useState("")
 	const [email, setEmail] = useState("")
@@ -14,44 +13,92 @@ function Register() {
 	const [confirmPassword, setConfirmPassword] = useState("")
 
 	const [showPassword, setShowPassword] = useState(false)
-	const [errorMessage, setErrorMessage] = useState("")
+	const [fieldErrors, setFieldErrors] = useState({})
+	const [formError, setFormError] = useState("")
+
+	const clearFieldError = (field) => {
+		setFieldErrors((currentErrors) => {
+			if (!currentErrors[field]) {
+				return currentErrors
+			}
+
+			const nextErrors = { ...currentErrors }
+			delete nextErrors[field]
+			return nextErrors
+		})
+	}
+
+	const clearErrorsOnChange = (field) => {
+		clearFieldError(field)
+		if (formError) {
+			setFormError("")
+		}
+	}
 
 	const handleSubmit = (e) => {
 
 		e.preventDefault()
+		const nextErrors = {}
+		setFormError("")
+
+		const trimmedUsername = username.trim()
+		const trimmedEmail = email.trim()
 
 		// Keep registration validation on the frontend for this phase.
-		if (!username || !email || !password || !confirmPassword) {
-			setErrorMessage("Please fill in all fields")
+		if (!trimmedUsername) {
+			nextErrors.username = true
+		}
+
+		if (!trimmedEmail) {
+			nextErrors.email = true
+		}
+
+		if (!password) {
+			nextErrors.password = true
+		}
+
+		if (!confirmPassword) {
+			nextErrors.confirmPassword = true
+		}
+
+		if (Object.keys(nextErrors).length > 0) {
+			setFieldErrors(nextErrors)
+			setFormError("Please fill in all fields.")
 			return
+		}
+
+		if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
+			nextErrors.email = "Enter a valid email address."
 		}
 
 		const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[.@$!%*?&]).{8,}$/
 
-		if (!passwordRegex.test(password)) {
-			setErrorMessage(
-				"Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
-			)
-			return
+		if (password && !passwordRegex.test(password)) {
+			nextErrors.password =
+				"Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
 		}
 
-		if (password !== confirmPassword) {
-			setErrorMessage("Passwords do not match")
+		if (password && confirmPassword && password !== confirmPassword) {
+			nextErrors.confirmPassword = "Passwords do not match."
+		}
+
+		if (Object.keys(nextErrors).length > 0) {
+			setFieldErrors(nextErrors)
 			return
 		}
 
 		const existingUser = JSON.parse(localStorage.getItem("user"))
 
-		if (existingUser && existingUser.email === email) {
-			setErrorMessage("An account with this email already exists")
+		if (existingUser && existingUser.email === trimmedEmail) {
+			setFieldErrors({ email: "An account with this email already exists." })
 			return
 		}
 
-		setErrorMessage("")
+		setFieldErrors({})
 
 		const user = {
-			username,
-			email,
+			username: trimmedUsername,
+			email: trimmedEmail,
 			password,
 			// Save the join date now so it can be shown later in the dashboard.
 			createdAt: new Date().toISOString()
@@ -76,17 +123,21 @@ function Register() {
 					Register
 				</h1>
 
-				<form onSubmit={handleSubmit} aria-label="Register form">
+				<form onSubmit={handleSubmit} aria-label="Register form" noValidate>
 
 					<FormInput
 						label="Username"
 						id="username"
 						value={username}
-						onChange={(e) => setUsername(e.target.value)}
+						onChange={(e) => {
+							setUsername(e.target.value)
+							clearErrorsOnChange("username")
+						}}
 						placeholder="Enter username"
 						autoComplete="username"
-						errorId={errorId}
-						invalid={Boolean(errorMessage)}
+						errorId="register-username-error"
+						errorText={typeof fieldErrors.username === "string" ? fieldErrors.username : ""}
+						invalid={Boolean(fieldErrors.username)}
 					/>
 
 					<FormInput
@@ -94,22 +145,30 @@ function Register() {
 						type="email"
 						id="email"
 						value={email}
-						onChange={(e) => setEmail(e.target.value)}
+						onChange={(e) => {
+							setEmail(e.target.value)
+							clearErrorsOnChange("email")
+						}}
 						placeholder="Enter email"
 						autoComplete="email"
-						errorId={errorId}
-						invalid={Boolean(errorMessage)}
+						errorId="register-email-error"
+						errorText={typeof fieldErrors.email === "string" ? fieldErrors.email : ""}
+						invalid={Boolean(fieldErrors.email)}
 					/>
 
 					<FormInput
 						label="Password"
 						id="password"
 						value={password}
-						onChange={(e) => setPassword(e.target.value)}
+						onChange={(e) => {
+							setPassword(e.target.value)
+							clearErrorsOnChange("password")
+						}}
 						placeholder="Enter password"
 						autoComplete="new-password"
-						errorId={errorId}
-						invalid={Boolean(errorMessage)}
+						errorId="register-password-error"
+						errorText={typeof fieldErrors.password === "string" ? fieldErrors.password : ""}
+						invalid={Boolean(fieldErrors.password)}
 						showToggle={true}
 						showPassword={showPassword}
 						setShowPassword={setShowPassword}
@@ -120,21 +179,20 @@ function Register() {
 						type={showPassword ? "text" : "password"}
 						id="confirmPassword"
 						value={confirmPassword}
-						onChange={(e) => setConfirmPassword(e.target.value)}
+						onChange={(e) => {
+							setConfirmPassword(e.target.value)
+							clearErrorsOnChange("confirmPassword")
+						}}
 						placeholder="Confirm password"
 						autoComplete="new-password"
-						errorId={errorId}
-						invalid={Boolean(errorMessage)}
+						errorId="register-confirm-password-error"
+						errorText={typeof fieldErrors.confirmPassword === "string" ? fieldErrors.confirmPassword : ""}
+						invalid={Boolean(fieldErrors.confirmPassword)}
 					/>
 
-					{errorMessage && (
-						<p
-							id={errorId}
-							className="mb-2 text-sm text-red-600 dark:text-red-400"
-							role="alert"
-							aria-live="assertive"
-						>
-							{errorMessage}
+					{formError && (
+						<p className="mb-4 text-sm text-red-600 dark:text-red-400" role="alert" aria-live="assertive">
+							{formError}
 						</p>
 					)}
 
