@@ -164,13 +164,18 @@ All sections are fully responsive.
 
 ![Events](./images/EventsAnimation.gif)
 
-- Hero section with a 3-panel image mosaic layout
-- Featured event spotlight with full details (date, time, location, speaker, seats remaining)
-- Category filter tabs: Workshops, Author Talks, Exhibitions, Book Clubs, Film, and more
-- Multi-criteria filtering by month, format (In-Person / Online), and text search
-- Active filter count badge with a clear-all action
-- Event cards with date badges, category color coding, and location/time details
-- Filtering optimized with `useMemo`
+- Hero section with a 3-panel image mosaic layout  
+- Featured event spotlight with full details (date, time, location, speaker, seats remaining)  
+- Category filter tabs: Workshops, Author Talks, Exhibitions, Book Clubs, Film, and more  
+- Multi-criteria filtering by month, format (In-Person / Online), and text search  
+- Active filter count badge with a clear-all action  
+- Event cards with date badges, category color coding, and location/time details  
+- Filtering optimized with `useMemo`  
+- **Event Details Page**
+  - Accessible via the **"Learn More"** button on each event  
+  - Displays a more detailed view of the selected event  
+  - Includes extended information and full event description  
+  - Allows users to **register for the event**  
 
 ---
 
@@ -178,14 +183,27 @@ All sections are fully responsive.
 
 ![Dashboard](./images/DashboardAnimation.gif)
 
-A protected route requiring authentication. Displays user profile information, supports editable username and profile picture upload (stored as base64 in `localStorage`), and shows the full loan history with per-loan renewal functionality.
+A protected route that requires user authentication before access is granted. The dashboard acts as the main hub for user interaction and includes the following features:
+
+- **User Profile Management**
+  - Displays user information
+  - Allows editing of the username
+  - Supports profile picture upload (stored as Base64 in `localStorage`)
+
+- **Library Activity**
+  - Displays **checked-out books** and **overdue books**
+  - Provides detailed information for each book
+  - Allows users to **renew borrowed books** (with defined limits)
+
+- **Calendar Integration**
+  - Displays upcoming events and deadlines in an organized calendar view
 
 ---
 
 ### Login & Register (`/login`, `/register`)
 
-![Login](./images/LoginAnimation.gif)
-![Register](./images/RegisterAnimation.gif)
+![Login](./images/LoginAnimation.gif) ![Register](./images/RegisterAnimation.gif)
+
 
 **Login:** Email and password validation with error handling. Redirects to the originally requested page using `location.state.from`. Credentials are verified against data stored in `localStorage`.
 
