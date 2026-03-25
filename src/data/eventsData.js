@@ -169,7 +169,7 @@ export const EVENTS = [
     category: 'Community',
     format: 'In-Person',
     featured: false,
-    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c476?w=800&q=80',
+    image: 'https://unsplash.com/photos/-oexH8IUdBI/download?force=true&w=800',
     description: 'Students share their research in an open poster format, so visitors can drop in, browse the work, ask questions, and discover what peers are building.',
     longDescription: 'The poster fair turns the library atrium into a visible research commons. Students across disciplines present projects in progress and completed work, inviting visitors into conversations about methods, findings, and the process behind academic inquiry. It is a chance to see the range of student scholarship happening across campus.',
     speaker: null,
