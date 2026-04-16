@@ -2,6 +2,7 @@ import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Header, Footer } from '@components/layout'
 import { Home, Login, Register, Dashboard } from '@pages'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 import BookDetail from '@/pages/BookDetail/BookDetail'
 import ListView from '@/pages/ListView/ListView'
@@ -41,7 +42,14 @@ function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/visit" element={<Visit />} />
