@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
 import { EVENTS } from '@/data/eventsData'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
+
+const API_BASE = 'http://localhost:5000'
 
 // Images that rotate in the hero banner at the top of the page
 const HERO_SLIDES = [
@@ -91,18 +92,62 @@ const QUICK_ACTIONS = [
   },
 ]
 
-// Settings for the infinite scrolling book carousel ("Staff Picks")
-// We duplicate the book list so it loops seamlessly
 const GAP_PX = 32
-const N = BOOKS.length
-const TRACK = [...BOOKS, ...BOOKS]
 const PX_PER_SEC = 55
 
-// Card size adjusts depending on screen width
+const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#f5f2ed"/>
+  <rect x="16" y="16" width="268" height="418" rx="18" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="150" y="180" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="150" y="235" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="150" y="290" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
+
 function getCardWidth(viewportWidth) {
   if (viewportWidth < 480) return 112
   if (viewportWidth < 768) return 132
   return 158
+}
+
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_COVER
+  if (url.startsWith('blob:')) return PLACEHOLDER_COVER
+  return url
+}
+
+function getGenreColor(genre) {
+  const map = {
+    Classic: '#987432',
+    Fantasy: '#5ecba1',
+    Fiction: '#c4705f',
+    History: '#5ecba1',
+    Programming: '#6aa6ff',
+    'Computer Science': '#6aa6ff',
+    Philosophy: '#c4705f',
+    Productivity: '#5ecba1',
+    'Self-help': '#5ecba1',
+    Business: '#987432',
+    Finance: '#987432',
+    Psychology: '#c4705f',
+    Science: '#6aa6ff',
+    Dystopian: '#c4705f',
+  }
+
+  return map[genre] || '#5ecba1'
+}
+
+function normalizeBook(book) {
+  return {
+    id: book.id,
+    title: book.title || 'Untitled',
+    author: book.author || 'Unknown Author',
+    genre: book.category || 'General',
+    genreColor: getGenreColor(book.category || 'General'),
+    cover: sanitizeImage(book.image),
+    badge: Number(book.available_copies ?? 0) > 0 ? 'Available' : '',
+  }
 }
 
 function Home() {
@@ -110,23 +155,54 @@ function Home() {
   const trackRef = useRef(null)
   const animRef = useRef(null)
   const navigate = useNavigate()
+
+  const [books, setBooks] = useState([])
+  const [booksLoading, setBooksLoading] = useState(true)
   const [currentSlide, setCurrentSlide] = useState(0)
 
-  // Auto-rotate hero slides every 7 seconds
   useEffect(() => {
     const id = setInterval(() => setCurrentSlide((c) => (c + 1) % HERO_SLIDES.length), 7000)
     return () => clearInterval(id)
   }, [])
 
-  // Set up the book carousel animation — pauses on hover, recalculates on resize
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setBooksLoading(true)
+        const response = await fetch(`${API_BASE}/api/books`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch books')
+        }
+
+        setBooks(data.map(normalizeBook))
+      } catch (error) {
+        console.error('Home books fetch error:', error)
+        setBooks([])
+      } finally {
+        setBooksLoading(false)
+      }
+    }
+
+    fetchBooks()
+  }, [])
+
+  const featuredBooks = useMemo(() => {
+    const picks = books.slice(0, 12)
+    return [...picks, ...picks]
+  }, [books])
+
+  const originalCount = Math.max(books.slice(0, 12).length, 1)
+
   useLayoutEffect(() => {
     const viewport = viewportRef.current
     const track = trackRef.current
-    if (!viewport || !track) return
+    if (!viewport || !track || featuredBooks.length === 0) return
 
     const start = () => {
       const cw = getCardWidth(viewport.offsetWidth)
-      const dist = N * (cw + GAP_PX)
+      const dist = originalCount * (cw + GAP_PX)
       const dur = (dist / PX_PER_SEC) * 1000
 
       Array.from(track.children).forEach((card) => {
@@ -134,11 +210,14 @@ function Home() {
       })
 
       animRef.current?.cancel()
-      animRef.current = track.animate([{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }], {
-        duration: dur,
-        iterations: Infinity,
-        easing: 'linear',
-      })
+      animRef.current = track.animate(
+        [{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }],
+        {
+          duration: dur,
+          iterations: Infinity,
+          easing: 'linear',
+        }
+      )
     }
 
     const pause = () => animRef.current?.pause()
@@ -155,16 +234,14 @@ function Home() {
       viewport.removeEventListener('mouseleave', resume)
       window.removeEventListener('resize', start)
     }
-  }, [])
+  }, [featuredBooks, originalCount])
 
-  // Grab the next upcoming event to show in the hero sidebar card
   const today = new Date().toISOString().slice(0, 10)
   const nextEvent = EVENTS.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
 
   return (
     <div className="w-full bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
       <main>
-        {/* Hero section — full-width slideshow with search overlay and upcoming event card */}
         <section className="relative left-1/2 ml-[-50vw] h-[520px] w-screen overflow-hidden sm:h-[540px]" aria-label="Hero section with rotating images of the library and a search form">
           <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(to_right,rgba(12,10,8,0.38)_0%,rgba(12,10,8,0.18)_35%,transparent_62%)]" />
           {HERO_SLIDES.map((slide, i) => (
@@ -223,7 +300,6 @@ function Home() {
           </div>
         </section>
 
-        {/* Stats bar — quick numbers about the library */}
         <section className="grid grid-cols-2 border-y border-[rgba(0,103,81,0.12)] bg-[rgba(0,103,81,0.04)] py-7 text-center sm:grid-cols-4 dark:border-[#333333] dark:bg-[rgba(45,212,168,0.04)]" aria-label="Library statistics">
           {[
             ['1.1M+', 'Library Resources'],
@@ -238,7 +314,6 @@ function Home() {
           ))}
         </section>
 
-        {/* "Explore the Library" — four quick-action cards */}
         <section className="relative px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-[var(--container-max)]">
             <div className="mb-12">
@@ -272,7 +347,6 @@ function Home() {
           </div>
         </section>
 
-        {/* Staff Picks — auto-scrolling book carousel */}
         <section className="relative left-1/2 ml-[-50vw] w-screen overflow-hidden border-y border-[rgba(0,103,81,0.22)] bg-[linear-gradient(180deg,rgba(215,235,228,0.38)_0%,rgba(200,228,220,0.54)_100%)] px-4 pb-2 pt-8 sm:px-6 lg:px-8 dark:border-[#333333] dark:bg-[linear-gradient(180deg,rgba(18,18,18,0.96)_0%,rgba(20,60,47,0.82)_100%)]">
           <div className="mx-auto max-w-[var(--container-max)]">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -282,33 +356,58 @@ function Home() {
               </div>
               <a href="/books" className="text-[0.775rem] font-semibold text-[#006751] transition hover:opacity-100 dark:text-[#5ecba1]" onClick={(e) => { e.preventDefault(); navigate('/books') }}>View All</a>
             </div>
-            <div ref={viewportRef} className="overflow-hidden">
-              <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
-                {TRACK.map((book, i) => (
-                  <a
-                    key={`${book.id}-${i}`}
-                    href={`/books/${book.id}`}
-                    className="group block shrink-0 cursor-pointer text-inherit no-underline"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      navigate(`/books/${book.id}`)
-                    }}
-                    aria-label={`View details for ${book.title} by ${book.author}`}
-                  >
-                    <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-[3px_7px_7px_3px] shadow-[-3px_0_5px_rgba(0,0,0,0.20),0_2px_0_rgba(0,0,0,0.10),0_5px_16px_rgba(28,43,36,0.18)] transition group-hover:-translate-y-1 group-hover:shadow-[-6px_0_14px_rgba(0,0,0,0.32),0_2px_0_rgba(0,0,0,0.16),0_22px_52px_rgba(28,43,36,0.32)]">
-                      <img src={book.cover} alt={book.title} className="absolute inset-0 h-full w-full object-cover object-top" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                      <span className="absolute left-0 top-0 h-full w-[9px] bg-gradient-to-r from-black/30 to-black/10" />
-                      {book.badge && <span className="absolute right-2 top-3 rounded bg-white/15 px-2 py-1 text-[0.5rem] font-bold uppercase tracking-[0.11em] text-white backdrop-blur-sm">{book.badge}</span>}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[0.58rem] font-bold uppercase tracking-[0.13em]" style={{ color: book.genreColor }}>{book.genre}</span>
-                      <h3 className="text-[0.78rem] font-bold leading-[1.25] tracking-[-0.015em] text-[#1C2B24] dark:text-[#f5f7f6]">{book.title}</h3>
-                      <p className="text-[0.66rem] italic text-[#8a8a8a] dark:text-[#8c9691]">{book.author}</p>
-                    </div>
-                  </a>
-                ))}
+
+            {booksLoading ? (
+              <div className="py-8 text-[0.82rem] text-[#6a6a6a] dark:text-[#8c9691]">Loading staff picks...</div>
+            ) : books.length === 0 ? (
+              <div className="py-8 text-[0.82rem] text-[#6a6a6a] dark:text-[#8c9691]">No books found.</div>
+            ) : (
+              <div ref={viewportRef} className="overflow-hidden">
+                <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
+                  {featuredBooks.map((book, i) => (
+                    <a
+                      key={`${book.id}-${i}`}
+                      href={`/books/${book.id}`}
+                      className="group block shrink-0 cursor-pointer text-inherit no-underline"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        navigate(`/books/${book.id}`)
+                      }}
+                      aria-label={`View details for ${book.title} by ${book.author}`}
+                    >
+                      <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-[3px_7px_7px_3px] shadow-[-3px_0_5px_rgba(0,0,0,0.20),0_2px_0_rgba(0,0,0,0.10),0_5px_16px_rgba(28,43,36,0.18)] transition group-hover:-translate-y-1 group-hover:shadow-[-6px_0_14px_rgba(0,0,0,0.32),0_2px_0_rgba(0,0,0,0.16),0_22px_52px_rgba(28,43,36,0.32)]">
+                        <img
+                          src={book.cover}
+                          alt={book.title}
+                          className="absolute inset-0 h-full w-full object-cover object-top"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null
+                            e.currentTarget.src = PLACEHOLDER_COVER
+                          }}
+                        />
+                        <span className="absolute left-0 top-0 h-full w-[9px] bg-gradient-to-r from-black/30 to-black/10" />
+                        {book.badge && (
+                          <span className="absolute right-2 top-3 rounded bg-white/15 px-2 py-1 text-[0.5rem] font-bold uppercase tracking-[0.11em] text-white backdrop-blur-sm">
+                            {book.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.58rem] font-bold uppercase tracking-[0.13em]" style={{ color: book.genreColor }}>
+                          {book.genre}
+                        </span>
+                        <h3 className="text-[0.78rem] font-bold leading-[1.25] tracking-[-0.015em] text-[#1C2B24] dark:text-[#f5f7f6]">
+                          {book.title}
+                        </h3>
+                        <p className="text-[0.66rem] italic text-[#8a8a8a] dark:text-[#8c9691]">
+                          {book.author}
+                        </p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
       </main>

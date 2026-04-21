@@ -57,9 +57,23 @@ function App() {
           <Route path="/events/:id" element={<EventDetails />} />
 
           <Route path="/books" element={<ListView />} />
-          <Route path="/books/add" element={<AddEditBook />} />
+          <Route
+            path="/books/add"
+            element={
+              <ProtectedRoute>
+                <AddEditBook />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/books/:id" element={<BookDetail />} />
-          <Route path="/books/edit/:id" element={<AddEditBook />} />
+          <Route
+            path="/books/edit/:id"
+            element={
+              <ProtectedRoute>
+                <AddEditBook />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/circulation" element={<CirculationPage />} />

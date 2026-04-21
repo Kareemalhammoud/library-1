@@ -1,71 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
-import { useBooks } from '@/context/BooksContext'
-import { getCampus, getCopies } from '@/utils/bookUtils'
 
-const AUTHOR_BIOGRAPHIES = {
-  'Donna Tartt':
-    'An American novelist known for immersive literary fiction. She won the Pulitzer Prize for The Goldfinch, often exploring morality and obsession.',
-  'Brandon Sanderson':
-    'A leading modern fantasy author known for intricate magic systems and the Cosmere universe.',
-  'Struan Murray':
-    'A British children’s fantasy writer blending mythology and science in imaginative stories.',
-  'Christopher Paolini':
-    'American fantasy author who gained fame with Eragon, written as a teenager.',
-  'Maria Zoccola':
-    'A contemporary writer focusing on emotional narratives and character-driven stories.',
-  'Ludwig Wittgenstein':
-    'A major 20th-century philosopher focused on language, logic, and meaning.',
-  'E. Lockhart':
-    'American YA author known for psychological storytelling like We Were Liars.',
-  'Tricia Levenseller':
-    'YA fantasy author known for fast-paced, character-led adventures.',
-  'Tahereh Mafi':
-    'Bestselling author of the Shatter Me series, blending dystopia and lyrical prose.',
-  'John Gwynne':
-    'Epic fantasy writer inspired by Norse mythology and action-driven narratives.',
-  'George Orwell':
-    'Political writer known for 1984 and Animal Farm, exploring power and control.',
-  'Fyodor Dostoevsky':
-    'Russian novelist exploring psychology, morality, and existential themes.',
-  'Franz Kafka':
-    'Writer of surreal, existential works reflecting alienation and absurdity.',
-  'Albert Camus':
-    'Philosopher of absurdism exploring meaning and existence in works like The Stranger.',
-  'J.K. Rowling':
-    'Creator of Harry Potter, a globally influential fantasy series.',
-  'J.R.R. Tolkien':
-    'Father of modern fantasy, author of The Lord of the Rings.',
-  'Jane Austen':
-    'English novelist known for wit and social commentary.',
-  'Colleen Hoover':
-    'Contemporary romance author exploring emotional and personal themes.',
-  'Leigh Bardugo':
-    'Fantasy author known for the Grishaverse series.',
-  'Rick Riordan':
-    'Author blending mythology with modern adventure, like Percy Jackson.',
-  'Stephen King':
-    'Master of horror and suspense with a vast body of work.',
-  'Agatha Christie':
-    'Legendary mystery writer, creator of Hercule Poirot.',
-  'Dan Brown':
-    'Thriller author known for fast-paced conspiracy novels.',
-  'Suzanne Collins':
-    'Author of The Hunger Games, combining dystopia and social themes.',
-  'Veronica Roth':
-    'Known for Divergent, exploring identity and society.',
-  'C.S. Lewis':
-    'Author of The Chronicles of Narnia, blending fantasy and philosophy.',
-  'Neil Gaiman':
-    'Writer combining fantasy, mythology, and dark storytelling.',
-  'Mark Manson':
-    'Self-help author known for direct, modern perspectives on life.',
-  'Robert Greene':
-    'Author of strategic works on power and human behavior.',
-  'Yuval Noah Harari':
-    'Historian exploring humanity and the future in Sapiens.',
-}
+const API_BASE = 'http://localhost:5000'
+
+const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#f5f2ed"/>
+  <rect x="16" y="16" width="268" height="418" rx="18" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="150" y="180" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="150" y="235" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="150" y="290" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
 
 const emptyForm = {
   id: null,
@@ -83,7 +29,7 @@ const emptyForm = {
   language: '',
   description: '',
   coverImage: '',
-  coverPageAvailable: null,
+  coverPageAvailable: false,
 }
 
 const labelClassName =
@@ -93,95 +39,87 @@ const fieldClassName =
   'mt-2 box-border w-full rounded-lg border border-[#e0ddd8] bg-[#f8f7f4] px-4 py-[0.85rem] text-[0.9rem] text-[#1a1a1a] outline-none transition-colors placeholder:text-[#a7a7a7] focus:border-[#1a4a3a] focus:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white dark:placeholder:text-[#666] dark:focus:border-[#5ecba1] dark:focus:bg-[#2e2e2e]'
 
 const primaryButtonClassName =
-  'cursor-pointer rounded-lg border-0 bg-[#1a4a3a] px-6 py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]'
+  'cursor-pointer rounded-lg border-0 bg-[#1a4a3a] px-6 py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:opacity-50'
 
 const secondaryButtonClassName =
   'cursor-pointer rounded-lg border border-[#ccc] bg-white px-6 py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]'
 
-const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
+const deleteButtonClassName =
+  'cursor-pointer rounded-lg border-0 bg-[#c0392b] px-6 py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#a93226] disabled:cursor-not-allowed disabled:opacity-50'
+
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return ''
+  if (url.startsWith('blob:')) return ''
+  return url.trim()
+}
+
+const AddEditBook = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const booksContext = useBooks()
-
-  const contextBooks = booksContext?.books ?? []
-  const addBook = booksContext?.addBook
-  const updateBook = booksContext?.updateBook
-  const availableBooks = books.length > 0 ? books : contextBooks
 
   const [formData, setFormData] = useState(emptyForm)
   const [imagePreview, setImagePreview] = useState('')
   const [showAuthorBioEditor, setShowAuthorBioEditor] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    if (!id) {
-      setFormData(emptyForm)
-      setImagePreview('')
-      setShowAuthorBioEditor(false)
-      return
+    const fetchBook = async () => {
+      if (!id) {
+        setFormData(emptyForm)
+        setImagePreview('')
+        setShowAuthorBioEditor(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError('')
+
+        const response = await fetch(`${API_BASE}/api/books/${id}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to load book')
+        }
+
+        const safeImage = sanitizeImage(data.image)
+
+        setFormData({
+          id: data.id ?? null,
+          title: data.title || '',
+          author: data.author || '',
+          authorBiography: data.authorBiography || '',
+          publisher: data.publisher || '',
+          genre: data.category || '',
+          isbn: data.isbn || '',
+          year: data.year ?? '',
+          copies:
+            data.available_copies !== undefined && data.available_copies !== null
+              ? data.available_copies
+              : '',
+          pages: data.pages ?? '',
+          rating: data.rating ?? '',
+          campus: data.campus || '',
+          language: data.language || '',
+          description: data.description || '',
+          coverImage: safeImage,
+          coverPageAvailable: Boolean(safeImage),
+        })
+
+        setImagePreview(safeImage)
+        setShowAuthorBioEditor(Boolean(data.authorBiography))
+      } catch (err) {
+        setError(err.message || 'Failed to load book')
+      } finally {
+        setLoading(false)
+      }
     }
 
-    let existingBook = availableBooks.find((book) => String(book.id) === String(id))
-
-    if (!existingBook) {
-      existingBook = BOOKS.find((book) => String(book.id) === String(id))
-    }
-
-    if (!existingBook) {
-      setFormData(emptyForm)
-      setImagePreview('')
-      setShowAuthorBioEditor(false)
-      return
-    }
-
-    const copyData = getCopies(existingBook.id)
-    const resolvedCampus =
-      existingBook.campus && existingBook.campus !== 'both'
-        ? existingBook.campus
-        : getCampus(existingBook.id) === 'both'
-          ? ''
-          : getCampus(existingBook.id) || ''
-
-    const existingImage = existingBook.coverImage || existingBook.cover || ''
-    const resolvedBiography =
-      existingBook.authorBiography ||
-      AUTHOR_BIOGRAPHIES[existingBook.author] ||
-      ''
-
-    setFormData({
-      id: existingBook.id ?? null,
-      title: existingBook.title || '',
-      author: existingBook.author || '',
-      authorBiography: resolvedBiography,
-      publisher: existingBook.publisher || '',
-      genre: existingBook.genre || '',
-      isbn: existingBook.isbn || '',
-      year: existingBook.year || '',
-      copies:
-        existingBook.copies !== undefined &&
-        existingBook.copies !== null &&
-        existingBook.copies !== ''
-          ? existingBook.copies
-          : copyData?.total ?? '',
-      pages: existingBook.pages || '',
-      rating: existingBook.rating || '',
-      campus: resolvedCampus,
-      language:
-        existingBook.language === 'FR'
-          ? 'French'
-          : existingBook.language === 'EN'
-            ? 'English'
-            : existingBook.language || '',
-      description: existingBook.description || '',
-      coverImage: existingImage,
-      coverPageAvailable:
-        typeof existingBook.coverPageAvailable === 'boolean'
-          ? existingBook.coverPageAvailable
-          : Boolean(existingImage),
-    })
-
-    setImagePreview(existingImage)
-    setShowAuthorBioEditor(Boolean(resolvedBiography))
-  }, [availableBooks, id])
+    fetchBook()
+  }, [id])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -191,17 +129,16 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     }))
   }
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleImageUrlChange = (e) => {
+    const value = e.target.value
 
-    const imageUrl = URL.createObjectURL(file)
-    setImagePreview(imageUrl)
     setFormData((prevData) => ({
       ...prevData,
-      coverImage: imageUrl,
-      coverPageAvailable: true,
+      coverImage: value,
+      coverPageAvailable: Boolean(value.trim()),
     }))
+
+    setImagePreview(value.trim())
   }
 
   const handleRemoveImage = () => {
@@ -209,6 +146,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     setFormData((prevData) => ({
       ...prevData,
       coverImage: '',
+      coverPageAvailable: false,
     }))
   }
 
@@ -230,38 +168,120 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
     setShowAuthorBioEditor((prev) => !prev)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const finalData = {
-      ...formData,
-      language:
-        formData.language === 'French'
-          ? 'FR'
-          : formData.language === 'English'
-            ? 'EN'
-            : formData.language,
-      pages: formData.pages ? Number(formData.pages) : '',
-      rating: formData.rating ? Number(formData.rating) : '',
-      copies: formData.copies ? Number(formData.copies) : '',
-      year: formData.year ? Number(formData.year) : '',
-    }
+    try {
+      setLoading(true)
+      setError('')
+      setSuccess('')
 
-    if (id) {
-      if (onUpdateBook) {
-        onUpdateBook(finalData)
-      } else {
-        updateBook?.(finalData)
-      }
-    } else {
-      if (onAddBook) {
-        onAddBook(finalData)
-      } else {
-        addBook?.(finalData)
-      }
-    }
+      const token = localStorage.getItem('token')
 
-    navigate('/books')
+      if (!token) {
+        setError('You must be logged in')
+        return
+      }
+
+      const payload = {
+        title: formData.title,
+        author: formData.author,
+        publisher: formData.publisher,
+        category: formData.genre,
+        isbn: formData.isbn,
+        year: formData.year === '' ? null : Number(formData.year),
+        pages: formData.pages === '' ? null : Number(formData.pages),
+        rating: formData.rating === '' ? null : Number(formData.rating),
+        campus: formData.campus,
+        language: formData.language,
+        description: formData.description,
+        authorBiography: formData.authorBiography,
+        image: sanitizeImage(formData.coverImage),
+        availableCopies: formData.copies === '' ? 1 : Number(formData.copies),
+      }
+
+      const url = id
+        ? `${API_BASE}/api/books/${id}`
+        : `${API_BASE}/api/books`
+
+      const method = id ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Request failed')
+      }
+
+      setSuccess(id ? 'Book updated successfully' : 'Book created successfully')
+
+      setTimeout(() => {
+        navigate('/books')
+      }, 1000)
+    } catch (err) {
+      setError(err.message || 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!id) return
+
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this book? This action cannot be undone.'
+    )
+
+    if (!confirmed) return
+
+    try {
+      setDeleting(true)
+      setError('')
+      setSuccess('')
+
+      const token = localStorage.getItem('token')
+
+      if (!token) {
+        setError('You must be logged in')
+        return
+      }
+
+      const response = await fetch(`${API_BASE}/api/books/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      let data = {}
+      try {
+        data = await response.json()
+      } catch {
+        data = {}
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete book')
+      }
+
+      setSuccess('Book deleted successfully')
+
+      setTimeout(() => {
+        navigate('/books')
+      }, 800)
+    } catch (err) {
+      setError(err.message || 'Something went wrong while deleting')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const pageTitle = id ? 'Edit Book' : 'Add New Book'
@@ -302,6 +322,24 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
               {pageDescription}
             </p>
           </div>
+
+          {loading && (
+            <p className="mt-4 rounded-md bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              Loading...
+            </p>
+          )}
+
+          {error && (
+            <p className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+
+          {success && (
+            <p className="mt-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
+              {success}
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
@@ -348,8 +386,6 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   type="text"
                   value={formData.publisher}
                   onChange={handleChange}
-                  required
-                  autoComplete="organization"
                   className={fieldClassName}
                 />
               </div>
@@ -362,7 +398,6 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   type="text"
                   value={formData.genre}
                   onChange={handleChange}
-                  autoComplete="off"
                   className={fieldClassName}
                 />
               </div>
@@ -375,7 +410,6 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   type="text"
                   value={formData.isbn}
                   onChange={handleChange}
-                  autoComplete="off"
                   className={fieldClassName}
                 />
               </div>
@@ -388,7 +422,6 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   name="year"
                   value={formData.year}
                   onChange={handleChange}
-                  required
                   className={fieldClassName}
                 />
               </div>
@@ -443,7 +476,7 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 >
                   <option value="">Select campus</option>
                   <option value="Beirut">Beirut</option>
-                  <option value="Jbeil">Jbeil</option>
+                  <option value="Byblos">Byblos</option>
                 </select>
               </div>
 
@@ -474,12 +507,8 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   value={formData.authorBiography}
                   onChange={handleChange}
                   rows="6"
-                  placeholder="Add or edit the author biography here..."
                   className={`${fieldClassName} resize-y`}
                 />
-                <p className="mt-2 text-[0.78rem] text-[#888] dark:text-[#888]">
-                  This biography can be shown when users hover over the author name.
-                </p>
               </div>
             )}
 
@@ -501,12 +530,16 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                   Cover Preview
                 </p>
 
-                {imagePreview ? (
+                {formData.coverPageAvailable ? (
                   <>
                     <img
-                      src={imagePreview}
+                      src={imagePreview || PLACEHOLDER_COVER}
                       alt={formData.title ? `Cover preview for ${formData.title}` : 'Book cover preview'}
                       className="h-full min-h-[220px] w-full max-w-[180px] rounded-md border border-[#e5e2dc] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:border-[#333]"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null
+                        e.currentTarget.src = PLACEHOLDER_COVER
+                      }}
                     />
                     <button
                       type="button"
@@ -551,45 +584,60 @@ const AddEditBook = ({ books = [], onAddBook, onUpdateBook }) => {
                 </div>
 
                 {formData.coverPageAvailable && (
-                  <div className="mt-5">
-                    <label
-                      htmlFor="cover-upload"
-                      className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#e0ddd8] bg-[#f8f7f4] px-6 py-6 text-center transition-colors hover:border-[#1a1a1a] hover:bg-white dark:border-[#333] dark:bg-[#2e2e2e] dark:hover:border-[#5ecba1] dark:hover:bg-[#333]"
-                    >
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#1a4a3a] text-base font-medium text-white">
-                        +
-                      </span>
-                      <span className="text-[0.92rem] font-semibold text-[#1a1a1a] dark:text-white">
-                        Upload cover image
-                      </span>
-                      <span className="text-[0.8rem] text-[#999] dark:text-[#888]">
-                        Choose an image file to preview the book cover.
-                      </span>
-                    </label>
-                    <input
-                      id="cover-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="sr-only"
-                      aria-label="Upload a cover image"
-                    />
+                  <div className="mt-5 space-y-3">
+                    <div>
+                      <label htmlFor="coverImage" className={labelClassName}>
+                        Cover Image URL
+                      </label>
+                      <input
+                        id="coverImage"
+                        name="coverImage"
+                        type="text"
+                        value={formData.coverImage}
+                        onChange={handleImageUrlChange}
+                        className={fieldClassName}
+                        placeholder="https://example.com/book-cover.jpg"
+                      />
+                    </div>
+                    <p className="text-[0.78rem] text-[#888] dark:text-[#888]">
+                      Paste a direct image URL.
+                    </p>
                   </div>
                 )}
               </fieldset>
             </div>
 
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className={secondaryButtonClassName}
-              >
-                Cancel
-              </button>
-              <button type="submit" className={primaryButtonClassName}>
-                {id ? 'Update Book' : 'Save Book'}
-              </button>
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-between">
+              <div>
+                {id && (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={loading || deleting}
+                    className={deleteButtonClassName}
+                  >
+                    {deleting ? 'Deleting...' : 'Delete Book'}
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className={secondaryButtonClassName}
+                  disabled={loading || deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading || deleting}
+                  className={primaryButtonClassName}
+                >
+                  {loading ? 'Saving...' : id ? 'Update Book' : 'Save Book'}
+                </button>
+              </div>
             </div>
           </form>
         </section>

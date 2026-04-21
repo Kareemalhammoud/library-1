@@ -1,14 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS, GENRES } from '@/data/bookData'
-import { getAvailability, getCallNumber, getCampus, getCopies, getResourceType } from '@/utils/bookUtils'
 import { isAdminUser } from '@/utils'
 
-// Filter dropdown options
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
 const AVAIL_OPTIONS = ['All', 'Available', 'On Loan']
-const TYPE_OPTIONS = ['All Types', 'Book', 'E-Book', 'Journal', 'Thesis', 'Reference', 'Conference Paper']
+const TYPE_OPTIONS = ['All Types', 'Book']
 const YEAR_OPTIONS = ['All Years', '2020-Present', '2010-2019', '2000-2009', '1990-1999', 'Before 1990']
 const SORT_OPTIONS = [
   { value: 'relevance', label: 'Relevance' },
@@ -20,13 +17,28 @@ const SORT_OPTIONS = [
   { value: 'avail-desc', label: 'Availability' },
 ]
 
-// Shared styles for the filter bar labels and dropdowns
+const PLACEHOLDER_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="270" viewBox="0 0 180 270">
+  <rect width="180" height="270" fill="#f5f2ed"/>
+  <rect x="10" y="10" width="160" height="250" rx="12" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="90" y="108" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="90" y="142" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="90" y="176" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
+
 const fieldLabelClass =
   'text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62] dark:text-[#8c9691]'
+
 const selectClass =
   'w-full rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]'
 
-// Returns the right color style for each tag type (resource, subject, availability)
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_IMAGE
+  if (url.startsWith('blob:')) return PLACEHOLDER_IMAGE
+  return url
+}
+
 function tagClass(type) {
   const base =
     'inline-flex items-center rounded-[3px] px-2 py-[0.15rem] text-[0.56rem] font-semibold uppercase tracking-[0.05em]'
@@ -43,10 +55,46 @@ function tagClass(type) {
   return `${base} bg-[#fdf0ee] text-[#b5392b] dark:bg-[#3b1c1a] dark:text-[#ff9388]`
 }
 
+function getBookLanguageLabel(language) {
+  return language === 'FR' ? 'French' : 'English'
+}
+
+function getBookAvailability(book) {
+  return Number(book.copies ?? 0) > 0
+}
+
+function getBookCampus(book) {
+  if (book.campus === 'both') return 'both'
+  if (book.campus === 'Byblos') return 'Byblos'
+  return 'Beirut'
+}
+
+function getBookCampusLabel(book) {
+  const campus = getBookCampus(book)
+  return campus === 'both' ? 'Beirut & Byblos' : campus
+}
+
+function getBookType(book) {
+  return book.resourceType || 'Book'
+}
+
+function getBookCallNumber(book) {
+  return `BK-${String(book.id).padStart(4, '0')}`
+}
+
+function formatYear(year) {
+  if (!year) return 'Year N/A'
+  return year > 0 ? String(year) : `${Math.abs(year)} BCE`
+}
+
 export default function Catalog() {
   const navigate = useNavigate()
+  const admin = isAdminUser()
 
-  // All the filter/search state — resets when you hit "Clear all"
+  const [books, setBooks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('All')
   const [language, setLanguage] = useState('All Languages')
@@ -63,27 +111,73 @@ export default function Catalog() {
   const [advFormat, setAdvFormat] = useState('All')
   const [advYear, setAdvYear] = useState('')
 
-  const admin = isAdminUser()
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true)
+        setError('')
 
-  // Filter and sort books based on the current search/filter selections
+        const response = await fetch('http://localhost:5000/api/books')
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch books')
+        }
+
+        const normalizedBooks = data.map((book) => ({
+          id: book.id,
+          title: book.title || '',
+          author: book.author || '',
+          genre: book.category || 'General',
+          description: book.description || '',
+          cover: sanitizeImage(book.image),
+          copies: Number(book.available_copies ?? book.availableCopies ?? 0),
+          year: book.year ? Number(book.year) : null,
+          language: book.language || 'EN',
+          publisher: book.publisher || 'Library Collection',
+          isbn: book.isbn || '',
+          pages: book.pages ? Number(book.pages) : null,
+          campus: book.campus || 'Beirut',
+          resourceType: book.resourceType || 'Book',
+        }))
+
+        setBooks(normalizedBooks)
+      } catch (err) {
+        setError(err.message || 'Something went wrong')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBooks()
+  }, [])
+
+  const genres = useMemo(() => {
+    return ['All', ...new Set(books.map((book) => book.genre).filter(Boolean))]
+  }, [books])
+
   const filtered = useMemo(() => {
-    const results = BOOKS.filter((book) => {
-      const bookCampus = getCampus(book.id)
-      const bookLang = book.language === 'FR' ? 'French' : 'English'
-      const bookAvail = getAvailability(book.id)
-      const bookType = getResourceType(book.id)
+    const results = books.filter((book) => {
+      const bookCampus = getBookCampus(book)
+      const bookLang = getBookLanguageLabel(book.language)
+      const bookAvail = getBookAvailability(book)
+      const bookType = getBookType(book)
 
       if (search) {
         const q = search.toLowerCase()
-        if (
-          !book.title.toLowerCase().includes(q) &&
-          !book.author.toLowerCase().includes(q) &&
-          !book.isbn.toLowerCase().includes(q) &&
-          !book.genre.toLowerCase().includes(q) &&
-          !book.publisher.toLowerCase().includes(q)
-        ) {
-          return false
-        }
+        const haystack = [
+          book.title,
+          book.author,
+          book.isbn,
+          book.genre,
+          book.publisher,
+          book.description,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        if (!haystack.includes(q)) return false
       }
 
       if (advTitle && !book.title.toLowerCase().includes(advTitle.toLowerCase())) return false
@@ -95,7 +189,7 @@ export default function Catalog() {
         if (book.language !== lang) return false
       }
 
-      if (advYear && book.year !== Number(advYear)) return false
+      if (advYear && Number(book.year) !== Number(advYear)) return false
       if (genre !== 'All' && book.genre !== genre) return false
       if (language !== 'All Languages' && bookLang !== language) return false
       if (campus !== 'All Campuses' && bookCampus !== 'both' && bookCampus !== campus) return false
@@ -104,7 +198,8 @@ export default function Catalog() {
       if (avail === 'On Loan' && bookAvail) return false
 
       if (yearRange !== 'All Years') {
-        const y = book.year
+        const y = Number(book.year)
+        if (!y) return false
         if (yearRange === '2020-Present' && y < 2020) return false
         if (yearRange === '2010-2019' && (y < 2010 || y > 2019)) return false
         if (yearRange === '2000-2009' && (y < 2000 || y > 2009)) return false
@@ -117,22 +212,26 @@ export default function Catalog() {
 
     if (sort !== 'relevance') {
       const [field, dir] = sort.split('-')
+
       results.sort((a, b) => {
         let cmp = 0
+
         if (field === 'title') cmp = a.title.localeCompare(b.title)
         if (field === 'author') cmp = a.author.localeCompare(b.author)
-        if (field === 'year') cmp = a.year - b.year
+        if (field === 'year') cmp = Number(a.year || 0) - Number(b.year || 0)
         if (field === 'avail') {
-          const aa = getAvailability(a.id) ? 1 : 0
-          const bb = getAvailability(b.id) ? 1 : 0
+          const aa = getBookAvailability(a) ? 1 : 0
+          const bb = getBookAvailability(b) ? 1 : 0
           cmp = aa - bb
         }
+
         return dir === 'desc' ? -cmp : cmp
       })
     }
 
     return results
   }, [
+    books,
     search,
     genre,
     language,
@@ -148,7 +247,6 @@ export default function Catalog() {
     advYear,
   ])
 
-  // Count how many filters are active so we can show "Clear all" when needed
   const activeCount = [
     genre !== 'All',
     language !== 'All Languages',
@@ -177,9 +275,24 @@ export default function Catalog() {
     setAdvYear('')
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F2F5F3] px-5 py-16 text-center dark:bg-[#121212]">
+        <p className="text-[#1C2B24] dark:text-[#f5f7f6]">Loading books...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F2F5F3] px-5 py-16 text-center dark:bg-[#121212]">
+        <p className="text-red-600">{error}</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#F2F5F3] dark:bg-[#121212]">
-      {/* Hero banner with main search bar and advanced search toggle */}
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-10 text-center sm:px-6 md:px-8 md:py-14">
         <p className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white/45">
           Our Libraries
@@ -306,7 +419,6 @@ export default function Catalog() {
         </div>
       </section>
 
-      {/* Sticky filter bar — stays visible as you scroll through results */}
       <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-4 py-3 shadow-[0_1px_3px_rgba(28,43,36,0.04)] sm:px-5 sm:py-4 dark:border-[#2a2a2a] dark:bg-[#121212]">
         <div className="mx-auto flex max-w-[var(--container-max)] flex-col gap-3">
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 md:grid-cols-2 md:gap-3 lg:grid-cols-3 xl:grid-cols-6">
@@ -318,7 +430,7 @@ export default function Catalog() {
                 label: 'Subject',
                 value: genre,
                 setValue: setGenre,
-                options: ['All Subjects', ...GENRES.filter((g) => g !== 'All')],
+                options: ['All Subjects', ...genres.filter((g) => g !== 'All')],
                 mapValue: (option) => (option === 'All Subjects' ? 'All' : option),
               },
               { label: 'Campus', value: campus, setValue: setCampus, options: CAMPUS_OPTIONS },
@@ -329,7 +441,9 @@ export default function Catalog() {
                 <select
                   className={selectClass}
                   value={filter.value}
-                  onChange={(e) => filter.setValue(filter.mapValue ? filter.mapValue(e.target.value) : e.target.value)}
+                  onChange={(e) =>
+                    filter.setValue(filter.mapValue ? filter.mapValue(e.target.value) : e.target.value)
+                  }
                   aria-label={`Filter by ${filter.label.toLowerCase()}`}
                 >
                   {filter.options.map((option) => {
@@ -358,7 +472,6 @@ export default function Catalog() {
         </div>
       </div>
 
-      {/* Main results area — grid or list view depending on toggle */}
       <main className="mx-auto max-w-[var(--container-max)] px-5 pb-16 pt-7 sm:px-6 md:px-8">
         <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]">
@@ -430,7 +543,6 @@ export default function Catalog() {
           </div>
         </div>
 
-        {/* Hint card shown when no search or filters are active yet */}
         {!hasSearched && (
           <section className="mb-6 rounded-[10px] border border-[#d0ddd8] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#121212]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
@@ -450,9 +562,8 @@ export default function Catalog() {
                 <div className="flex flex-wrap gap-2">
                   {[
                     { label: 'Philosophy', onClick: () => setSearch('philosophy') },
-                    { label: 'Khalil Gibran', onClick: () => setSearch('gibran') },
-                    { label: 'Journals', onClick: () => setResType('Journal') },
-                    { label: 'Theses', onClick: () => setResType('Thesis') },
+                    { label: 'James Clear', onClick: () => setSearch('james clear') },
+                    { label: 'Books', onClick: () => setResType('Book') },
                     { label: 'French Collection', onClick: () => setLanguage('French') },
                   ].map((hint) => (
                     <button
@@ -505,9 +616,9 @@ export default function Catalog() {
         ) : view === 'grid' ? (
           <ul className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] sm:gap-x-4 sm:gap-y-6">
             {filtered.map((book) => {
-              const bookAvail = getAvailability(book.id)
-              const bookCampus = getCampus(book.id)
-              const bookType = getResourceType(book.id)
+              const bookAvail = getBookAvailability(book)
+              const bookCampusLabel = getBookCampusLabel(book)
+              const bookType = getBookType(book)
 
               return (
                 <li key={book.id} className="flex flex-col gap-2">
@@ -527,7 +638,8 @@ export default function Catalog() {
                       className="h-full w-full object-cover"
                       loading="lazy"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none'
+                        e.currentTarget.onerror = null
+                        e.currentTarget.src = PLACEHOLDER_IMAGE
                       }}
                     />
                   </div>
@@ -548,7 +660,7 @@ export default function Catalog() {
 
                     <p className="text-[0.72rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
                     <p className="text-[0.64rem] tracking-[0.01em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
-                      {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}
+                      {formatYear(book.year)} - {bookCampusLabel}
                     </p>
 
                     <div className="mt-1 flex flex-wrap gap-1">
@@ -579,11 +691,12 @@ export default function Catalog() {
         ) : (
           <ul className="overflow-hidden rounded-[10px] bg-[#d0ddd8] dark:bg-[#121212]">
             {filtered.map((book, index) => {
-              const bookAvail = getAvailability(book.id)
-              const { total, available } = getCopies(book.id)
-              const bookCampus = getCampus(book.id)
-              const bookType = getResourceType(book.id)
-              const callNum = getCallNumber(book)
+              const bookAvail = getBookAvailability(book)
+              const total = Number(book.copies ?? 0)
+              const available = Number(book.copies ?? 0)
+              const bookCampusLabel = getBookCampusLabel(book)
+              const bookType = getBookType(book)
+              const callNum = getBookCallNumber(book)
 
               return (
                 <li
@@ -607,7 +720,8 @@ export default function Catalog() {
                     className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]"
                     loading="lazy"
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = PLACEHOLDER_IMAGE
                     }}
                   />
 
@@ -627,7 +741,10 @@ export default function Catalog() {
 
                     <p className="text-[0.78rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
                     <p className="truncate text-[0.7rem] tracking-[0.005em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
-                      {book.publisher}, {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {book.pages} pp. - ISBN {book.isbn}
+                      {book.publisher}
+                      {book.year ? `, ${formatYear(book.year)}` : ''}
+                      {book.pages ? ` - ${book.pages} pp.` : ''}
+                      {book.isbn ? ` - ISBN ${book.isbn}` : ''}
                     </p>
 
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -658,7 +775,7 @@ export default function Catalog() {
                       {callNum}
                     </span>
                     <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">
-                      {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}
+                      {bookCampusLabel}
                     </span>
                     <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
                       {available} of {total} available

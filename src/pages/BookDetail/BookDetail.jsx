@@ -1,70 +1,44 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
 import { useState, useEffect, useMemo } from 'react'
-import { getCampus, getCopies } from '@/utils/bookUtils'
 import { getStoredUser, isAdminUser } from '@/utils'
 
-const AUTHOR_BIOGRAPHIES = {
-  'Donna Tartt':
-    'An American novelist known for immersive literary fiction. She won the Pulitzer Prize for The Goldfinch, often exploring morality and obsession.',
-  'Brandon Sanderson':
-    'A leading modern fantasy author known for intricate magic systems and the Cosmere universe.',
-  'Struan Murray':
-    'A British children’s fantasy writer blending mythology and science in imaginative stories.',
-  'Christopher Paolini':
-    'American fantasy author who gained fame with Eragon, written as a teenager.',
-  'Maria Zoccola':
-    'A contemporary writer focusing on emotional narratives and character-driven stories.',
-  'Ludwig Wittgenstein':
-    'A major 20th-century philosopher focused on language, logic, and meaning.',
-  'E. Lockhart':
-    'American YA author known for psychological storytelling like We Were Liars.',
-  'Tricia Levenseller':
-    'YA fantasy author known for fast-paced, character-led adventures.',
-  'Tahereh Mafi':
-    'Bestselling author of the Shatter Me series, blending dystopia and lyrical prose.',
-  'John Gwynne':
-    'Epic fantasy writer inspired by Norse mythology and action-driven narratives.',
-  'George Orwell':
-    'Political writer known for 1984 and Animal Farm, exploring power and control.',
-  'Fyodor Dostoevsky':
-    'Russian novelist exploring psychology, morality, and existential themes.',
-  'Franz Kafka':
-    'Writer of surreal, existential works reflecting alienation and absurdity.',
-  'Albert Camus':
-    'Philosopher of absurdism exploring meaning and existence in works like The Stranger.',
-  'J.K. Rowling':
-    'Creator of Harry Potter, a globally influential fantasy series.',
-  'J.R.R. Tolkien':
-    'Father of modern fantasy, author of The Lord of the Rings.',
-  'Jane Austen':
-    'English novelist known for wit and social commentary.',
-  'Colleen Hoover':
-    'Contemporary romance author exploring emotional and personal themes.',
-  'Leigh Bardugo':
-    'Fantasy author known for the Grishaverse series.',
-  'Rick Riordan':
-    'Author blending mythology with modern adventure, like Percy Jackson.',
-  'Stephen King':
-    'Master of horror and suspense with a vast body of work.',
-  'Agatha Christie':
-    'Legendary mystery writer, creator of Hercule Poirot.',
-  'Dan Brown':
-    'Thriller author known for fast-paced conspiracy novels.',
-  'Suzanne Collins':
-    'Author of The Hunger Games, combining dystopia and social themes.',
-  'Veronica Roth':
-    'Known for Divergent, exploring identity and society.',
-  'C.S. Lewis':
-    'Author of The Chronicles of Narnia, blending fantasy and philosophy.',
-  'Neil Gaiman':
-    'Writer combining fantasy, mythology, and dark storytelling.',
-  'Mark Manson':
-    'Self-help author known for direct, modern perspectives on life.',
-  'Robert Greene':
-    'Author of strategic works on power and human behavior.',
-  'Yuval Noah Harari':
-    'Historian exploring humanity and the future in Sapiens.',
+const API_BASE = 'http://localhost:5000'
+
+const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#f5f2ed"/>
+  <rect x="16" y="16" width="268" height="418" rx="18" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="150" y="180" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="150" y="235" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="150" y="290" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
+
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_COVER
+  if (url.startsWith('blob:')) return PLACEHOLDER_COVER
+  return url
+}
+
+function normalizeBook(data) {
+  return {
+    id: data.id,
+    title: data.title || 'Untitled',
+    author: data.author || 'Unknown Author',
+    genre: data.category || 'General',
+    description: data.description || 'No description available for this book yet.',
+    cover: sanitizeImage(data.image),
+    availableCopies: Number(data.available_copies ?? data.availableCopies ?? 0),
+    totalCopies: Number(data.available_copies ?? data.availableCopies ?? 0),
+    year: data.year || 'N/A',
+    pages: data.pages || 'N/A',
+    publisher: data.publisher || 'Library Collection',
+    isbn: data.isbn || 'N/A',
+    language: data.language || 'EN',
+    rating: data.rating || 'N/A',
+    campus: data.campus || 'Beirut',
+    authorBiography: data.authorBiography || '',
+  }
 }
 
 export default function BookDetail() {
@@ -72,12 +46,10 @@ export default function BookDetail() {
   const navigate = useNavigate()
   const admin = isAdminUser()
 
-  const book = BOOKS.find((b) => b.id === parseInt(id, 10))
-  const safeBookId = book?.id ?? 0
-
-  const { total: totalCopies, available: availableCopies } = getCopies(safeBookId)
-  const isAvailable = availableCopies > 0
-  const bookCampus = getCampus(safeBookId)
+  const [book, setBook] = useState(null)
+  const [allBooks, setAllBooks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
@@ -85,12 +57,47 @@ export default function BookDetail() {
   const [shareCopied, setShareCopied] = useState(false)
   const [progress, setProgress] = useState(0)
 
+  useEffect(() => {
+    const fetchBookData = async () => {
+      try {
+        setLoading(true)
+        setError('')
+
+        const [bookResponse, allBooksResponse] = await Promise.all([
+          fetch(`${API_BASE}/api/books/${id}`),
+          fetch(`${API_BASE}/api/books`),
+        ])
+
+        const bookData = await bookResponse.json()
+        const allBooksData = await allBooksResponse.json()
+
+        if (!bookResponse.ok) {
+          throw new Error(bookData.message || 'Failed to fetch book')
+        }
+
+        if (!allBooksResponse.ok) {
+          throw new Error(allBooksData.message || 'Failed to fetch related books')
+        }
+
+        setBook(normalizeBook(bookData))
+        setAllBooks(allBooksData.map(normalizeBook))
+      } catch (err) {
+        setError(err.message || 'Something went wrong')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookData()
+  }, [id])
+
   function getUserPrefix() {
-    const user = getStoredUser()
+    const user = getStoredUser?.()
     return user?.email ? `${user.email}:` : ''
   }
 
   const prefix = getUserPrefix()
+  const safeBookId = book?.id ?? 0
   const borrowKey = `${prefix}borrowed-${safeBookId}`
   const loanKey = `${prefix}loan-${safeBookId}`
   const storageKey = `${prefix}reading-progress-${safeBookId}`
@@ -106,28 +113,30 @@ export default function BookDetail() {
     setProgress(Number(localStorage.getItem(storageKey) ?? 0))
   }, [book, storageKey])
 
-  const authorBiography = book
-    ? AUTHOR_BIOGRAPHIES[book.author] || 'No biography available for this author yet.'
-    : ''
+  const isAvailable = Number(book?.availableCopies ?? 0) > 0
+  const bookCampus = book?.campus === 'both' ? 'Beirut / Byblos' : book?.campus || 'Beirut'
+  const authorBiography =
+    book?.authorBiography || 'No biography available for this author yet.'
 
   const { relatedBooks, relatedTitle } = useMemo(() => {
     if (!book) {
       return { relatedBooks: [], relatedTitle: 'You might also enjoy' }
     }
 
-    const sameGenre = BOOKS.filter((b) => b.genre === book.genre && b.id !== book.id)
+    const sameGenre = allBooks.filter(
+      (b) => b.genre === book.genre && b.id !== book.id
+    )
+
     const nextRelatedBooks =
       sameGenre.length >= 2
         ? sameGenre.slice(0, 4)
-        : BOOKS.filter((b) => b.id !== book.id)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4)
+        : allBooks.filter((b) => b.id !== book.id).slice(0, 4)
 
     const nextRelatedTitle =
       sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
 
     return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
-  }, [book])
+  }, [allBooks, book])
 
   function handleShare() {
     navigator.clipboard?.writeText(window.location.href)
@@ -138,9 +147,9 @@ export default function BookDetail() {
   function handleBorrowClick() {
     if (!book) return
 
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+    const token = localStorage.getItem('token')
 
-    if (!isLoggedIn) {
+    if (!token) {
       navigate('/login', { state: { from: `/books/${book.id}` } })
       return
     }
@@ -169,7 +178,8 @@ export default function BookDetail() {
     let currentBorrowedBooks = []
 
     try {
-      currentBorrowedBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
+      currentBorrowedBooks =
+        JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
     } catch {
       currentBorrowedBooks = []
     }
@@ -187,7 +197,9 @@ export default function BookDetail() {
       })
     )
 
-    const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
+    const alreadyTracked = currentBorrowedBooks.some(
+      (entry) => entry.id === book.id
+    )
 
     if (!alreadyTracked) {
       localStorage.setItem(
@@ -204,6 +216,28 @@ export default function BookDetail() {
   const handleProgress = (val) => {
     setProgress(val)
     localStorage.setItem(storageKey, val)
+  }
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <p className="text-[#555] dark:text-white">Loading book...</p>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <p className="text-red-600">{error}</p>
+        <button
+          className="cursor-pointer rounded-lg border border-[#ccc] px-4 py-2 text-[0.85rem] hover:bg-[#eee]"
+          onClick={() => navigate(-1)}
+        >
+          Go back
+        </button>
+      </main>
+    )
   }
 
   if (!book) {
@@ -243,6 +277,10 @@ export default function BookDetail() {
             src={book.cover}
             alt={`Cover of ${book.title}`}
             className="w-full rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
+            onError={(e) => {
+              e.currentTarget.onerror = null
+              e.currentTarget.src = PLACEHOLDER_COVER
+            }}
           />
 
           <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]">
@@ -250,7 +288,7 @@ export default function BookDetail() {
               {isAvailable ? '● Available' : '● Fully Borrowed'}
             </p>
             <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#888]">
-              {availableCopies} of {totalCopies} copies available
+              {book.availableCopies} of {book.totalCopies} copies available
             </p>
           </div>
 
@@ -307,9 +345,11 @@ export default function BookDetail() {
           </div>
 
           <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
-            {book.description.split('\n\n').map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+            {String(book.description)
+              .split('\n\n')
+              .map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
           </div>
 
           <ul
@@ -322,8 +362,8 @@ export default function BookDetail() {
               ['Publisher', book.publisher],
               ['ISBN', book.isbn],
               ['Language', book.language === 'FR' ? 'French' : 'English'],
-              ['Rating', `⭐ ${book.rating}`],
-              ['Campus', bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus],
+              ['Rating', book.rating === 'N/A' ? 'N/A' : `⭐ ${book.rating}`],
+              ['Campus', bookCampus],
             ].map(([label, value]) => (
               <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#888]">
                 <span>{label}</span>
@@ -428,6 +468,10 @@ export default function BookDetail() {
                     src={related.cover}
                     alt={`Cover of ${related.title}`}
                     className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-transform duration-200 group-hover:-translate-y-1"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = PLACEHOLDER_COVER
+                    }}
                   />
                   <p className="mb-[0.2rem] mt-[0.6rem] text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-white">
                     {related.title}
