@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import defaultPic from "../assets/default-profile.png"
 import { BOOKS } from "../data/bookData"
 import { getStoredUser } from "../utils"
+import { getFavorites, removeFavorite } from "../utils/api"
 
-const DASHBOARD_URL = "http://localhost:5000/api/dashboard"
+const DASHBOARD_URL = "http://localhost:5001/api/dashboard"
 
 function formatDate(value) {
 	if (!value) return "N/A"
@@ -148,6 +149,10 @@ function Dashboard() {
 	})
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState("")
+	const [favorites, setFavorites] = useState([])
+	const [favoritesLoading, setFavoritesLoading] = useState(true)
+	const [favoritesError, setFavoritesError] = useState("")
+	const [removingFavoriteId, setRemovingFavoriteId] = useState(null)
 
 	useEffect(() => {
 		const savedUser = getStoredUser()
@@ -184,6 +189,7 @@ function Dashboard() {
 					localStorage.removeItem("token")
 					localStorage.removeItem("user")
 					localStorage.setItem("isLoggedIn", "false")
+					window.dispatchEvent(new Event("auth-change"))
 					navigate("/login")
 					return
 				}
@@ -213,10 +219,39 @@ function Dashboard() {
 
 		loadDashboard()
 
+		// Favorites live on their own endpoint; fetch them in parallel so a slow
+		// dashboard query doesn't block the favorites section from showing up.
+		setFavoritesLoading(true)
+		setFavoritesError("")
+		getFavorites()
+			.then((favs) => {
+				if (isActive) setFavorites(favs)
+			})
+			.catch((err) => {
+				if (isActive) setFavoritesError(err.message || "Failed to load favorites")
+			})
+			.finally(() => {
+				if (isActive) setFavoritesLoading(false)
+			})
+
 		return () => {
 			isActive = false
 		}
 	}, [navigate])
+
+	async function handleRemoveFavorite(bookId) {
+		setRemovingFavoriteId(bookId)
+		const previous = favorites
+		// Optimistic update — snap the UI, roll back if the DELETE fails.
+		setFavorites((list) => list.filter((b) => b.id !== bookId))
+		try {
+			await removeFavorite(bookId)
+		} catch {
+			setFavorites(previous)
+		} finally {
+			setRemovingFavoriteId(null)
+		}
+	}
 
 	const handleRetry = () => {
 		const token = localStorage.getItem("token")
@@ -240,6 +275,7 @@ function Dashboard() {
 					localStorage.removeItem("token")
 					localStorage.removeItem("user")
 					localStorage.setItem("isLoggedIn", "false")
+					window.dispatchEvent(new Event("auth-change"))
 					navigate("/login")
 					return null
 				}
@@ -303,6 +339,7 @@ function Dashboard() {
 		localStorage.removeItem("token")
 		localStorage.removeItem("user")
 		localStorage.setItem("isLoggedIn", "false")
+		window.dispatchEvent(new Event("auth-change"))
 		navigate("/login")
 	}
 
@@ -585,6 +622,86 @@ function Dashboard() {
 						</div>
 					</section>
 				</div>
+			</section>
+
+			<section
+				className="mt-8 rounded-xl bg-white p-6 shadow-sm dark:bg-[#242424]"
+				aria-labelledby="favorites-heading"
+			>
+				<div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+					<h2 id="favorites-heading" className="text-xl font-semibold text-gray-700 dark:text-white">
+						Favorites
+					</h2>
+					<span className="text-sm text-gray-500 dark:text-[#888]">
+						{favorites.length} saved
+					</span>
+				</div>
+
+				{favoritesLoading ? (
+					<div className="flex items-center gap-3 py-6">
+						<div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#e5e2dc] border-t-[#1a6644] dark:border-[#333] dark:border-t-[#5ecba1]" />
+						<p className="text-sm text-gray-500 dark:text-[#888]">Loading favorites...</p>
+					</div>
+				) : favoritesError ? (
+					<p className="rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-[#3b1c1a] dark:text-[#ff9388]">
+						{favoritesError}
+					</p>
+				) : favorites.length === 0 ? (
+					<div className="flex flex-col items-start gap-3 rounded-md border border-dashed border-gray-200 bg-gray-50 p-6 dark:border-[#333] dark:bg-[#1a1a1a]">
+						<p className="text-sm text-gray-600 dark:text-[#888]">
+							You haven&apos;t saved any books yet. Tap the heart on any book page to add it here.
+						</p>
+						<Link
+							to="/catalog"
+							className="rounded-md bg-[#1a6644] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#14533a]"
+						>
+							Browse the catalog
+						</Link>
+					</div>
+				) : (
+					<ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+						{favorites.map((book) => (
+							<li key={book.id} className="flex flex-col gap-2">
+								<Link
+									to={`/books/${book.id}`}
+									aria-label={`View ${book.title}`}
+									className="group relative block aspect-[2/3] overflow-hidden rounded-[3px_7px_7px_3px] bg-[#e5e2dc] shadow-[-2px_0_4px_rgba(28,43,36,0.14),0_2px_0_rgba(28,43,36,0.06),0_4px_14px_rgba(28,43,36,0.12)] transition hover:-translate-y-1 dark:bg-[#1a1a1a]"
+								>
+									<img
+										src={book.cover}
+										alt={`Cover of ${book.title}`}
+										className="h-full w-full object-cover"
+										loading="lazy"
+										onError={(e) => {
+											e.currentTarget.style.display = "none"
+										}}
+									/>
+								</Link>
+								<div>
+									<p className="line-clamp-2 text-[0.82rem] font-semibold leading-[1.3] text-gray-800 dark:text-white">
+										{book.title}
+									</p>
+									<p className="text-[0.72rem] text-gray-500 dark:text-[#888]">{book.author}</p>
+								</div>
+								<button
+									type="button"
+									onClick={() => handleRemoveFavorite(book.id)}
+									disabled={removingFavoriteId === book.id}
+									aria-label={`Remove ${book.title} from favorites`}
+									title="Remove from favorites"
+									className="inline-flex h-7 w-7 items-center justify-center self-start rounded-md border border-[#d0ddd8] bg-white text-[#b5392b] transition hover:border-[#c0392b] hover:bg-[#fdecea] disabled:opacity-50 dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#ff9388] dark:hover:border-[#ff9388] dark:hover:bg-[#3b1c1a]"
+								>
+									<svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+										<path d="M4 7h16" />
+										<path d="M10 11v6M14 11v6" />
+										<path d="M6 7v13a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7" />
+										<path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+									</svg>
+								</button>
+							</li>
+						))}
+					</ul>
+				)}
 			</section>
 
 			<nav className="mt-8 mb-10 flex flex-wrap gap-4" aria-label="Dashboard actions">

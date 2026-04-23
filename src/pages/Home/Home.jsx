@@ -1,7 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
-import { EVENTS } from '@/data/eventsData'
+import { getBooks, getEvents } from '@/utils/api'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
@@ -92,10 +91,7 @@ const QUICK_ACTIONS = [
 ]
 
 // Settings for the infinite scrolling book carousel ("Staff Picks")
-// We duplicate the book list so it loops seamlessly
 const GAP_PX = 32
-const N = BOOKS.length
-const TRACK = [...BOOKS, ...BOOKS]
 const PX_PER_SEC = 55
 
 // Card size adjusts depending on screen width
@@ -111,6 +107,8 @@ function Home() {
   const animRef = useRef(null)
   const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [books, setBooks] = useState([])
+  const [events, setEvents] = useState([])
 
   // Auto-rotate hero slides every 7 seconds
   useEffect(() => {
@@ -118,23 +116,41 @@ function Home() {
     return () => clearInterval(id)
   }, [])
 
-  // Set up the book carousel animation — pauses on hover, recalculates on resize
+  // Load books and events from the backend in parallel on first render.
+  // Failures fall back to empty lists so the page still renders.
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getBooks().catch(() => []), getEvents().catch(() => [])]).then(([b, e]) => {
+      if (cancelled) return
+      setBooks(b)
+      setEvents(e)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Duplicate the book list so the carousel loops seamlessly.
+  const track = useMemo(() => [...books, ...books], [books])
+
+  // Set up the book carousel animation — pauses on hover, recalculates on resize.
+  // Re-runs when books load so the distance calculation matches the real list length.
   useLayoutEffect(() => {
     const viewport = viewportRef.current
-    const track = trackRef.current
-    if (!viewport || !track) return
+    const trackEl = trackRef.current
+    if (!viewport || !trackEl || books.length === 0) return
 
     const start = () => {
       const cw = getCardWidth(viewport.offsetWidth)
-      const dist = N * (cw + GAP_PX)
+      const dist = books.length * (cw + GAP_PX)
       const dur = (dist / PX_PER_SEC) * 1000
 
-      Array.from(track.children).forEach((card) => {
+      Array.from(trackEl.children).forEach((card) => {
         card.style.flexBasis = `${cw}px`
       })
 
       animRef.current?.cancel()
-      animRef.current = track.animate([{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }], {
+      animRef.current = trackEl.animate([{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }], {
         duration: dur,
         iterations: Infinity,
         easing: 'linear',
@@ -155,11 +171,11 @@ function Home() {
       viewport.removeEventListener('mouseleave', resume)
       window.removeEventListener('resize', start)
     }
-  }, [])
+  }, [books.length])
 
   // Grab the next upcoming event to show in the hero sidebar card
   const today = new Date().toISOString().slice(0, 10)
-  const nextEvent = EVENTS.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
+  const nextEvent = events.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
 
   return (
     <div className="w-full bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
@@ -284,7 +300,7 @@ function Home() {
             </div>
             <div ref={viewportRef} className="overflow-hidden">
               <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
-                {TRACK.map((book, i) => (
+                {track.map((book, i) => (
                   <a
                     key={`${book.id}-${i}`}
                     href={`/books/${book.id}`}

@@ -7,9 +7,13 @@ function useIsLoggedIn() {
 
   useEffect(() => {
     const check = () => setLoggedIn(getStatus())
+    // `storage` only fires in OTHER tabs, so Login/Register/Logout dispatch
+    // a same-tab `auth-change` event that we listen for here.
+    window.addEventListener('auth-change', check)
     window.addEventListener('storage', check)
     window.addEventListener('focus', check)
     return () => {
+      window.removeEventListener('auth-change', check)
       window.removeEventListener('storage', check)
       window.removeEventListener('focus', check)
     }

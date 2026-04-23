@@ -7,6 +7,11 @@ const pool = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const booksRoutes = require("./routes/booksRoutes");
+const eventsRoutes = require("./routes/eventsRoutes");
+const favoritesRoutes = require("./routes/favoritesRoutes");
+const loansRoutes = require("./routes/loansRoutes");
+const reviewsRoutes = require("./routes/reviewsRoutes");
 
 const app = express();
 
@@ -16,6 +21,11 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/books", booksRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/favorites", favoritesRoutes);
+app.use("/api/loans", loansRoutes);
+app.use("/api/reviews", reviewsRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");

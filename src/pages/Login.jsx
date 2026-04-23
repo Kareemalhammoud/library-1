@@ -64,7 +64,7 @@ function Login() {
 		}
 
 		try {
-			const response = await fetch("http://localhost:5000/api/auth/login", {
+			const response = await fetch("http://localhost:5001/api/auth/login", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -84,6 +84,7 @@ function Login() {
 			localStorage.setItem("token", data.token)
 			localStorage.setItem("user", JSON.stringify(data.user))
 			localStorage.setItem("isLoggedIn", "true")
+			window.dispatchEvent(new Event("auth-change"))
 			setFieldErrors({})
 			setFormError("")
 			setAuthError(false)

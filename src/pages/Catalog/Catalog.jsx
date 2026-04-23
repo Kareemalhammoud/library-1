@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS, GENRES } from '@/data/bookData'
+import { GENRES } from '@/data/bookData'
+import { getBooks, getFavorites, addFavorite, removeFavorite, getActiveLoans, createLoan } from '@/utils/api'
 import { getAvailability, getCallNumber, getCampus, getCopies, getResourceType } from '@/utils/bookUtils'
-import { isAdminUser } from '@/utils'
+import { isAdminUser, isLoggedInUser } from '@/utils'
 
 // Filter dropdown options
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
@@ -65,9 +66,119 @@ export default function Catalog() {
 
   const admin = isAdminUser()
 
+  const [books, setBooks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [favoriteIds, setFavoriteIds] = useState(() => new Set())
+  const [togglingFavoriteId, setTogglingFavoriteId] = useState(null)
+  const [borrowedIds, setBorrowedIds] = useState(() => new Set())
+  const [borrowingId, setBorrowingId] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
+    getBooks()
+      .then((data) => {
+        if (cancelled) return
+        setBooks(data)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setLoadError(error.message || 'Failed to load books')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Load the user's favorite set + active loans once on mount so each card
+  // can show the right heart state and a disabled borrow icon if already
+  // borrowed. Guests skip this entirely — no auth token, no request.
+  useEffect(() => {
+    if (!isLoggedInUser()) return
+    let cancelled = false
+    Promise.all([
+      getFavorites().catch(() => []),
+      getActiveLoans().catch(() => []),
+    ]).then(([favs, loans]) => {
+      if (cancelled) return
+      setFavoriteIds(new Set(favs.map((b) => b.id)))
+      setBorrowedIds(new Set(loans.map((l) => l.book_id)))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function handleBorrow(bookId) {
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: '/catalog' } })
+      return
+    }
+    if (borrowedIds.has(bookId) || borrowingId === bookId) return
+
+    setBorrowingId(bookId)
+    // Optimistic — mark as borrowed right away so the icon updates without
+    // waiting on the round-trip. Roll back if the API says no.
+    setBorrowedIds((prev) => {
+      const next = new Set(prev)
+      next.add(bookId)
+      return next
+    })
+    try {
+      await createLoan(bookId)
+    } catch (error) {
+      // 409 means they already have it on loan — keep it marked as borrowed.
+      if (error.status !== 409) {
+        setBorrowedIds((prev) => {
+          const next = new Set(prev)
+          next.delete(bookId)
+          return next
+        })
+        alert(error.message || 'Failed to borrow this book')
+      }
+    } finally {
+      setBorrowingId(null)
+    }
+  }
+
+  async function handleToggleFavorite(bookId) {
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: '/catalog' } })
+      return
+    }
+    const willFavorite = !favoriteIds.has(bookId)
+    setTogglingFavoriteId(bookId)
+    // Optimistic update so the heart flips instantly.
+    setFavoriteIds((prev) => {
+      const next = new Set(prev)
+      if (willFavorite) next.add(bookId)
+      else next.delete(bookId)
+      return next
+    })
+    try {
+      if (willFavorite) await addFavorite(bookId)
+      else await removeFavorite(bookId)
+    } catch {
+      // Roll back on failure.
+      setFavoriteIds((prev) => {
+        const next = new Set(prev)
+        if (willFavorite) next.delete(bookId)
+        else next.add(bookId)
+        return next
+      })
+    } finally {
+      setTogglingFavoriteId(null)
+    }
+  }
+
   // Filter and sort books based on the current search/filter selections
   const filtered = useMemo(() => {
-    const results = BOOKS.filter((book) => {
+    const results = books.filter((book) => {
       const bookCampus = getCampus(book.id)
       const bookLang = book.language === 'FR' ? 'French' : 'English'
       const bookAvail = getAvailability(book.id)
@@ -133,6 +244,7 @@ export default function Catalog() {
 
     return results
   }, [
+    books,
     search,
     genre,
     language,
@@ -469,7 +581,20 @@ export default function Catalog() {
           </section>
         )}
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <section className="mx-auto flex max-w-[440px] flex-col items-center gap-3 px-4 py-16 text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
+            <p className="text-[0.84rem] text-[#5a6b62] dark:text-[#8c9691]">Loading catalog...</p>
+          </section>
+        ) : loadError ? (
+          <section className="mx-auto flex max-w-[440px] flex-col items-center gap-2 px-4 py-16 text-center">
+            <h2 className="text-[1.1rem] font-bold tracking-[-0.01em] text-[#b5392b] dark:text-[#ff9388]">Couldn&apos;t load the catalog</h2>
+            <p className="text-[0.84rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">{loadError}</p>
+            <p className="text-[0.78rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">
+              Check that the backend API is running, then refresh the page.
+            </p>
+          </section>
+        ) : filtered.length === 0 ? (
           <section className="mx-auto flex max-w-[440px] flex-col items-center gap-2 px-4 py-16 text-center">
             <svg className="mb-1 h-12 w-12 text-[#ccc] dark:text-[#66706b]" viewBox="0 0 48 48" fill="none" aria-hidden="true">
               <circle cx="22" cy="22" r="14" stroke="currentColor" strokeWidth="2.5" />
@@ -558,6 +683,55 @@ export default function Catalog() {
                       </span>
                     </div>
 
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleFavorite(book.id)
+                        }}
+                        disabled={togglingFavoriteId === book.id}
+                        aria-pressed={favoriteIds.has(book.id)}
+                        aria-label={favoriteIds.has(book.id) ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
+                        title={favoriteIds.has(book.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:opacity-60 ${
+                          favoriteIds.has(book.id)
+                            ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
+                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#c0392b] hover:text-[#b5392b] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#ff9388] dark:hover:text-[#ff9388]'
+                        }`}
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={favoriteIds.has(book.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleBorrow(book.id)
+                        }}
+                        disabled={borrowedIds.has(book.id) || borrowingId === book.id}
+                        aria-label={borrowedIds.has(book.id) ? `${book.title} already borrowed` : `Borrow ${book.title}`}
+                        title={borrowedIds.has(book.id) ? 'Already borrowed' : 'Borrow'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed ${
+                          borrowedIds.has(book.id)
+                            ? 'border-[#1a6644] bg-[#e6f4ec] text-[#006751] dark:border-[#1a6644] dark:bg-[#143c2f] dark:text-[#5ecba1]'
+                            : 'border-[#d0ddd8] bg-white text-[#006751] hover:border-[#1a6644] hover:bg-[#EDF3F0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#181818]'
+                        }`}
+                      >
+                        {borrowedIds.has(book.id) ? (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M5 12l5 5L20 7" />
+                          </svg>
+                        ) : (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M4 5v14a2 2 0 0 1 2-2h6V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 0Z" />
+                            <path d="M20 5v14a2 2 0 0 0-2-2h-6V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 0Z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+
                     {admin && (
                       <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]">
                         <button
@@ -636,6 +810,55 @@ export default function Catalog() {
                       <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>
                         {bookAvail ? 'Available' : 'On Loan'}
                       </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleFavorite(book.id)
+                        }}
+                        disabled={togglingFavoriteId === book.id}
+                        aria-pressed={favoriteIds.has(book.id)}
+                        aria-label={favoriteIds.has(book.id) ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
+                        title={favoriteIds.has(book.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:opacity-60 ${
+                          favoriteIds.has(book.id)
+                            ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
+                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#c0392b] hover:text-[#b5392b] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#ff9388] dark:hover:text-[#ff9388]'
+                        }`}
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={favoriteIds.has(book.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleBorrow(book.id)
+                        }}
+                        disabled={borrowedIds.has(book.id) || borrowingId === book.id}
+                        aria-label={borrowedIds.has(book.id) ? `${book.title} already borrowed` : `Borrow ${book.title}`}
+                        title={borrowedIds.has(book.id) ? 'Already borrowed' : 'Borrow'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed ${
+                          borrowedIds.has(book.id)
+                            ? 'border-[#1a6644] bg-[#e6f4ec] text-[#006751] dark:border-[#1a6644] dark:bg-[#143c2f] dark:text-[#5ecba1]'
+                            : 'border-[#d0ddd8] bg-white text-[#006751] hover:border-[#1a6644] hover:bg-[#EDF3F0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#181818]'
+                        }`}
+                      >
+                        {borrowedIds.has(book.id) ? (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M5 12l5 5L20 7" />
+                          </svg>
+                        ) : (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M4 5v14a2 2 0 0 1 2-2h6V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 0Z" />
+                            <path d="M20 5v14a2 2 0 0 0-2-2h-6V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 0Z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
 
                     {admin && (

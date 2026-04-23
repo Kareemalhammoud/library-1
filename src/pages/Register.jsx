@@ -88,7 +88,7 @@ function Register() {
 		}
 
 		try {
-			const response = await fetch("http://localhost:5000/api/auth/register", {
+			const response = await fetch("http://localhost:5001/api/auth/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -109,6 +109,7 @@ function Register() {
 			localStorage.setItem("token", data.token)
 			localStorage.setItem("user", JSON.stringify(data.user))
 			localStorage.setItem("isLoggedIn", "true")
+			window.dispatchEvent(new Event("auth-change"))
 			setFieldErrors({})
 			setFormError("")
 			navigate("/dashboard")
