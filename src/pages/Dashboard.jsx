@@ -5,7 +5,8 @@ import { BOOKS } from "../data/bookData"
 import { getStoredUser } from "../utils"
 import { getFavorites, removeFavorite } from "../utils/api"
 
-const DASHBOARD_URL = "http://localhost:5001/api/dashboard"
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+const DASHBOARD_URL = `${API_BASE}/dashboard`
 
 function formatDate(value) {
 	if (!value) return "N/A"
@@ -421,7 +422,9 @@ function Dashboard() {
 							<p>
 								<span className="font-medium text-gray-700 dark:text-white">Date Joined:</span>
 								<span className="ml-2 text-gray-600 dark:text-[#888]">
-									{user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
+									{user?.createdAt || user?.created_at
+										? new Date(user.createdAt || user.created_at).toLocaleDateString()
+										: "N/A"}
 								</span>
 							</p>
 

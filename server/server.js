@@ -1,9 +1,11 @@
 const express = require("express");
 const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
 
 require("dotenv").config();
 
 const pool = require("./config/db");
+const swaggerSpec = require("./swaggerSpec");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
@@ -26,6 +28,7 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/loans", loansRoutes);
 app.use("/api/reviews", reviewsRoutes);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req, res) => {
   res.send("API is running");

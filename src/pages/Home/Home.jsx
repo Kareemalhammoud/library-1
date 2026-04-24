@@ -160,7 +160,6 @@ function Home() {
   const [books, setBooks] = useState([])
   const [booksLoading, setBooksLoading] = useState(true)
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [books, setBooks] = useState([])
   const [events, setEvents] = useState([])
 
   useEffect(() => {

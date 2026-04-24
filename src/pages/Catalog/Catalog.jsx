@@ -42,6 +42,13 @@ function sanitizeImage(url) {
   return url
 }
 
+function normalizeBook(book) {
+  return {
+    ...book,
+    cover: sanitizeImage(book.cover || book.image),
+  }
+}
+
 function tagClass(type) {
   const base =
     'inline-flex items-center rounded-[3px] px-2 py-[0.15rem] text-[0.56rem] font-semibold uppercase tracking-[0.05em]'
@@ -92,12 +99,6 @@ function formatYear(year) {
 
 export default function Catalog() {
   const navigate = useNavigate()
-  const admin = isAdminUser()
-
-  const [books, setBooks] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('All')
   const [language, setLanguage] = useState('All Languages')
@@ -131,7 +132,7 @@ export default function Catalog() {
     getBooks()
       .then((data) => {
         if (cancelled) return
-        setBooks(data)
+        setBooks(Array.isArray(data) ? data.map(normalizeBook) : [])
       })
       .catch((error) => {
         if (cancelled) return
@@ -354,14 +355,6 @@ export default function Catalog() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#F2F5F3] px-5 py-16 text-center dark:bg-[#121212]">
-        <p className="text-red-600">{error}</p>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-[#F2F5F3] dark:bg-[#121212]">
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-10 text-center sm:px-6 md:px-8 md:py-14">
@@ -501,7 +494,7 @@ export default function Catalog() {
                 label: 'Subject',
                 value: genre,
                 setValue: setGenre,
-                options: ['All Subjects', ...genres.filter((g) => g !== 'All')],
+                options: ['All Subjects', ...GENRES.filter((g) => g !== 'All')],
                 mapValue: (option) => (option === 'All Subjects' ? 'All' : option),
               },
               { label: 'Campus', value: campus, setValue: setCampus, options: CAMPUS_OPTIONS },

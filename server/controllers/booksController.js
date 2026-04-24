@@ -1,38 +1,150 @@
 const pool = require("../config/db");
 
-// Alias columns back to the camelCase shape the React pages expect.
-const BOOK_COLUMNS = `
-  id, title, author, genre, language, year, rating, pages,
-  publisher, isbn, description, cover, color,
-  genre_color AS genreColor, badge
-`;
+async function getBookColumns() {
+  const [rows] = await pool.query("SHOW COLUMNS FROM books");
+  return new Set(rows.map((row) => row.Field));
+}
+
+const normalizeString = (value) => {
+  if (typeof value !== "string") return "";
+  return value.trim();
+};
+
+const parseOptionalInt = (value) => {
+  if (value === undefined || value === null || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.trunc(parsed);
+};
+
+const parseOptionalNumber = (value) => {
+  if (value === undefined || value === null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+function bookSelectSql(columns) {
+  const has = (name) => columns.has(name);
+
+  const idExpr = has("id") ? "id" : "NULL AS id";
+  const titleExpr = has("title") ? "title" : "NULL AS title";
+  const authorExpr = has("author") ? "author" : "NULL AS author";
+  const genreExpr = has("genre")
+    ? "genre"
+    : has("category")
+      ? "category AS genre"
+      : "NULL AS genre";
+  const languageExpr = has("language") ? "language" : "NULL AS language";
+  const yearExpr = has("year") ? "year" : "NULL AS year";
+  const ratingExpr = has("rating") ? "rating" : "NULL AS rating";
+  const pagesExpr = has("pages") ? "pages" : "NULL AS pages";
+  const publisherExpr = has("publisher") ? "publisher" : "NULL AS publisher";
+  const isbnExpr = has("isbn") ? "isbn" : "NULL AS isbn";
+  const descriptionExpr = has("description") ? "description" : "NULL AS description";
+  const coverExpr = has("cover")
+    ? "cover"
+    : has("image")
+      ? "image AS cover"
+      : "NULL AS cover";
+  const colorExpr = has("color") ? "color" : "NULL AS color";
+  const genreColorExpr = has("genre_color") ? "genre_color AS genreColor" : "NULL AS genreColor";
+  const badgeExpr = has("badge") ? "badge" : "NULL AS badge";
+  const copiesExpr = has("available_copies")
+    ? "available_copies AS copies"
+    : has("copies")
+      ? "copies"
+      : "0 AS copies";
+
+  return `
+    ${idExpr}, ${titleExpr}, ${authorExpr}, ${genreExpr}, ${languageExpr},
+    ${yearExpr}, ${ratingExpr}, ${pagesExpr}, ${publisherExpr}, ${isbnExpr},
+    ${descriptionExpr}, ${coverExpr}, ${colorExpr}, ${genreColorExpr},
+    ${badgeExpr}, ${copiesExpr}
+  `;
+}
+
+function makePlaceholderCover(title, author) {
+  const safeTitle = normalizeString(title) || "Untitled";
+  const safeAuthor = normalizeString(author) || "Unknown Author";
+  const escapedTitle = safeTitle.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const escapedAuthor = safeAuthor.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f1f5f3"/>
+      <stop offset="100%" stop-color="#dfe8e4"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <rect x="16" y="16" width="268" height="418" rx="14" fill="none" stroke="#c0cec7" stroke-width="2"/>
+  <text x="150" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#21312a">
+    ${escapedTitle.slice(0, 28)}
+  </text>
+  <text x="150" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#21312a">
+    ${escapedTitle.slice(28, 56)}
+  </text>
+  <text x="150" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#3b544a">
+    ${escapedAuthor.slice(0, 34)}
+  </text>
+</svg>`;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function normalizeBookRow(row) {
+  const cover = normalizeString(row.cover);
+  return {
+    ...row,
+    cover: cover || makePlaceholderCover(row.title, row.author)
+  };
+}
 
 const getAllBooks = async (req, res) => {
   try {
     const { search, genre, language, limit } = req.query;
+    const columns = await getBookColumns();
 
     const conditions = [];
     const params = [];
+    const genreColumn = columns.has("genre") ? "genre" : columns.has("category") ? "category" : null;
+    const languageColumn = columns.has("language") ? "language" : null;
+    const publisherColumn = columns.has("publisher") ? "publisher" : null;
+    const isbnColumn = columns.has("isbn") ? "isbn" : null;
 
     if (search) {
       const like = `%${search}%`;
+      const searchClauses = ["title LIKE ?", "author LIKE ?"];
+      params.push(like, like);
+      if (isbnColumn) {
+        searchClauses.push(`${isbnColumn} LIKE ?`);
+        params.push(like);
+      }
+      if (genreColumn) {
+        searchClauses.push(`${genreColumn} LIKE ?`);
+        params.push(like);
+      }
+      if (publisherColumn) {
+        searchClauses.push(`${publisherColumn} LIKE ?`);
+        params.push(like);
+      }
       conditions.push(
-        "(title LIKE ? OR author LIKE ? OR isbn LIKE ? OR genre LIKE ? OR publisher LIKE ?)"
+        `(${searchClauses.join(" OR ")})`
       );
-      params.push(like, like, like, like, like);
     }
 
-    if (genre && genre !== "All") {
-      conditions.push("genre = ?");
+    if (genre && genre !== "All" && genreColumn) {
+      conditions.push(`${genreColumn} = ?`);
       params.push(genre);
     }
 
-    if (language) {
-      conditions.push("language = ?");
+    if (language && languageColumn) {
+      conditions.push(`${languageColumn} = ?`);
       params.push(language);
     }
 
-    let sql = `SELECT ${BOOK_COLUMNS} FROM books`;
+    let sql = `SELECT ${bookSelectSql(columns)} FROM books`;
     if (conditions.length > 0) sql += ` WHERE ${conditions.join(" AND ")}`;
     sql += " ORDER BY id ASC";
 
@@ -44,7 +156,7 @@ const getAllBooks = async (req, res) => {
     }
 
     const [rows] = await pool.query(sql, params);
-    res.json(rows);
+    res.json(rows.map(normalizeBookRow));
   } catch (error) {
     console.error("Get books error:", error);
     res.status(500).json({ message: "Failed to load books" });
@@ -54,12 +166,13 @@ const getAllBooks = async (req, res) => {
 const getBookById = async (req, res) => {
   try {
     const bookId = Number.parseInt(req.params.id, 10);
+    const columns = await getBookColumns();
     if (!Number.isInteger(bookId)) {
       return res.status(400).json({ message: "Invalid book id" });
     }
 
     const [rows] = await pool.query(
-      `SELECT ${BOOK_COLUMNS} FROM books WHERE id = ?`,
+      `SELECT ${bookSelectSql(columns)} FROM books WHERE id = ?`,
       [bookId]
     );
 
@@ -67,14 +180,198 @@ const getBookById = async (req, res) => {
       return res.status(404).json({ message: "Book not found" });
     }
 
-    res.json(rows[0]);
+    res.json(normalizeBookRow(rows[0]));
   } catch (error) {
     console.error("Get book error:", error);
     res.status(500).json({ message: "Failed to load book" });
   }
 };
 
+const createBook = async (req, res) => {
+  try {
+    const columns = await getBookColumns();
+    const title = normalizeString(req.body.title);
+    const author = normalizeString(req.body.author);
+    const genre = normalizeString(req.body.genre || req.body.category);
+    const language = normalizeString(req.body.language);
+    const publisher = normalizeString(req.body.publisher);
+    const isbn = normalizeString(req.body.isbn);
+    const description = normalizeString(req.body.description);
+    const cover = normalizeString(req.body.cover || req.body.image || req.body.coverImage);
+    const year = parseOptionalInt(req.body.year);
+    const pages = parseOptionalInt(req.body.pages);
+    const rating = parseOptionalNumber(req.body.rating);
+    const copies = parseOptionalInt(req.body.availableCopies ?? req.body.copies);
+
+    if (!title || !author) {
+      return res.status(400).json({ message: "Title and author are required" });
+    }
+
+    if (copies !== null && copies < 0) {
+      return res.status(400).json({ message: "Copies cannot be negative" });
+    }
+
+    const fields = [];
+    const values = [];
+    const addField = (name, value, includeWhenEmpty = false) => {
+      if (!columns.has(name)) return;
+      if (!includeWhenEmpty && (value === "" || value === undefined)) return;
+      fields.push(name);
+      values.push(value);
+    };
+
+    addField("title", title, true);
+    addField("author", author, true);
+    if (columns.has("genre")) addField("genre", genre || null, true);
+    if (columns.has("category")) addField("category", genre || null, true);
+    addField("language", language || null, true);
+    addField("publisher", publisher || null, true);
+    addField("isbn", isbn || null, true);
+    addField("description", description || null, true);
+    addField("cover", cover || null, true);
+    addField("image", cover || null, true);
+    addField("year", year, true);
+    addField("pages", pages, true);
+    addField("rating", rating, true);
+    if (copies !== null) {
+      addField("available_copies", copies, true);
+      addField("copies", copies, true);
+    }
+    if (columns.has("created_by")) addField("created_by", req.user.id, true);
+
+    const placeholders = fields.map(() => "?").join(", ");
+    const [result] = await pool.query(
+      `INSERT INTO books (${fields.join(", ")}) VALUES (${placeholders})`,
+      values
+    );
+
+    const [rows] = await pool.query(
+      `SELECT ${bookSelectSql(columns)} FROM books WHERE id = ?`,
+      [result.insertId]
+    );
+
+    res.status(201).json(normalizeBookRow(rows[0]));
+  } catch (error) {
+    console.error("Create book error:", error);
+    res.status(500).json({ message: "Failed to create book" });
+  }
+};
+
+const updateBook = async (req, res) => {
+  try {
+    const bookId = Number.parseInt(req.params.id, 10);
+    if (!Number.isInteger(bookId)) {
+      return res.status(400).json({ message: "Invalid book id" });
+    }
+
+    const columns = await getBookColumns();
+    const [existingRows] = await pool.query("SELECT * FROM books WHERE id = ?", [bookId]);
+    if (existingRows.length === 0) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    const existing = existingRows[0];
+    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized to update this book" });
+    }
+
+    const title = normalizeString(req.body.title);
+    const author = normalizeString(req.body.author);
+    const genre = normalizeString(req.body.genre || req.body.category);
+    const language = normalizeString(req.body.language);
+    const publisher = normalizeString(req.body.publisher);
+    const isbn = normalizeString(req.body.isbn);
+    const description = normalizeString(req.body.description);
+    const cover = normalizeString(req.body.cover || req.body.image || req.body.coverImage);
+    const year = parseOptionalInt(req.body.year);
+    const pages = parseOptionalInt(req.body.pages);
+    const rating = parseOptionalNumber(req.body.rating);
+    const copies = parseOptionalInt(req.body.availableCopies ?? req.body.copies);
+
+    if (!title || !author) {
+      return res.status(400).json({ message: "Title and author are required" });
+    }
+
+    if (copies !== null && copies < 0) {
+      return res.status(400).json({ message: "Copies cannot be negative" });
+    }
+
+    const sets = [];
+    const values = [];
+    const addSet = (name, value) => {
+      if (!columns.has(name)) return;
+      sets.push(`${name} = ?`);
+      values.push(value);
+    };
+
+    addSet("title", title);
+    addSet("author", author);
+    if (columns.has("genre")) addSet("genre", genre || null);
+    if (columns.has("category")) addSet("category", genre || null);
+    addSet("language", language || null);
+    addSet("publisher", publisher || null);
+    addSet("isbn", isbn || null);
+    addSet("description", description || null);
+    addSet("cover", cover || null);
+    addSet("image", cover || null);
+    addSet("year", year);
+    addSet("pages", pages);
+    addSet("rating", rating);
+    if (copies !== null) {
+      addSet("available_copies", copies);
+      addSet("copies", copies);
+    }
+
+    if (sets.length === 0) {
+      return res.status(400).json({ message: "No valid fields to update" });
+    }
+
+    values.push(bookId);
+    await pool.query(`UPDATE books SET ${sets.join(", ")} WHERE id = ?`, values);
+
+    const [rows] = await pool.query(
+      `SELECT ${bookSelectSql(columns)} FROM books WHERE id = ?`,
+      [bookId]
+    );
+
+    res.json(normalizeBookRow(rows[0]));
+  } catch (error) {
+    console.error("Update book error:", error);
+    res.status(500).json({ message: "Failed to update book" });
+  }
+};
+
+const deleteBook = async (req, res) => {
+  try {
+    const bookId = Number.parseInt(req.params.id, 10);
+    if (!Number.isInteger(bookId)) {
+      return res.status(400).json({ message: "Invalid book id" });
+    }
+
+    const columns = await getBookColumns();
+    const [existingRows] = await pool.query("SELECT * FROM books WHERE id = ?", [bookId]);
+    if (existingRows.length === 0) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    const existing = existingRows[0];
+    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized to delete this book" });
+    }
+
+    await pool.query("DELETE FROM books WHERE id = ?", [bookId]);
+    res.json({ message: "Book deleted successfully" });
+  } catch (error) {
+    console.error("Delete book error:", error);
+    res.status(500).json({ message: "Failed to delete book" });
+  }
+};
+
 module.exports = {
   getAllBooks,
-  getBookById
+  getBookById,
+  createBook,
+  updateBook,
+  deleteBook
 };
+

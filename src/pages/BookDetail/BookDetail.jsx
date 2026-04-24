@@ -11,7 +11,6 @@ import {
   submitReview,
   deleteReview as deleteReviewApi,
 } from '@/utils/api'
-import { getCampus, getCopies } from '@/utils/bookUtils'
 import { getStoredUser, isAdminUser, isLoggedInUser } from '@/utils'
 
 const API_BASE = 'http://localhost:5000'
@@ -93,12 +92,6 @@ export default function BookDetail() {
       cancelled = true
     }
   }, [id])
-
-  const safeBookId = book?.id ?? 0
-
-  const { total: totalCopies, available: availableCopies } = getCopies(safeBookId)
-  const isAvailable = availableCopies > 0
-  const bookCampus = getCampus(safeBookId)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)

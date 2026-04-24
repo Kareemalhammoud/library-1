@@ -2,6 +2,12 @@ const pool = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const toIsoDate = (value) => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 const generateToken = (user) => {
   return jwt.sign(
     { id: user.id, email: user.email },
@@ -34,10 +40,17 @@ const register = async (req, res) => {
       [full_name, email, hashedPassword]
     );
 
+    const [createdRows] = await pool.query(
+      "SELECT id, full_name, email, created_at AS createdAt FROM users WHERE id = ?",
+      [result.insertId]
+    );
+
+    const createdUser = createdRows[0];
     const user = {
-      id: result.insertId,
-      full_name,
-      email
+      id: createdUser.id,
+      full_name: createdUser.full_name,
+      email: createdUser.email,
+      createdAt: toIsoDate(createdUser.createdAt)
     };
 
     const token = generateToken(user);
@@ -86,7 +99,8 @@ const login = async (req, res) => {
       user: {
         id: user.id,
         full_name: user.full_name,
-        email: user.email
+        email: user.email,
+        createdAt: toIsoDate(user.created_at)
       }
     });
   } catch (error) {

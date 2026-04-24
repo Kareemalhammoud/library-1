@@ -3,7 +3,7 @@
 // with a single try/catch. Used by the books and events pages to replace
 // the old static imports from src/data/*.
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 async function request(path, { method = 'GET', body, auth = false } = {}) {
   const headers = {}
