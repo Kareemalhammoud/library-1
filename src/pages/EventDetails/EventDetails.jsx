@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { EVENTS } from '@/data/eventsData'
+import { getEvent, getEvents } from '@/utils/api'
 import { getStoredUser } from '@/utils'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -54,7 +54,11 @@ function getSeatState(eventItem, registeredEvents) {
 
 function EventDetails() {
   const { id } = useParams()
-  const event = EVENTS.find((item) => String(item.id) === id)
+  const [event, setEvent] = useState(null)
+  const [allEvents, setAllEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [notFound, setNotFound] = useState(false)
   const [registeredEvents, setRegisteredEvents] = useState([])
   const [modalOpen, setModalOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
@@ -64,6 +68,36 @@ function EventDetails() {
   const prefix = storedUser?.email ? `${storedUser.email}:` : ''
   const registeredEventsKey = `${prefix}registeredEvents`
   const isRegistered = registeredEvents.some((item) => item.id === event?.id)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
+    setNotFound(false)
+    setEvent(null)
+
+    Promise.all([getEvent(id), getEvents()])
+      .then(([one, all]) => {
+        if (cancelled) return
+        setEvent(one)
+        setAllEvents(all)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        if (error.status === 404) {
+          setNotFound(true)
+        } else {
+          setLoadError(error.message || 'Failed to load event')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   useEffect(() => {
     // Load this user's registered events so the page can reflect the current seat state.
@@ -118,7 +152,31 @@ function EventDetails() {
     setConfirmed(false)
   }
 
-  if (!event) {
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#F2F5F3] dark:bg-[#121212]">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
+        <p className="text-[0.85rem] text-[#5a6b62] dark:text-[#8c9691]">Loading event...</p>
+      </main>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <main className="min-h-screen bg-[#F2F5F3] px-5 py-20 text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
+        <div className="mx-auto max-w-[760px] rounded-[18px] border border-[#d0ddd8] bg-white p-8 text-center shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f]">
+          <p className="mb-3 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-[#b5392b] dark:text-[#ff9388]">Error</p>
+          <h1 className="mb-4 text-[clamp(1.4rem,2.6vw,1.85rem)] font-extrabold tracking-[-0.03em]">Couldn&apos;t load this event.</h1>
+          <p className="mx-auto mb-6 max-w-[44ch] text-[0.9rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">{loadError}</p>
+          <Link to="/events" className="inline-flex rounded-lg bg-[#1a6644] px-5 py-2.5 text-[0.82rem] font-semibold text-white transition hover:bg-[#14533a]">
+            Back to Events
+          </Link>
+        </div>
+      </main>
+    )
+  }
+
+  if (notFound || !event) {
     return (
       <main className="min-h-screen bg-[#F2F5F3] px-5 py-20 text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
         <div className="mx-auto max-w-[760px] rounded-[18px] border border-[#d0ddd8] bg-white p-8 text-center shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f]">
@@ -138,7 +196,7 @@ function EventDetails() {
   const { month, day, fullDate } = formatEventDate(event.date)
   const seatState = getSeatState(event, registeredEvents)
   const seatsLeft = seatState.seatsLeft
-  const relatedEvents = EVENTS.filter((item) => item.id !== event.id && item.category === event.category).slice(0, 3)
+  const relatedEvents = allEvents.filter((item) => item.id !== event.id && item.category === event.category).slice(0, 3)
 
   return (
     <main className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
