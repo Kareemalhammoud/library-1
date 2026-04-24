@@ -18,9 +18,20 @@ const SORT_OPTIONS = [
   { value: 'rating', label: 'Top rated' },
 ]
 
+function getBookAvailability(book) {
+  if (typeof book.availableCopies === 'number' && Number.isFinite(book.availableCopies)) {
+    return book.availableCopies > 0
+  }
+
+  if (typeof book.available === 'boolean') return book.available
+
+  const numericId = Number(book.id)
+  return Number.isFinite(numericId) ? getAvailability(numericId) : true
+}
+
 export default function ListView() {
   const navigate = useNavigate()
-  const { books } = useBooks()
+  const { books, loading: booksLoading, error: booksError, loadBooks } = useBooks()
   const admin = isAdminUser()
 
   const [search, setSearch] = useState('')
@@ -39,10 +50,27 @@ export default function ListView() {
   }, [search, genre, language, campus, avail, sort])
 
   useEffect(() => {
+    let active = true
+
     setLoading(true)
-    const timer = setTimeout(() => setLoading(false), 400)
-    return () => clearTimeout(timer)
-  }, [search, genre, language, campus, avail, sort, page])
+    const timer = setTimeout(() => {
+      loadBooks?.({
+        search,
+        genre,
+        language,
+        campus,
+        availability: avail,
+        sort,
+      }).finally(() => {
+        if (active) setLoading(false)
+      })
+    }, 250)
+
+    return () => {
+      active = false
+      clearTimeout(timer)
+    }
+  }, [search, genre, language, campus, avail, sort, loadBooks])
 
   const activeFilters = [
     genre !== 'All' && { key: 'genre', label: genre },
@@ -70,8 +98,8 @@ export default function ListView() {
 
   const filtered = useMemo(() => {
     const result = books.filter((book) => {
-      const bookCampus = getCampus(book.id)
-      const bookAvail = getAvailability(book.id)
+      const bookCampus = book.campus || getCampus(book.id)
+      const bookAvail = getBookAvailability(book)
       const bookLang = book.language === 'FR' ? 'French' : 'English'
 
       if (
@@ -113,6 +141,7 @@ export default function ListView() {
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const showLoading = loading || booksLoading
 
   const selectStyle = {
     backgroundImage:
@@ -327,6 +356,11 @@ export default function ListView() {
 
       {/* ── Book grid ── */}
       <main className="mx-auto mt-8 max-w-[1200px] px-4 sm:px-6 md:mt-10 md:px-8">
+        {booksError && (
+          <div className="mb-5 rounded-lg border border-[#f0d6d3] bg-[#fff5f3] px-4 py-3 text-[0.85rem] text-[#9c3b31] dark:border-[#3b1c1a] dark:bg-[#241413] dark:text-[#ff9388]" role="alert">
+            {booksError} Showing the local catalog while the backend is unavailable.
+          </div>
+        )}
         {filtered.length === 0 ? (
           <section className="flex flex-col items-center gap-3 px-4 py-16 text-center sm:py-24" aria-label="No results">
             <p className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">No books found</p>
@@ -348,7 +382,7 @@ export default function ListView() {
           </section>
         ) : (
           <>
-            {loading ? (
+            {showLoading ? (
               /* Skeleton: 2 cols on mobile → 3 on tablet → 4 on desktop → 5 on wide */
               <ul
                 className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-6 p-0 sm:grid-cols-3 md:grid-cols-4 lg:gap-x-6 lg:gap-y-8 xl:grid-cols-5"
@@ -369,8 +403,8 @@ export default function ListView() {
                 aria-label={`${filtered.length} books found`}
               >
                 {paginated.map((book) => {
-                  const isAvailable = getAvailability(book.id)
-                  const bookCampus = getCampus(book.id)
+                  const isAvailable = getBookAvailability(book)
+                  const bookCampus = book.campus || getCampus(book.id)
 
                   return (
                     <li key={book.id}>
@@ -415,7 +449,7 @@ export default function ListView() {
                               {bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus}
                             </span>
                             <span className={`whitespace-nowrap text-[0.68rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
-                              {isAvailable ? 'Available' : 'Borrowed'}
+                              {isAvailable ? 'Available' : 'Unavailable'}
                             </span>
                           </div>
                         </div>

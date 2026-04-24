@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+import { createHelpRequest, createStudyRoomBooking, isBackendConfigured } from "@/services/libraryApi";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -77,6 +79,14 @@ const INITIAL_MESSAGES = [
 
 // ─── Icon Components ──────────────────────────────────────────────────────────
 
+function getStoredList(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+  } catch {
+    return [];
+  }
+}
+
 const Icon = ({ name, className = "" }) => {
   const icons = {
     book: (
@@ -125,6 +135,11 @@ const Icon = ({ name, className = "" }) => {
     ),
   };
   return icons[name] || null;
+};
+
+Icon.propTypes = {
+  name: PropTypes.string.isRequired,
+  className: PropTypes.string,
 };
 
 // ─── Card variant styles ──────────────────────────────────────────────────────
@@ -197,6 +212,18 @@ const ServiceCard = ({ service }) => {
   );
 };
 
+ServiceCard.propTypes = {
+  service: PropTypes.shape({
+    desc: PropTypes.string.isRequired,
+    icon: PropTypes.string.isRequired,
+    link: PropTypes.string.isRequired,
+    route: PropTypes.string.isRequired,
+    tag: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    variant: PropTypes.string.isRequired,
+  }).isRequired,
+};
+
 // ─── Room Booking Form ────────────────────────────────────────────────────────
 
 const RoomBookingForm = () => {
@@ -206,6 +233,8 @@ const RoomBookingForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitNotice, setSubmitNotice] = useState("");
 
   const filteredRooms = ROOM_OPTIONS.filter(
     (o) => o.value === "" || o.campus === campus
@@ -233,16 +262,50 @@ const RoomBookingForm = () => {
     return e;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+    setSubmitting(true);
+    setSubmitNotice("");
+
+    try {
+      if (isBackendConfigured()) {
+        await createStudyRoomBooking({
+          campus,
+          ...form,
+          requestedAt: new Date().toISOString(),
+        });
+      } else {
+        const localBookings = getStoredList("studyRoomBookings");
+        localBookings.push({
+          id: Date.now(),
+          campus,
+          ...form,
+          requestedAt: new Date().toISOString(),
+        });
+        localStorage.setItem("studyRoomBookings", JSON.stringify(localBookings));
+      }
+    } catch (err) {
+      setSubmitNotice(`${err.message || "Backend request failed."} Saved locally for this session.`);
+      const localBookings = getStoredList("studyRoomBookings");
+      localBookings.push({
+        id: Date.now(),
+        campus,
+        ...form,
+        requestedAt: new Date().toISOString(),
+      });
+      localStorage.setItem("studyRoomBookings", JSON.stringify(localBookings));
+    }
+
     setSubmitted(true);
+    setSubmitting(false);
   };
 
   const resetForm = () => {
     setForm({ room: "", date: "", duration: "", time: "", people: "", studentId: "" });
     setErrors({});
     setSubmitted(false);
+    setSubmitNotice("");
   };
 
   const inputCls = "w-full h-9 rounded-lg border border-[#c5ddd0] dark:border-[#333] bg-[#f7fbf8] dark:bg-[#2e2e2e] px-3 text-[13px] text-[#162a1f] dark:text-white placeholder-[#8aaa95] dark:placeholder-[#666] focus:outline-none focus:border-[#1a6644]";
@@ -264,6 +327,11 @@ const RoomBookingForm = () => {
         <p className="text-[#5e7a68] dark:text-[#888] text-sm text-center leading-relaxed">
           Room <strong className="font-semibold text-[#5ecba1] dark:text-white">{ROOM_OPTIONS.find(r => r.value === form.room)?.label}</strong> has been reserved for {form.date} at {form.time}.
         </p>
+        {submitNotice && (
+          <p className="rounded-lg bg-[#fff5d8] px-3 py-2 text-center text-[12px] leading-relaxed text-[#7c5b00] dark:bg-[#332800] dark:text-[#f1d57a]">
+            {submitNotice}
+          </p>
+        )}
         <button onClick={resetForm} className="mt-2 text-sm text-[#1a6644] dark:text-[#5ecba1] font-medium underline underline-offset-2">
           Make another reservation
         </button>
@@ -410,10 +478,11 @@ const RoomBookingForm = () => {
 
       <button
         onClick={handleSubmit}
+        disabled={submitting}
         className="w-full h-9 bg-[#1a6644] hover:bg-[#14533a] text-white rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 transition-colors duration-150"
       >
         <Icon name="calendar" className="w-3.5 h-3.5" />
-        Confirm reservation
+        {submitting ? "Saving..." : "Confirm reservation"}
       </button>
     </section>
   );
@@ -424,14 +493,49 @@ const RoomBookingForm = () => {
 const LibrarianChat = () => {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendNotice, setSendNotice] = useState("");
 
-  const send = () => {
+  const send = async () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || sending) return;
     const userMsg  = { id: Date.now(),     from: "user", text };
-    const replyMsg = { id: Date.now() + 1, from: "lib",  text: "Thanks for your question! A librarian will follow up shortly. You can also visit us at the reference desk during opening hours." };
-    setMessages((prev) => [...prev, userMsg, replyMsg]);
+    setSending(true);
+    setSendNotice("");
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
+
+    try {
+      if (isBackendConfigured()) {
+        await createHelpRequest({
+          message: text,
+          requestedAt: new Date().toISOString(),
+        });
+      } else {
+        const localRequests = getStoredList("helpRequests");
+        localRequests.push({
+          id: Date.now(),
+          message: text,
+          requestedAt: new Date().toISOString(),
+        });
+        localStorage.setItem("helpRequests", JSON.stringify(localRequests));
+      }
+      const replyMsg = { id: Date.now() + 1, from: "lib", text: "Thanks for your question! A librarian will follow up shortly. You can also visit us at the reference desk during opening hours." };
+      setMessages((prev) => [...prev, replyMsg]);
+    } catch (err) {
+      const localRequests = getStoredList("helpRequests");
+      localRequests.push({
+        id: Date.now(),
+        message: text,
+        requestedAt: new Date().toISOString(),
+      });
+      localStorage.setItem("helpRequests", JSON.stringify(localRequests));
+      setSendNotice(`${err.message || "Backend request failed."} Saved locally for this session.`);
+      const replyMsg = { id: Date.now() + 1, from: "lib", text: "Your request has been recorded locally. A librarian will follow up when the service syncs." };
+      setMessages((prev) => [...prev, replyMsg]);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -488,11 +592,17 @@ const LibrarianChat = () => {
         <button
           onClick={send}
           aria-label="Send message"
+          disabled={sending}
           className="w-9 h-9 bg-[#1a6644] hover:bg-[#14533a] rounded-lg flex items-center justify-center transition-colors duration-150 flex-shrink-0"
         >
           <Icon name="send" className="w-3.5 h-3.5 text-white" />
         </button>
       </div>
+      {sendNotice && (
+        <p className="mt-3 rounded-lg bg-[#fff5d8] px-3 py-2 text-[12px] leading-relaxed text-[#7c5b00] dark:bg-[#332800] dark:text-[#f1d57a]">
+          {sendNotice}
+        </p>
+      )}
     </section>
   );
 };

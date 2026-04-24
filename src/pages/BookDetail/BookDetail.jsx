@@ -2,20 +2,31 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { BOOKS } from '@/data/bookData'
 import { useState, useEffect, useMemo } from 'react'
 import { getCampus, getCopies } from '@/utils/bookUtils'
+import { useBooks } from '@/context/BooksContext'
+import { borrowBook, fetchBookById, isBackendConfigured, reserveBook } from '@/services/libraryApi'
 
 export default function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { books, loading: booksLoading, error: booksContextError } = useBooks()
 
-  const book = BOOKS.find((b) => b.id === parseInt(id))
-  const { total: totalCopies, available: availableCopies } = getCopies(book?.id ?? 0)
-  const isAvailable = availableCopies > 0
-  const bookCampus = getCampus(book?.id ?? 0)
+  const fallbackBook = useMemo(
+    () => books.find((b) => String(b.id) === String(id)) || BOOKS.find((b) => String(b.id) === String(id)),
+    [books, id]
+  )
 
+  const [book, setBook] = useState(fallbackBook || null)
+  const [bookLoading, setBookLoading] = useState(true)
+  const [bookError, setBookError] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
+  const [actionType, setActionType] = useState('borrow')
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const [actionNotice, setActionNotice] = useState('')
+  const [progress, setProgress] = useState(0)
 
   function getUserPrefix() {
     try {
@@ -33,42 +44,154 @@ export default function BookDetail() {
   }
 
   const prefix = getUserPrefix()
-  const borrowKey = `${prefix}borrowed-${book?.id}`
-  const loanKey = `${prefix}loan-${book?.id}`
+  const hasLoggedInUser = localStorage.getItem('isLoggedIn') === 'true' && Boolean(prefix)
+  const bookStorageId = book?.id === undefined || book?.id === null ? '' : String(book.id)
+  const borrowKey = bookStorageId ? `${prefix}borrowed-${bookStorageId}` : ''
+  const reserveKey = bookStorageId ? `${prefix}reserved-${bookStorageId}` : ''
+  const loanKey = bookStorageId ? `${prefix}loan-${bookStorageId}` : ''
+  const storageKey = bookStorageId ? `${prefix}reading-progress-${bookStorageId}` : ''
 
   useEffect(() => {
-    const savedLoan = localStorage.getItem(loanKey)
-    setBorrowed(Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
-  }, [borrowKey, loanKey])
+    let alive = true
 
-  function handleBorrowClick() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+    if (!isBackendConfigured()) {
+      setBook(fallbackBook || null)
+      setBookError('')
+      setBookLoading(false)
+      return () => {
+        alive = false
+      }
+    }
 
-    if (!isLoggedIn) {
-      navigate('/login', { state: { from: `/books/${book.id}` } })
+    setBookLoading(true)
+    setBookError('')
+
+    fetchBookById(id)
+      .then((nextBook) => {
+        if (alive) setBook(nextBook || fallbackBook || null)
+      })
+      .catch((err) => {
+        if (!alive) return
+        setBook(fallbackBook || null)
+        setBookError(err.message || 'Could not load book details from the server.')
+      })
+      .finally(() => {
+        if (alive) setBookLoading(false)
+      })
+
+    return () => {
+      alive = false
+    }
+  }, [fallbackBook, id])
+
+  const copyData = useMemo(() => {
+    if (!book) return { total: 0, available: 0 }
+
+    const numericId = Number(book.id)
+    const fallbackCopies = Number.isFinite(numericId) ? getCopies(numericId) : { total: 1, available: 1 }
+    const total =
+      typeof book.copies === 'number' && Number.isFinite(book.copies)
+        ? book.copies
+        : typeof book.totalCopies === 'number' && Number.isFinite(book.totalCopies)
+          ? book.totalCopies
+          : fallbackCopies.total
+    const available =
+      typeof book.availableCopies === 'number' && Number.isFinite(book.availableCopies)
+        ? book.availableCopies
+        : typeof book.available === 'boolean'
+          ? book.available ? total : 0
+          : fallbackCopies.available
+
+    return { total, available }
+  }, [book])
+
+  const totalCopies = copyData.total
+  const availableCopies = copyData.available
+  const isAvailable = availableCopies > 0
+  const bookCampus = book?.campus || getCampus(Number(book?.id) || 0)
+
+  useEffect(() => {
+    setBorrowed(false)
+
+    if (!bookStorageId || !hasLoggedInUser) {
       return
     }
 
+    const savedLoan = localStorage.getItem(loanKey)
+    const savedReservation = localStorage.getItem(reserveKey)
+    setBorrowed(
+      localStorage.getItem(borrowKey) !== null ||
+      savedLoan !== null ||
+      savedReservation !== null
+    )
+  }, [bookStorageId, borrowKey, hasLoggedInUser, loanKey, reserveKey])
+
+  function handleBorrowClick() {
+    if (!hasLoggedInUser) {
+      navigate('/login', { state: { from: `/books/${book?.id}` } })
+      return
+    }
+
+    setActionType(isAvailable ? 'borrow' : 'reserve')
+    setActionError('')
+    setActionNotice('')
     setConfirmed(false)
     setModalOpen(true)
   }
 
-  function handleConfirm() {
+  async function handleConfirm() {
+    if (!book) return
+
+    setActionLoading(true)
+    setActionError('')
     const borrowedAt = new Date()
     const dueAt = new Date(borrowedAt)
     dueAt.setDate(dueAt.getDate() + 14)
+    let actionResult = null
+
+    try {
+      if (isBackendConfigured()) {
+        if (actionType === 'borrow') {
+          actionResult = await borrowBook(book.id, {
+            borrowedAt: borrowedAt.toISOString(),
+            dueAt: dueAt.toISOString(),
+          })
+        } else {
+          actionResult = await reserveBook(book.id, {
+            reservedAt: borrowedAt.toISOString(),
+          })
+        }
+      }
+      setActionNotice('')
+    } catch (err) {
+      setActionError(err.message || 'Could not complete this request.')
+      setActionLoading(false)
+      return
+    }
+
+    if (actionResult?.book) {
+      setBook(actionResult.book)
+    }
 
     setBorrowed(true)
     setConfirmed(true)
-    localStorage.setItem(borrowKey, borrowedAt.toISOString())
-    localStorage.setItem(
-      loanKey,
-      JSON.stringify({
-        bookId: book.id,
-        borrowedAt: borrowedAt.toISOString(),
-        dueAt: dueAt.toISOString(),
-      })
-    )
+    if (actionType === 'borrow' && borrowKey) {
+      localStorage.setItem(borrowKey, borrowedAt.toISOString())
+    }
+    if (actionType === 'reserve' && reserveKey) {
+      localStorage.setItem(reserveKey, borrowedAt.toISOString())
+    }
+
+    if (actionType === 'borrow' && loanKey) {
+      localStorage.setItem(
+        loanKey,
+        JSON.stringify({
+          bookId: book.id,
+          borrowedAt: borrowedAt.toISOString(),
+          dueAt: dueAt.toISOString(),
+        })
+      )
+    }
 
     // Update the borrowedBooks list so the Dashboard shows this book
     const borrowedBooksKey = `${prefix}borrowedBooks`
@@ -82,48 +205,34 @@ export default function BookDetail() {
       currentBooks.push({
         id: book.id,
         title: book.title,
-        borrowedAt: borrowedAt.toISOString(),
-        dueDate: dueAt.toISOString(),
+        borrowedAt: actionType === 'borrow' ? borrowedAt.toISOString() : null,
+        dueDate: actionType === 'borrow' ? dueAt.toISOString() : null,
         renewCount: 0,
-        isReserved: false,
+        isReserved: actionType === 'reserve',
       })
       localStorage.setItem(borrowedBooksKey, JSON.stringify(currentBooks))
     }
+
+    setActionLoading(false)
   }
 
   function handleClose() {
     setModalOpen(false)
   }
 
-  if (!book) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <p className="text-[#555]">Book not found.</p>
-        <button
-          className="cursor-pointer rounded-lg border border-[#ccc] px-4 py-2 text-[0.85rem] hover:bg-[#eee]"
-          onClick={() => navigate(-1)}
-        >
-          Go back
-        </button>
-      </main>
-    )
-  }
-
   const { relatedBooks, relatedTitle } = useMemo(() => {
-    const sameGenre = BOOKS.filter((b) => b.genre === book.genre && b.id !== book.id)
+    if (!book) return { relatedBooks: [], relatedTitle: '' }
+
+    const sourceBooks = books.length ? books : BOOKS
+    const sameGenre = sourceBooks.filter((b) => b.genre === book.genre && String(b.id) !== String(book.id))
     const nextRelatedBooks =
       sameGenre.length >= 2
         ? sameGenre.slice(0, 4)
-        : BOOKS.filter((b) => b.id !== book.id)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4)
+        : sourceBooks.filter((b) => String(b.id) !== String(book.id)).slice(0, 4)
     const nextRelatedTitle = sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
 
     return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
-  }, [book.id, book.genre])
-
-  const storageKey = `${prefix}reading-progress-${book.id}`
-  const [progress, setProgress] = useState(0)
+  }, [book, books])
 
   useEffect(() => {
     setProgress(Number(localStorage.getItem(storageKey) ?? 0))
@@ -132,6 +241,29 @@ export default function BookDetail() {
   const handleProgress = (val) => {
     setProgress(val)
     localStorage.setItem(storageKey, val)
+  }
+
+  if (bookLoading || booksLoading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#f8f7f4] dark:bg-[#121212]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#e5e2dc] border-t-[#1a4a3a] dark:border-[#333] dark:border-t-[#5ecba1]" aria-hidden="true" />
+        <p className="text-[#555] dark:text-[#888]">Loading book details...</p>
+      </main>
+    )
+  }
+
+  if (!book) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <p className="text-[#555]">{bookError || booksContextError || 'Book not found.'}</p>
+        <button
+          className="cursor-pointer rounded-lg border border-[#ccc] px-4 py-2 text-[0.85rem] hover:bg-[#eee]"
+          onClick={() => navigate(-1)}
+        >
+          Go back
+        </button>
+      </main>
+    )
   }
 
   return (
@@ -157,6 +289,11 @@ export default function BookDetail() {
           Mobile:  single column, cover on top, content below
           Desktop: two columns, cover sidebar sticky on left, content on right */}
       <article className="mx-auto mt-8 grid max-w-[1000px] grid-cols-1 items-start gap-8 px-4 sm:px-6 md:mt-12 md:gap-12 md:px-8 md:[grid-template-columns:260px_1fr]">
+        {(bookError || booksContextError) && (
+          <div className="rounded-lg border border-[#f0d6d3] bg-[#fff5f3] px-4 py-3 text-[0.85rem] text-[#9c3b31] dark:border-[#3b1c1a] dark:bg-[#241413] dark:text-[#ff9388] md:col-span-2" role="alert">
+            {bookError || booksContextError} Showing the local catalog record while the backend is unavailable.
+          </div>
+        )}
 
         {/* ── Sidebar: cover + availability + action buttons ──
             Only sticky on md+ — on mobile it flows naturally above the content */}
@@ -169,7 +306,7 @@ export default function BookDetail() {
 
           <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]">
             <p className={`m-0 text-[0.9rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
-              {isAvailable ? '● Available' : '● Fully Borrowed'}
+              {isAvailable ? '● Available' : '● No copies available'}
             </p>
             <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#888]">
               {availableCopies} of {totalCopies} copies available
@@ -179,11 +316,11 @@ export default function BookDetail() {
           <div className="mt-4 flex flex-col gap-3">
             <button
               className="w-full cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:enabled:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:bg-[#ccc] disabled:text-[#888]"
-              disabled={!isAvailable || borrowed}
+              disabled={borrowed || actionLoading}
               onClick={handleBorrowClick}
               aria-label={`Borrow ${book.title}`}
             >
-              {borrowed ? '✓ Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
+              {borrowed ? (actionType === 'reserve' ? 'Reserved' : 'Borrowed') : isAvailable ? 'Borrow this Book' : 'Reserve this Book'}
             </button>
 
             <button
@@ -379,12 +516,19 @@ export default function BookDetail() {
                   ✓
                 </div>
                 <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
-                  Borrowed Successfully!
+                  {actionType === 'borrow' ? 'Borrowed Successfully!' : 'Reservation Saved!'}
                 </h2>
                 <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
-                  <strong>{book.title}</strong> has been added to your loans. Please pick it up from the library desk
-                  within 48 hours.
+                  <strong>{book.title}</strong>{' '}
+                  {actionType === 'borrow'
+                    ? 'has been added to your loans. Please pick it up from the library desk within 48 hours.'
+                    : 'has been added to your reservations. A librarian will notify you when it becomes available.'}
                 </p>
+                {actionNotice && (
+                  <p className="m-0 rounded-lg bg-[#fff5d8] px-3 py-2 text-[0.78rem] leading-[1.5] text-[#7c5b00] dark:bg-[#332800] dark:text-[#f1d57a]">
+                    {actionNotice}
+                  </p>
+                )}
                 <button
                   className="w-full flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
                   onClick={handleClose}
@@ -399,12 +543,17 @@ export default function BookDetail() {
                   alt={`Cover of ${book.title}`}
                   className="aspect-[2/3] w-[100px] rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
                 />
-                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">Borrow this book?</h2>
+                <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
+                  {actionType === 'borrow' ? 'Borrow this book?' : 'Reserve this book?'}
+                </h2>
                 <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
                   <strong>{book.title}</strong> by {book.author}
                   <br />
-                  <span className="mt-1 block text-[0.8rem] text-[#aaa] dark:text-[#888]">Loan period: 14 days</span>
+                  <span className="mt-1 block text-[0.8rem] text-[#aaa] dark:text-[#888]">
+                    {actionType === 'borrow' ? 'Loan period: 14 days' : 'We will hold the next available copy for you'}
+                  </span>
                 </p>
+                {actionError && <p className="m-0 text-[0.82rem] text-[#c0392b]">{actionError}</p>}
                 <div className="mt-2 flex w-full gap-3">
                   <button
                     className="flex-1 cursor-pointer rounded-lg border border-[#e0ddd8] bg-white py-3 text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f5f3ef] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]"
@@ -415,8 +564,9 @@ export default function BookDetail() {
                   <button
                     className="flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
                     onClick={handleConfirm}
+                    disabled={actionLoading}
                   >
-                    Confirm Borrow
+                    {actionLoading ? 'Saving...' : actionType === 'borrow' ? 'Confirm Borrow' : 'Confirm Reserve'}
                   </button>
                 </div>
               </>
