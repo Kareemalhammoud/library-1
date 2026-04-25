@@ -2,6 +2,8 @@ import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import FormInput from "../components/FormInput"
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+
 function Register() {
 
 	const navigate = useNavigate()
@@ -35,7 +37,7 @@ function Register() {
 		}
 	}
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 
 		e.preventDefault()
 		const nextErrors = {}
@@ -87,27 +89,36 @@ function Register() {
 			return
 		}
 
-		const existingUser = JSON.parse(localStorage.getItem("user"))
+		try {
+			const response = await fetch(`${API_BASE}/auth/register`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					full_name: trimmedUsername,
+					email: trimmedEmail,
+					password,
+				}),
+			})
 
-		if (existingUser && existingUser.email === trimmedEmail) {
-			setFieldErrors({ email: "An account with this email already exists." })
-			return
+			const data = await response.json().catch(() => ({}))
+
+			if (!response.ok) {
+				throw new Error(data.message || "Registration failed. Please try again.")
+			}
+
+			localStorage.setItem("token", data.token)
+			localStorage.setItem("user", JSON.stringify(data.user))
+			localStorage.setItem("isLoggedIn", "true")
+			window.dispatchEvent(new Event("auth-change"))
+			setFieldErrors({})
+			setFormError("")
+			navigate("/dashboard")
+		} catch (error) {
+			setFieldErrors({})
+			setFormError(error.message || "Unable to register. Please try again.")
 		}
-
-		setFieldErrors({})
-
-		const user = {
-			username: trimmedUsername,
-			email: trimmedEmail,
-			password,
-			// Save the join date now so it can be shown later in the dashboard.
-			createdAt: new Date().toISOString()
-		}
-
-		localStorage.setItem("user", JSON.stringify(user))
-		localStorage.setItem("isLoggedIn", "true")
-
-		navigate(location.state?.from || "/dashboard")
 	}
 
 	return (

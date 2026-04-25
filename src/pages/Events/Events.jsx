@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { EVENTS } from '@/data/eventsData'
+import { getEvents } from '@/utils/api'
 import { getStoredUser } from '@/utils'
 
 // Filter options for the upcoming events section
@@ -86,19 +86,44 @@ function Events() {
   const [modalOpen, setModalOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const dialogTitleId = confirmed ? 'event-registration-success-title' : 'event-registration-confirm-title'
   const dialogDescriptionId = confirmed ? 'event-registration-success-description' : 'event-registration-confirm-description'
 
   // The one event marked as "featured" gets its own big section
-  const featuredEvent = EVENTS.find((e) => e.featured)
+  // MySQL TINYINT(1) comes back as 0/1, so accept both forms.
+  const featuredEvent = events.find((e) => Boolean(e.featured))
 
   useEffect(() => {
     setRegisteredEvents(getRegisteredEvents())
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
+    getEvents()
+      .then((data) => {
+        if (cancelled) return
+        setEvents(data)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setLoadError(error.message || 'Failed to load events')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   // Apply category, month, format, and search filters to the event list
   const filtered = useMemo(() => {
-    let list = EVENTS.filter((e) => !e.featured)
+    let list = events.filter((e) => !e.featured)
 
     if (activeCategory !== 'All') list = list.filter((e) => e.category === activeCategory)
     if (month !== 'All Months') {
@@ -114,7 +139,7 @@ function Events() {
     }
 
     return list
-  }, [activeCategory, search, month, format])
+  }, [events, activeCategory, search, month, format])
 
   const activeFilterCount = (activeCategory !== 'All' ? 1 : 0) + (month !== 'All Months' ? 1 : 0) + (format !== 'All Formats' ? 1 : 0) + (search.trim() ? 1 : 0)
 
@@ -197,7 +222,7 @@ function Events() {
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
               <span className="h-[7px] w-[7px] rounded-full bg-[#5ecba1] shadow-[0_0_0_3px_rgba(94,203,161,0.18)]" />
-              <span className="text-[0.72rem] font-semibold text-[rgba(240,248,244,0.55)]">{EVENTS.length} events this month</span>
+              <span className="text-[0.72rem] font-semibold text-[rgba(240,248,244,0.55)]">{events.length} events this month</span>
             </div>
           </div>
         </div>
@@ -337,7 +362,17 @@ function Events() {
 
           <div className="mb-5 text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]"><span className="font-bold text-[#1C2B24] dark:text-[#f5f7f6]">{filtered.length}</span> event{filtered.length !== 1 ? 's' : ''} found</div>
 
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center gap-3 rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#333333] dark:bg-[#1f1f1f]">
+              <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
+              <p className="text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]">Loading events...</p>
+            </div>
+          ) : loadError ? (
+            <div className="flex flex-col items-center gap-2 rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#333333] dark:bg-[#1f1f1f]">
+              <p className="text-[0.94rem] font-bold text-[#b5392b] dark:text-[#ff9388]">Couldn&apos;t load events</p>
+              <p className="max-w-[36ch] text-[0.8rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">{loadError}</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#333333] dark:bg-[#1f1f1f]">
               <svg className="mb-3 h-8 w-8 text-[#5a6b62]/40 dark:text-[#8c9691]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />

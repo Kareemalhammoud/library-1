@@ -1,14 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS, GENRES } from '@/data/bookData'
+import { GENRES } from '@/data/bookData'
+import { getBooks, getFavorites, addFavorite, removeFavorite, getActiveLoans, createLoan } from '@/utils/api'
 import { getAvailability, getCallNumber, getCampus, getCopies, getResourceType } from '@/utils/bookUtils'
-import { isAdminUser } from '@/utils'
+import { isAdminUser, isLoggedInUser } from '@/utils'
 
-// Filter dropdown options
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
 const AVAIL_OPTIONS = ['All', 'Available', 'On Loan']
-const TYPE_OPTIONS = ['All Types', 'Book', 'E-Book', 'Journal', 'Thesis', 'Reference', 'Conference Paper']
+const TYPE_OPTIONS = ['All Types', 'Book']
 const YEAR_OPTIONS = ['All Years', '2020-Present', '2010-2019', '2000-2009', '1990-1999', 'Before 1990']
 const SORT_OPTIONS = [
   { value: 'relevance', label: 'Relevance' },
@@ -20,13 +20,35 @@ const SORT_OPTIONS = [
   { value: 'avail-desc', label: 'Availability' },
 ]
 
-// Shared styles for the filter bar labels and dropdowns
+const PLACEHOLDER_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="270" viewBox="0 0 180 270">
+  <rect width="180" height="270" fill="#f5f2ed"/>
+  <rect x="10" y="10" width="160" height="250" rx="12" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="90" y="108" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="90" y="142" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="90" y="176" font-family="Arial, sans-serif" font-size="22" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
+
 const fieldLabelClass =
   'text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-[#5a6b62] dark:text-[#8c9691]'
+
 const selectClass =
   'w-full rounded-md border border-[#d0ddd8] bg-[#F2F5F3] px-3 py-2 text-[0.78rem] text-[#1C2B24] outline-none transition focus:border-[#006751] dark:border-[#333333] dark:bg-[#121212] dark:text-[#f5f7f6] dark:focus:border-[#5ecba1]'
 
-// Returns the right color style for each tag type (resource, subject, availability)
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_IMAGE
+  if (url.startsWith('blob:')) return PLACEHOLDER_IMAGE
+  return url
+}
+
+function normalizeBook(book) {
+  return {
+    ...book,
+    cover: sanitizeImage(book.cover || book.image),
+  }
+}
+
 function tagClass(type) {
   const base =
     'inline-flex items-center rounded-[3px] px-2 py-[0.15rem] text-[0.56rem] font-semibold uppercase tracking-[0.05em]'
@@ -43,10 +65,40 @@ function tagClass(type) {
   return `${base} bg-[#fdf0ee] text-[#b5392b] dark:bg-[#3b1c1a] dark:text-[#ff9388]`
 }
 
+function getBookLanguageLabel(language) {
+  return language === 'FR' ? 'French' : 'English'
+}
+
+function getBookAvailability(book) {
+  return Number(book.copies ?? 0) > 0
+}
+
+function getBookCampus(book) {
+  if (book.campus === 'both') return 'both'
+  if (book.campus === 'Byblos') return 'Byblos'
+  return 'Beirut'
+}
+
+function getBookCampusLabel(book) {
+  const campus = getBookCampus(book)
+  return campus === 'both' ? 'Beirut & Byblos' : campus
+}
+
+function getBookType(book) {
+  return book.resourceType || 'Book'
+}
+
+function getBookCallNumber(book) {
+  return `BK-${String(book.id).padStart(4, '0')}`
+}
+
+function formatYear(year) {
+  if (!year) return 'Year N/A'
+  return year > 0 ? String(year) : `${Math.abs(year)} BCE`
+}
+
 export default function Catalog() {
   const navigate = useNavigate()
-
-  // All the filter/search state — resets when you hit "Clear all"
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('All')
   const [language, setLanguage] = useState('All Languages')
@@ -65,9 +117,119 @@ export default function Catalog() {
 
   const admin = isAdminUser()
 
+  const [books, setBooks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [favoriteIds, setFavoriteIds] = useState(() => new Set())
+  const [togglingFavoriteId, setTogglingFavoriteId] = useState(null)
+  const [borrowedIds, setBorrowedIds] = useState(() => new Set())
+  const [borrowingId, setBorrowingId] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
+    getBooks()
+      .then((data) => {
+        if (cancelled) return
+        setBooks(Array.isArray(data) ? data.map(normalizeBook) : [])
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setLoadError(error.message || 'Failed to load books')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Load the user's favorite set + active loans once on mount so each card
+  // can show the right heart state and a disabled borrow icon if already
+  // borrowed. Guests skip this entirely — no auth token, no request.
+  useEffect(() => {
+    if (!isLoggedInUser()) return
+    let cancelled = false
+    Promise.all([
+      getFavorites().catch(() => []),
+      getActiveLoans().catch(() => []),
+    ]).then(([favs, loans]) => {
+      if (cancelled) return
+      setFavoriteIds(new Set(favs.map((b) => b.id)))
+      setBorrowedIds(new Set(loans.map((l) => l.book_id)))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function handleBorrow(bookId) {
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: '/catalog' } })
+      return
+    }
+    if (borrowedIds.has(bookId) || borrowingId === bookId) return
+
+    setBorrowingId(bookId)
+    // Optimistic — mark as borrowed right away so the icon updates without
+    // waiting on the round-trip. Roll back if the API says no.
+    setBorrowedIds((prev) => {
+      const next = new Set(prev)
+      next.add(bookId)
+      return next
+    })
+    try {
+      await createLoan(bookId)
+    } catch (error) {
+      // 409 means they already have it on loan — keep it marked as borrowed.
+      if (error.status !== 409) {
+        setBorrowedIds((prev) => {
+          const next = new Set(prev)
+          next.delete(bookId)
+          return next
+        })
+        alert(error.message || 'Failed to borrow this book')
+      }
+    } finally {
+      setBorrowingId(null)
+    }
+  }
+
+  async function handleToggleFavorite(bookId) {
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: '/catalog' } })
+      return
+    }
+    const willFavorite = !favoriteIds.has(bookId)
+    setTogglingFavoriteId(bookId)
+    // Optimistic update so the heart flips instantly.
+    setFavoriteIds((prev) => {
+      const next = new Set(prev)
+      if (willFavorite) next.add(bookId)
+      else next.delete(bookId)
+      return next
+    })
+    try {
+      if (willFavorite) await addFavorite(bookId)
+      else await removeFavorite(bookId)
+    } catch {
+      // Roll back on failure.
+      setFavoriteIds((prev) => {
+        const next = new Set(prev)
+        if (willFavorite) next.delete(bookId)
+        else next.add(bookId)
+        return next
+      })
+    } finally {
+      setTogglingFavoriteId(null)
+    }
+  }
+
   // Filter and sort books based on the current search/filter selections
   const filtered = useMemo(() => {
-    const results = BOOKS.filter((book) => {
+    const results = books.filter((book) => {
       const bookCampus = getCampus(book.id)
       const bookLang = book.language === 'FR' ? 'French' : 'English'
       const bookAvail = getAvailability(book.id)
@@ -75,15 +237,19 @@ export default function Catalog() {
 
       if (search) {
         const q = search.toLowerCase()
-        if (
-          !book.title.toLowerCase().includes(q) &&
-          !book.author.toLowerCase().includes(q) &&
-          !book.isbn.toLowerCase().includes(q) &&
-          !book.genre.toLowerCase().includes(q) &&
-          !book.publisher.toLowerCase().includes(q)
-        ) {
-          return false
-        }
+        const haystack = [
+          book.title,
+          book.author,
+          book.isbn,
+          book.genre,
+          book.publisher,
+          book.description,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        if (!haystack.includes(q)) return false
       }
 
       if (advTitle && !book.title.toLowerCase().includes(advTitle.toLowerCase())) return false
@@ -95,7 +261,7 @@ export default function Catalog() {
         if (book.language !== lang) return false
       }
 
-      if (advYear && book.year !== Number(advYear)) return false
+      if (advYear && Number(book.year) !== Number(advYear)) return false
       if (genre !== 'All' && book.genre !== genre) return false
       if (language !== 'All Languages' && bookLang !== language) return false
       if (campus !== 'All Campuses' && bookCampus !== 'both' && bookCampus !== campus) return false
@@ -104,7 +270,8 @@ export default function Catalog() {
       if (avail === 'On Loan' && bookAvail) return false
 
       if (yearRange !== 'All Years') {
-        const y = book.year
+        const y = Number(book.year)
+        if (!y) return false
         if (yearRange === '2020-Present' && y < 2020) return false
         if (yearRange === '2010-2019' && (y < 2010 || y > 2019)) return false
         if (yearRange === '2000-2009' && (y < 2000 || y > 2009)) return false
@@ -117,22 +284,26 @@ export default function Catalog() {
 
     if (sort !== 'relevance') {
       const [field, dir] = sort.split('-')
+
       results.sort((a, b) => {
         let cmp = 0
+
         if (field === 'title') cmp = a.title.localeCompare(b.title)
         if (field === 'author') cmp = a.author.localeCompare(b.author)
-        if (field === 'year') cmp = a.year - b.year
+        if (field === 'year') cmp = Number(a.year || 0) - Number(b.year || 0)
         if (field === 'avail') {
-          const aa = getAvailability(a.id) ? 1 : 0
-          const bb = getAvailability(b.id) ? 1 : 0
+          const aa = getBookAvailability(a) ? 1 : 0
+          const bb = getBookAvailability(b) ? 1 : 0
           cmp = aa - bb
         }
+
         return dir === 'desc' ? -cmp : cmp
       })
     }
 
     return results
   }, [
+    books,
     search,
     genre,
     language,
@@ -148,7 +319,6 @@ export default function Catalog() {
     advYear,
   ])
 
-  // Count how many filters are active so we can show "Clear all" when needed
   const activeCount = [
     genre !== 'All',
     language !== 'All Languages',
@@ -177,9 +347,16 @@ export default function Catalog() {
     setAdvYear('')
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F2F5F3] px-5 py-16 text-center dark:bg-[#121212]">
+        <p className="text-[#1C2B24] dark:text-[#f5f7f6]">Loading books...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#F2F5F3] dark:bg-[#121212]">
-      {/* Hero banner with main search bar and advanced search toggle */}
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-10 text-center sm:px-6 md:px-8 md:py-14">
         <p className="mb-[0.65rem] text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white/45">
           Our Libraries
@@ -306,7 +483,6 @@ export default function Catalog() {
         </div>
       </section>
 
-      {/* Sticky filter bar — stays visible as you scroll through results */}
       <div className="sticky top-0 z-10 border-b border-[#d0ddd8] bg-white px-4 py-3 shadow-[0_1px_3px_rgba(28,43,36,0.04)] sm:px-5 sm:py-4 dark:border-[#2a2a2a] dark:bg-[#121212]">
         <div className="mx-auto flex max-w-[var(--container-max)] flex-col gap-3">
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 md:grid-cols-2 md:gap-3 lg:grid-cols-3 xl:grid-cols-6">
@@ -329,7 +505,9 @@ export default function Catalog() {
                 <select
                   className={selectClass}
                   value={filter.value}
-                  onChange={(e) => filter.setValue(filter.mapValue ? filter.mapValue(e.target.value) : e.target.value)}
+                  onChange={(e) =>
+                    filter.setValue(filter.mapValue ? filter.mapValue(e.target.value) : e.target.value)
+                  }
                   aria-label={`Filter by ${filter.label.toLowerCase()}`}
                 >
                   {filter.options.map((option) => {
@@ -358,7 +536,6 @@ export default function Catalog() {
         </div>
       </div>
 
-      {/* Main results area — grid or list view depending on toggle */}
       <main className="mx-auto max-w-[var(--container-max)] px-5 pb-16 pt-7 sm:px-6 md:px-8">
         <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]">
@@ -430,7 +607,6 @@ export default function Catalog() {
           </div>
         </div>
 
-        {/* Hint card shown when no search or filters are active yet */}
         {!hasSearched && (
           <section className="mb-6 rounded-[10px] border border-[#d0ddd8] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#121212]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
@@ -450,9 +626,8 @@ export default function Catalog() {
                 <div className="flex flex-wrap gap-2">
                   {[
                     { label: 'Philosophy', onClick: () => setSearch('philosophy') },
-                    { label: 'Khalil Gibran', onClick: () => setSearch('gibran') },
-                    { label: 'Journals', onClick: () => setResType('Journal') },
-                    { label: 'Theses', onClick: () => setResType('Thesis') },
+                    { label: 'James Clear', onClick: () => setSearch('james clear') },
+                    { label: 'Books', onClick: () => setResType('Book') },
                     { label: 'French Collection', onClick: () => setLanguage('French') },
                   ].map((hint) => (
                     <button
@@ -469,7 +644,20 @@ export default function Catalog() {
           </section>
         )}
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <section className="mx-auto flex max-w-[440px] flex-col items-center gap-3 px-4 py-16 text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
+            <p className="text-[0.84rem] text-[#5a6b62] dark:text-[#8c9691]">Loading catalog...</p>
+          </section>
+        ) : loadError ? (
+          <section className="mx-auto flex max-w-[440px] flex-col items-center gap-2 px-4 py-16 text-center">
+            <h2 className="text-[1.1rem] font-bold tracking-[-0.01em] text-[#b5392b] dark:text-[#ff9388]">Couldn&apos;t load the catalog</h2>
+            <p className="text-[0.84rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">{loadError}</p>
+            <p className="text-[0.78rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">
+              Check that the backend API is running, then refresh the page.
+            </p>
+          </section>
+        ) : filtered.length === 0 ? (
           <section className="mx-auto flex max-w-[440px] flex-col items-center gap-2 px-4 py-16 text-center">
             <svg className="mb-1 h-12 w-12 text-[#ccc] dark:text-[#66706b]" viewBox="0 0 48 48" fill="none" aria-hidden="true">
               <circle cx="22" cy="22" r="14" stroke="currentColor" strokeWidth="2.5" />
@@ -505,9 +693,9 @@ export default function Catalog() {
         ) : view === 'grid' ? (
           <ul className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] sm:gap-x-4 sm:gap-y-6">
             {filtered.map((book) => {
-              const bookAvail = getAvailability(book.id)
-              const bookCampus = getCampus(book.id)
-              const bookType = getResourceType(book.id)
+              const bookAvail = getBookAvailability(book)
+              const bookCampusLabel = getBookCampusLabel(book)
+              const bookType = getBookType(book)
 
               return (
                 <li key={book.id} className="flex flex-col gap-2">
@@ -527,7 +715,8 @@ export default function Catalog() {
                       className="h-full w-full object-cover"
                       loading="lazy"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none'
+                        e.currentTarget.onerror = null
+                        e.currentTarget.src = PLACEHOLDER_IMAGE
                       }}
                     />
                   </div>
@@ -548,7 +737,7 @@ export default function Catalog() {
 
                     <p className="text-[0.72rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
                     <p className="text-[0.64rem] tracking-[0.01em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
-                      {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}
+                      {formatYear(book.year)} - {bookCampusLabel}
                     </p>
 
                     <div className="mt-1 flex flex-wrap gap-1">
@@ -556,6 +745,55 @@ export default function Catalog() {
                       <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>
                         {bookAvail ? 'Available' : 'On Loan'}
                       </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleFavorite(book.id)
+                        }}
+                        disabled={togglingFavoriteId === book.id}
+                        aria-pressed={favoriteIds.has(book.id)}
+                        aria-label={favoriteIds.has(book.id) ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
+                        title={favoriteIds.has(book.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:opacity-60 ${
+                          favoriteIds.has(book.id)
+                            ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
+                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#c0392b] hover:text-[#b5392b] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#ff9388] dark:hover:text-[#ff9388]'
+                        }`}
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={favoriteIds.has(book.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleBorrow(book.id)
+                        }}
+                        disabled={borrowedIds.has(book.id) || borrowingId === book.id}
+                        aria-label={borrowedIds.has(book.id) ? `${book.title} already borrowed` : `Borrow ${book.title}`}
+                        title={borrowedIds.has(book.id) ? 'Already borrowed' : 'Borrow'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed ${
+                          borrowedIds.has(book.id)
+                            ? 'border-[#1a6644] bg-[#e6f4ec] text-[#006751] dark:border-[#1a6644] dark:bg-[#143c2f] dark:text-[#5ecba1]'
+                            : 'border-[#d0ddd8] bg-white text-[#006751] hover:border-[#1a6644] hover:bg-[#EDF3F0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#181818]'
+                        }`}
+                      >
+                        {borrowedIds.has(book.id) ? (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M5 12l5 5L20 7" />
+                          </svg>
+                        ) : (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M4 5v14a2 2 0 0 1 2-2h6V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 0Z" />
+                            <path d="M20 5v14a2 2 0 0 0-2-2h-6V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 0Z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
 
                     {admin && (
@@ -579,11 +817,12 @@ export default function Catalog() {
         ) : (
           <ul className="overflow-hidden rounded-[10px] bg-[#d0ddd8] dark:bg-[#121212]">
             {filtered.map((book, index) => {
-              const bookAvail = getAvailability(book.id)
-              const { total, available } = getCopies(book.id)
-              const bookCampus = getCampus(book.id)
-              const bookType = getResourceType(book.id)
-              const callNum = getCallNumber(book)
+              const bookAvail = getBookAvailability(book)
+              const total = Number(book.copies ?? 0)
+              const available = Number(book.copies ?? 0)
+              const bookCampusLabel = getBookCampusLabel(book)
+              const bookType = getBookType(book)
+              const callNum = getBookCallNumber(book)
 
               return (
                 <li
@@ -607,7 +846,8 @@ export default function Catalog() {
                     className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]"
                     loading="lazy"
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = PLACEHOLDER_IMAGE
                     }}
                   />
 
@@ -627,7 +867,10 @@ export default function Catalog() {
 
                     <p className="text-[0.78rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
                     <p className="truncate text-[0.7rem] tracking-[0.005em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
-                      {book.publisher}, {book.year > 0 ? book.year : `${Math.abs(book.year)} BCE`} - {book.pages} pp. - ISBN {book.isbn}
+                      {book.publisher}
+                      {book.year ? `, ${formatYear(book.year)}` : ''}
+                      {book.pages ? ` - ${book.pages} pp.` : ''}
+                      {book.isbn ? ` - ISBN ${book.isbn}` : ''}
                     </p>
 
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -636,6 +879,55 @@ export default function Catalog() {
                       <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>
                         {bookAvail ? 'Available' : 'On Loan'}
                       </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleFavorite(book.id)
+                        }}
+                        disabled={togglingFavoriteId === book.id}
+                        aria-pressed={favoriteIds.has(book.id)}
+                        aria-label={favoriteIds.has(book.id) ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
+                        title={favoriteIds.has(book.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:opacity-60 ${
+                          favoriteIds.has(book.id)
+                            ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
+                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#c0392b] hover:text-[#b5392b] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#ff9388] dark:hover:text-[#ff9388]'
+                        }`}
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={favoriteIds.has(book.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleBorrow(book.id)
+                        }}
+                        disabled={borrowedIds.has(book.id) || borrowingId === book.id}
+                        aria-label={borrowedIds.has(book.id) ? `${book.title} already borrowed` : `Borrow ${book.title}`}
+                        title={borrowedIds.has(book.id) ? 'Already borrowed' : 'Borrow'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed ${
+                          borrowedIds.has(book.id)
+                            ? 'border-[#1a6644] bg-[#e6f4ec] text-[#006751] dark:border-[#1a6644] dark:bg-[#143c2f] dark:text-[#5ecba1]'
+                            : 'border-[#d0ddd8] bg-white text-[#006751] hover:border-[#1a6644] hover:bg-[#EDF3F0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#181818]'
+                        }`}
+                      >
+                        {borrowedIds.has(book.id) ? (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M5 12l5 5L20 7" />
+                          </svg>
+                        ) : (
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M4 5v14a2 2 0 0 1 2-2h6V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 0Z" />
+                            <path d="M20 5v14a2 2 0 0 0-2-2h-6V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 0Z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
 
                     {admin && (
@@ -658,7 +950,7 @@ export default function Catalog() {
                       {callNum}
                     </span>
                     <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">
-                      {bookCampus === 'both' ? 'Beirut & Byblos' : bookCampus}
+                      {bookCampusLabel}
                     </span>
                     <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
                       {available} of {total} available

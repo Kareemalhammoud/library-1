@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
-import { EVENTS } from '@/data/eventsData'
+import { getBooks, getEvents } from '@/utils/api'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
+
+const API_BASE = 'http://localhost:5000'
 
 // Images that rotate in the hero banner at the top of the page
 const HERO_SLIDES = [
@@ -92,17 +93,62 @@ const QUICK_ACTIONS = [
 ]
 
 // Settings for the infinite scrolling book carousel ("Staff Picks")
-// We duplicate the book list so it loops seamlessly
 const GAP_PX = 32
-const N = BOOKS.length
-const TRACK = [...BOOKS, ...BOOKS]
 const PX_PER_SEC = 55
 
-// Card size adjusts depending on screen width
+const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#f5f2ed"/>
+  <rect x="16" y="16" width="268" height="418" rx="18" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="150" y="180" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="150" y="235" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="150" y="290" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
+
 function getCardWidth(viewportWidth) {
   if (viewportWidth < 480) return 112
   if (viewportWidth < 768) return 132
   return 158
+}
+
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_COVER
+  if (url.startsWith('blob:')) return PLACEHOLDER_COVER
+  return url
+}
+
+function getGenreColor(genre) {
+  const map = {
+    Classic: '#987432',
+    Fantasy: '#5ecba1',
+    Fiction: '#c4705f',
+    History: '#5ecba1',
+    Programming: '#6aa6ff',
+    'Computer Science': '#6aa6ff',
+    Philosophy: '#c4705f',
+    Productivity: '#5ecba1',
+    'Self-help': '#5ecba1',
+    Business: '#987432',
+    Finance: '#987432',
+    Psychology: '#c4705f',
+    Science: '#6aa6ff',
+    Dystopian: '#c4705f',
+  }
+
+  return map[genre] || '#5ecba1'
+}
+
+function normalizeBook(book) {
+  return {
+    id: book.id,
+    title: book.title || 'Untitled',
+    author: book.author || 'Unknown Author',
+    genre: book.category || 'General',
+    genreColor: getGenreColor(book.category || 'General'),
+    cover: sanitizeImage(book.image),
+    badge: Number(book.available_copies ?? 0) > 0 ? 'Available' : '',
+  }
 }
 
 function Home() {
@@ -110,31 +156,52 @@ function Home() {
   const trackRef = useRef(null)
   const animRef = useRef(null)
   const navigate = useNavigate()
-  const [currentSlide, setCurrentSlide] = useState(0)
 
-  // Auto-rotate hero slides every 7 seconds
+  const [books, setBooks] = useState([])
+  const [booksLoading, setBooksLoading] = useState(true)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [events, setEvents] = useState([])
+
   useEffect(() => {
     const id = setInterval(() => setCurrentSlide((c) => (c + 1) % HERO_SLIDES.length), 7000)
     return () => clearInterval(id)
   }, [])
 
-  // Set up the book carousel animation — pauses on hover, recalculates on resize
+  // Load books and events from the backend in parallel on first render.
+  // Failures fall back to empty lists so the page still renders.
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getBooks().catch(() => []), getEvents().catch(() => [])]).then(([b, e]) => {
+      if (cancelled) return
+      setBooks(b)
+      setEvents(e)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Duplicate the book list so the carousel loops seamlessly.
+  const track = useMemo(() => [...books, ...books], [books])
+
+  // Set up the book carousel animation — pauses on hover, recalculates on resize.
+  // Re-runs when books load so the distance calculation matches the real list length.
   useLayoutEffect(() => {
     const viewport = viewportRef.current
-    const track = trackRef.current
-    if (!viewport || !track) return
+    const trackEl = trackRef.current
+    if (!viewport || !trackEl || books.length === 0) return
 
     const start = () => {
       const cw = getCardWidth(viewport.offsetWidth)
-      const dist = N * (cw + GAP_PX)
+      const dist = books.length * (cw + GAP_PX)
       const dur = (dist / PX_PER_SEC) * 1000
 
-      Array.from(track.children).forEach((card) => {
+      Array.from(trackEl.children).forEach((card) => {
         card.style.flexBasis = `${cw}px`
       })
 
       animRef.current?.cancel()
-      animRef.current = track.animate([{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }], {
+      animRef.current = trackEl.animate([{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }], {
         duration: dur,
         iterations: Infinity,
         easing: 'linear',
@@ -155,16 +222,14 @@ function Home() {
       viewport.removeEventListener('mouseleave', resume)
       window.removeEventListener('resize', start)
     }
-  }, [])
+  }, [books.length])
 
-  // Grab the next upcoming event to show in the hero sidebar card
   const today = new Date().toISOString().slice(0, 10)
-  const nextEvent = EVENTS.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
+  const nextEvent = events.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
 
   return (
     <div className="w-full bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
       <main>
-        {/* Hero section — full-width slideshow with search overlay and upcoming event card */}
         <section className="relative left-1/2 ml-[-50vw] h-[520px] w-screen overflow-hidden sm:h-[540px]" aria-label="Hero section with rotating images of the library and a search form">
           <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(to_right,rgba(12,10,8,0.38)_0%,rgba(12,10,8,0.18)_35%,transparent_62%)]" />
           {HERO_SLIDES.map((slide, i) => (
@@ -223,7 +288,6 @@ function Home() {
           </div>
         </section>
 
-        {/* Stats bar — quick numbers about the library */}
         <section className="grid grid-cols-2 border-y border-[rgba(0,103,81,0.12)] bg-[rgba(0,103,81,0.04)] py-7 text-center sm:grid-cols-4 dark:border-[#333333] dark:bg-[rgba(45,212,168,0.04)]" aria-label="Library statistics">
           {[
             ['1.1M+', 'Library Resources'],
@@ -238,7 +302,6 @@ function Home() {
           ))}
         </section>
 
-        {/* "Explore the Library" — four quick-action cards */}
         <section className="relative px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-[var(--container-max)]">
             <div className="mb-12">
@@ -272,7 +335,6 @@ function Home() {
           </div>
         </section>
 
-        {/* Staff Picks — auto-scrolling book carousel */}
         <section className="relative left-1/2 ml-[-50vw] w-screen overflow-hidden border-y border-[rgba(0,103,81,0.22)] bg-[linear-gradient(180deg,rgba(215,235,228,0.38)_0%,rgba(200,228,220,0.54)_100%)] px-4 pb-2 pt-8 sm:px-6 lg:px-8 dark:border-[#333333] dark:bg-[linear-gradient(180deg,rgba(18,18,18,0.96)_0%,rgba(20,60,47,0.82)_100%)]">
           <div className="mx-auto max-w-[var(--container-max)]">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -284,7 +346,7 @@ function Home() {
             </div>
             <div ref={viewportRef} className="overflow-hidden">
               <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
-                {TRACK.map((book, i) => (
+                {track.map((book, i) => (
                   <a
                     key={`${book.id}-${i}`}
                     href={`/books/${book.id}`}

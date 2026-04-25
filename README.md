@@ -1,8 +1,12 @@
 # LAU Riyad Nassar Library — Web Application
 
-> **CSC443 · Project Phase 1 · Team: Dodgers**
+> **CSC443 · Project Phases 1 & 2 · Team: Dodgers**
 
-A fully responsive and interactive frontend for the Lebanese American University's Riyad Nassar Library. Built with Semantic HTML, React, Tailwind CSS, and React Router, the application simulates a comprehensive library management system — covering browsing and borrowing books, attending events, booking study rooms, and managing a personal account. All features are powered by mock data and client-side state management with no backend required. The website is designed to be accessible and user friendly. 
+A full-stack web application for the Lebanese American University's Riyad Nassar
+Library. Phase 1 delivered a responsive React frontend. Phase 2 adds a
+Node/Express backend, a MySQL database, JWT-based authentication, and
+authenticated CRUD endpoints — converting the simulated frontend into a
+persistent, secure full-stack app.
 
 ---
 
@@ -10,12 +14,15 @@ A fully responsive and interactive frontend for the Lebanese American University
 
 | Resource | URL |
 |----------|-----|
-| Deployed Application | https://library-1-tau.vercel.app |
+| Deployed Frontend | https://library-1-tau.vercel.app |
+| Deployed Backend API | https://library-api-46jn.onrender.com |
 | GitHub Repository | https://github.com/Kareemalhammoud/library-1 |
 
 ---
 
 ## Team Members
+
+### Phase 1 — Frontend
 
 | Member | Pages / Features |
 |--------|-----------------|
@@ -23,6 +30,15 @@ A fully responsive and interactive frontend for the Lebanese American University
 | **Perla Imad** | List View, Book Detail, Services, Responsive Design |
 | **Kareem Hammoud** | Homepage, Events, Catalog |
 | **Rayan Madi** | Add Book, Edit Book, Author Detail |
+
+### Phase 2 — Full-Stack
+
+| Member | Backend / Integration |
+|--------|----------------------|
+| **Kareem Naous** | Auth backend (register/login, bcrypt, JWT middleware), user profile + loans backend, Dashboard integration |
+| **Perla Imad** | Book Detail & List frontend API integration, Services integration, loading/error/success states |
+| **Kareem Hammoud** | Books and Events read APIs, Events full CRUD with ownership authorization, DB schema + seed script for books and events, Home/Catalog/Events frontend integration, deployment lead |
+| **Rayan Madi** | Authenticated Book CRUD (create/update/delete), book ownership/authorization, Add/Edit Book frontend integration |
 
 ---
 
@@ -65,27 +81,29 @@ Attributes: `bookId`, `borrowedAt`, `dueAt`, `renewCount`, `isReserved`.
 
 - Node.js v18 or higher
 - npm v9 or higher
+- MySQL v8 or higher (for the backend)
 
-### Running Locally
+### Full-stack Local Setup
+
+The project is now two services: a React frontend (Vite, at the repo root) and
+a Node/Express backend (in `server/`). You need both running.
+
+**Backend (terminal 1):** follow [`server/SETUP.md`](server/SETUP.md) — it walks
+through installing MySQL, creating the `lau_library` database, applying
+`server/db/schema.sql`, copying `server/.env.example` to `server/.env`, seeding
+books and events (`npm run seed`), and starting the API (`npm run dev`). The
+API listens on `http://localhost:5000`.
+
+**Frontend (terminal 2):** from the repo root:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Kareemalhammoud/library-1.git
-cd library-1
-
-# 2. Install dependencies
-#    The --legacy-peer-deps flag is required due to a peer dependency conflict
-#    between Vite and Tailwind CSS v4's PostCSS plugin.
-npm install --legacy-peer-deps
-
-# 3. Start the development server
+npm install --legacy-peer-deps   # peer conflict between Vite and Tailwind v4
 npm run dev
-
-# 4. Open in your browser
-#    http://localhost:5173
 ```
 
-> **Note:** The project uses a manual `postcss.config.js` configured with `@tailwindcss/postcss` due to a breaking API change in Tailwind CSS v4.
+Open `http://localhost:5173`. The frontend reads `VITE_API_URL` for the
+backend base URL — defaults to `http://localhost:5000/api`, no `.env` needed
+locally.
 
 ### Building for Production
 
@@ -93,6 +111,84 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+---
+
+## Backend API
+
+Base URL: `http://localhost:5000/api` (local).
+
+Authenticated endpoints expect `Authorization: Bearer <jwt>` — the token is
+issued by `/api/auth/login` and stored by the frontend in `localStorage` under
+the key `token`.
+
+### Books (read-only on this branch — admin CRUD is owned by Rayan)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/books` | — | List all books. Optional query params: `search`, `genre`, `language`, `limit`. |
+| GET | `/api/books/:id` | — | Single book by id. 404 if not found. |
+
+Book response shape (aliased to match the frontend):
+
+```json
+{
+  "id": 0,
+  "title": "The Story of Art",
+  "author": "E.H. Gombrich",
+  "genre": "Art",
+  "language": "EN",
+  "year": 1950,
+  "rating": 4.5,
+  "pages": 688,
+  "publisher": "Phaidon Press",
+  "isbn": "978-0-7148-3247-0",
+  "description": "...",
+  "cover": "https://.../cover.jpg",
+  "color": "amber",
+  "genreColor": "#8C6A1E",
+  "badge": null
+}
+```
+
+### Events (full CRUD, owner-scoped)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/events` | — | List events. Optional query params: `category`, `format`, `month` (1–12), `search`, `featured=true`. Sorted by date ascending. |
+| GET | `/api/events/:id` | — | Single event by id. |
+| POST | `/api/events` | ✅ | Create an event. The creator becomes `created_by`. Required body: `title`, `date` (YYYY-MM-DD). Optional: `time`, `location`, `category`, `format`, `featured`, `image`, `description`, `longDescription`, `speaker`, `seats`, `registered`, `audience`, `takeaway`, `highlights` (array). |
+| PUT | `/api/events/:id` | ✅ | Update an event. 403 unless you are the original creator. Body takes any subset of the POST fields. |
+| DELETE | `/api/events/:id` | ✅ | Delete an event. 403 unless you are the original creator. |
+
+Event response shape:
+
+```json
+{
+  "id": 1,
+  "title": "Research Skills Workshop: Finding Academic Sources",
+  "date": "2026-03-25",
+  "time": "2:00 PM - 4:00 PM",
+  "location": "Riyad Nassar Library, Beirut",
+  "category": "Workshops",
+  "format": "In-Person",
+  "featured": 1,
+  "image": "https://...",
+  "description": "...",
+  "longDescription": "...",
+  "speaker": "Dr. Nada El-Husseini",
+  "seats": 30,
+  "registered": 22,
+  "audience": "...",
+  "takeaway": "...",
+  "highlights": ["...", "..."],
+  "createdBy": null,
+  "createdAt": "2026-04-21T18:00:00.000Z"
+}
+```
+
+Seeded events have `createdBy: null` so they are immutable via the public CRUD
+endpoints — they can only be managed by re-running `npm run seed`.
 
 ---
 

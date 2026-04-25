@@ -1,70 +1,55 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
 import { useState, useEffect, useMemo } from 'react'
-import { getCampus, getCopies } from '@/utils/bookUtils'
-import { getStoredUser, isAdminUser } from '@/utils'
+import {
+  getBook,
+  getBooks,
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+  createLoan,
+  getReviewsForBook,
+  submitReview,
+  deleteReview as deleteReviewApi,
+} from '@/utils/api'
+import { getStoredUser, isAdminUser, isLoggedInUser } from '@/utils'
 
-const AUTHOR_BIOGRAPHIES = {
-  'Donna Tartt':
-    'An American novelist known for immersive literary fiction. She won the Pulitzer Prize for The Goldfinch, often exploring morality and obsession.',
-  'Brandon Sanderson':
-    'A leading modern fantasy author known for intricate magic systems and the Cosmere universe.',
-  'Struan Murray':
-    'A British children’s fantasy writer blending mythology and science in imaginative stories.',
-  'Christopher Paolini':
-    'American fantasy author who gained fame with Eragon, written as a teenager.',
-  'Maria Zoccola':
-    'A contemporary writer focusing on emotional narratives and character-driven stories.',
-  'Ludwig Wittgenstein':
-    'A major 20th-century philosopher focused on language, logic, and meaning.',
-  'E. Lockhart':
-    'American YA author known for psychological storytelling like We Were Liars.',
-  'Tricia Levenseller':
-    'YA fantasy author known for fast-paced, character-led adventures.',
-  'Tahereh Mafi':
-    'Bestselling author of the Shatter Me series, blending dystopia and lyrical prose.',
-  'John Gwynne':
-    'Epic fantasy writer inspired by Norse mythology and action-driven narratives.',
-  'George Orwell':
-    'Political writer known for 1984 and Animal Farm, exploring power and control.',
-  'Fyodor Dostoevsky':
-    'Russian novelist exploring psychology, morality, and existential themes.',
-  'Franz Kafka':
-    'Writer of surreal, existential works reflecting alienation and absurdity.',
-  'Albert Camus':
-    'Philosopher of absurdism exploring meaning and existence in works like The Stranger.',
-  'J.K. Rowling':
-    'Creator of Harry Potter, a globally influential fantasy series.',
-  'J.R.R. Tolkien':
-    'Father of modern fantasy, author of The Lord of the Rings.',
-  'Jane Austen':
-    'English novelist known for wit and social commentary.',
-  'Colleen Hoover':
-    'Contemporary romance author exploring emotional and personal themes.',
-  'Leigh Bardugo':
-    'Fantasy author known for the Grishaverse series.',
-  'Rick Riordan':
-    'Author blending mythology with modern adventure, like Percy Jackson.',
-  'Stephen King':
-    'Master of horror and suspense with a vast body of work.',
-  'Agatha Christie':
-    'Legendary mystery writer, creator of Hercule Poirot.',
-  'Dan Brown':
-    'Thriller author known for fast-paced conspiracy novels.',
-  'Suzanne Collins':
-    'Author of The Hunger Games, combining dystopia and social themes.',
-  'Veronica Roth':
-    'Known for Divergent, exploring identity and society.',
-  'C.S. Lewis':
-    'Author of The Chronicles of Narnia, blending fantasy and philosophy.',
-  'Neil Gaiman':
-    'Writer combining fantasy, mythology, and dark storytelling.',
-  'Mark Manson':
-    'Self-help author known for direct, modern perspectives on life.',
-  'Robert Greene':
-    'Author of strategic works on power and human behavior.',
-  'Yuval Noah Harari':
-    'Historian exploring humanity and the future in Sapiens.',
+const API_BASE = 'http://localhost:5000'
+
+const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#f5f2ed"/>
+  <rect x="16" y="16" width="268" height="418" rx="18" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="150" y="180" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="150" y="235" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="150" y="290" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
+
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_COVER
+  if (url.startsWith('blob:')) return PLACEHOLDER_COVER
+  return url
+}
+
+function normalizeBook(data) {
+  return {
+    id: data.id,
+    title: data.title || 'Untitled',
+    author: data.author || 'Unknown Author',
+    genre: data.category || 'General',
+    description: data.description || 'No description available for this book yet.',
+    cover: sanitizeImage(data.image),
+    availableCopies: Number(data.available_copies ?? data.availableCopies ?? 0),
+    totalCopies: Number(data.available_copies ?? data.availableCopies ?? 0),
+    year: data.year || 'N/A',
+    pages: data.pages || 'N/A',
+    publisher: data.publisher || 'Library Collection',
+    isbn: data.isbn || 'N/A',
+    language: data.language || 'EN',
+    rating: data.rating || 'N/A',
+    campus: data.campus || 'Beirut',
+    authorBiography: data.authorBiography || '',
+  }
 }
 
 export default function BookDetail() {
@@ -72,25 +57,188 @@ export default function BookDetail() {
   const navigate = useNavigate()
   const admin = isAdminUser()
 
-  const book = BOOKS.find((b) => b.id === parseInt(id, 10))
-  const safeBookId = book?.id ?? 0
+  const [book, setBook] = useState(null)
+  const [books, setBooks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [notFound, setNotFound] = useState(false)
 
-  const { total: totalCopies, available: availableCopies } = getCopies(safeBookId)
-  const isAvailable = availableCopies > 0
-  const bookCampus = getCampus(safeBookId)
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
+    setNotFound(false)
+    setBook(null)
+
+    Promise.all([getBook(id), getBooks()])
+      .then(([oneBook, allBooks]) => {
+        if (cancelled) return
+        setBook(oneBook)
+        setBooks(allBooks)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        if (error.status === 404) {
+          setNotFound(true)
+        } else {
+          setLoadError(error.message || 'Failed to load book')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [favoriteBusy, setFavoriteBusy] = useState(false)
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewHover, setReviewHover] = useState(0)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const currentUser = getStoredUser()
+
+  // Whenever a book loads (or the user navigates to a different book), check
+  // whether it's in this user's favorites. Skip the API call for guests.
+  useEffect(() => {
+    if (!book || !isLoggedInUser()) {
+      setIsFavorite(false)
+      return
+    }
+    let cancelled = false
+    getFavorites()
+      .then((favs) => {
+        if (cancelled) return
+        setIsFavorite(favs.some((fav) => fav.id === book.id))
+      })
+      .catch(() => {
+        /* non-critical — leave as unfavorited */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [book])
+
+  // Load reviews whenever the book changes. If the current user already has
+  // one, pre-fill the form so they can edit rather than add a duplicate.
+  useEffect(() => {
+    if (!book) return
+    let cancelled = false
+    setReviewsLoading(true)
+    getReviewsForBook(book.id)
+      .then((data) => {
+        if (cancelled) return
+        setReviews(data)
+        const mine = currentUser ? data.find((r) => r.userId === currentUser.id) : null
+        if (mine) {
+          setReviewRating(mine.rating)
+          setReviewComment(mine.comment || '')
+        } else {
+          setReviewRating(0)
+          setReviewComment('')
+        }
+      })
+      .catch(() => {
+        /* non-critical — reviews just won't show */
+      })
+      .finally(() => {
+        if (!cancelled) setReviewsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [book])
+
+  const reviewStats = useMemo(() => {
+    if (reviews.length === 0) return { average: 0, count: 0 }
+    const total = reviews.reduce((sum, r) => sum + r.rating, 0)
+    return { average: total / reviews.length, count: reviews.length }
+  }, [reviews])
+
+  const myReview = currentUser ? reviews.find((r) => r.userId === currentUser.id) : null
+
+  async function handleSubmitReview(e) {
+    e.preventDefault()
+    if (!book) return
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
+      return
+    }
+    if (reviewRating < 1) {
+      setReviewError('Pick a star rating before submitting.')
+      return
+    }
+
+    setReviewError('')
+    setReviewSubmitting(true)
+    try {
+      const saved = await submitReview(book.id, { rating: reviewRating, comment: reviewComment })
+      setReviews((prev) => {
+        const without = prev.filter((r) => r.id !== saved.id)
+        return [saved, ...without]
+      })
+    } catch (error) {
+      setReviewError(error.message || 'Failed to submit review')
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
+
+  async function handleDeleteReview(reviewId) {
+    try {
+      await deleteReviewApi(reviewId)
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId))
+      setReviewRating(0)
+      setReviewComment('')
+    } catch (error) {
+      setReviewError(error.message || 'Failed to delete review')
+    }
+  }
+
+  async function handleToggleFavorite() {
+    if (!book) return
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
+      return
+    }
+
+    const next = !isFavorite
+    setFavoriteBusy(true)
+    // Optimistic update — flip immediately, revert on failure so the heart
+    // feels responsive even on a slow connection.
+    setIsFavorite(next)
+    try {
+      if (next) {
+        await addFavorite(book.id)
+      } else {
+        await removeFavorite(book.id)
+      }
+    } catch {
+      setIsFavorite(!next)
+    } finally {
+      setFavoriteBusy(false)
+    }
+  }
 
   function getUserPrefix() {
-    const user = getStoredUser()
+    const user = getStoredUser?.()
     return user?.email ? `${user.email}:` : ''
   }
 
   const prefix = getUserPrefix()
+  const safeBookId = book?.id ?? 0
   const borrowKey = `${prefix}borrowed-${safeBookId}`
   const loanKey = `${prefix}loan-${safeBookId}`
   const storageKey = `${prefix}reading-progress-${safeBookId}`
@@ -106,20 +254,21 @@ export default function BookDetail() {
     setProgress(Number(localStorage.getItem(storageKey) ?? 0))
   }, [book, storageKey])
 
-  const authorBiography = book
-    ? AUTHOR_BIOGRAPHIES[book.author] || 'No biography available for this author yet.'
-    : ''
+  const isAvailable = Number(book?.availableCopies ?? 0) > 0
+  const bookCampus = book?.campus === 'both' ? 'Beirut / Byblos' : book?.campus || 'Beirut'
+  const authorBiography =
+    book?.authorBiography || 'No biography available for this author yet.'
 
   const { relatedBooks, relatedTitle } = useMemo(() => {
-    if (!book) {
+    if (!book || books.length === 0) {
       return { relatedBooks: [], relatedTitle: 'You might also enjoy' }
     }
 
-    const sameGenre = BOOKS.filter((b) => b.genre === book.genre && b.id !== book.id)
+    const sameGenre = books.filter((b) => b.genre === book.genre && b.id !== book.id)
     const nextRelatedBooks =
       sameGenre.length >= 2
         ? sameGenre.slice(0, 4)
-        : BOOKS.filter((b) => b.id !== book.id)
+        : books.filter((b) => b.id !== book.id)
             .sort(() => Math.random() - 0.5)
             .slice(0, 4)
 
@@ -127,7 +276,7 @@ export default function BookDetail() {
       sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
 
     return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
-  }, [book])
+  }, [book, books])
 
   function handleShare() {
     navigator.clipboard?.writeText(window.location.href)
@@ -138,9 +287,9 @@ export default function BookDetail() {
   function handleBorrowClick() {
     if (!book) return
 
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+    const token = localStorage.getItem('token')
 
-    if (!isLoggedIn) {
+    if (!token) {
       navigate('/login', { state: { from: `/books/${book.id}` } })
       return
     }
@@ -149,8 +298,21 @@ export default function BookDetail() {
     setModalOpen(true)
   }
 
-  function handleConfirm() {
+  async function handleConfirm() {
     if (!book) return
+
+    // Persist to the DB first. Without this, the dashboard can't show the
+    // loan — it reads from the `loans` table, not localStorage.
+    try {
+      await createLoan(book.id)
+    } catch (error) {
+      // Already-borrowed (409) is effectively success from the UI's POV; any
+      // other error aborts so the user knows something went wrong.
+      if (error.status !== 409) {
+        alert(error.message || 'Failed to borrow this book')
+        return
+      }
+    }
 
     const borrowedAt = new Date()
     const dueAt = new Date(borrowedAt)
@@ -169,7 +331,8 @@ export default function BookDetail() {
     let currentBorrowedBooks = []
 
     try {
-      currentBorrowedBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
+      currentBorrowedBooks =
+        JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
     } catch {
       currentBorrowedBooks = []
     }
@@ -187,7 +350,9 @@ export default function BookDetail() {
       })
     )
 
-    const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
+    const alreadyTracked = currentBorrowedBooks.some(
+      (entry) => entry.id === book.id
+    )
 
     if (!alreadyTracked) {
       localStorage.setItem(
@@ -206,7 +371,31 @@ export default function BookDetail() {
     localStorage.setItem(storageKey, val)
   }
 
-  if (!book) {
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
+        <p className="text-[0.85rem] text-[#5a6b62] dark:text-[#8c9691]">Loading book...</p>
+      </main>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="text-[1rem] font-bold text-[#b5392b] dark:text-[#ff9388]">Couldn&apos;t load this book</p>
+        <p className="max-w-[44ch] text-[0.85rem] leading-[1.6] text-[#555] dark:text-[#888]">{loadError}</p>
+        <button
+          className="cursor-pointer rounded-lg border border-[#ccc] px-4 py-2 text-[0.85rem] hover:bg-[#eee]"
+          onClick={() => navigate(-1)}
+        >
+          Go back
+        </button>
+      </main>
+    )
+  }
+
+  if (notFound || !book) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4">
         <p className="text-[#555]">Book not found.</p>
@@ -243,6 +432,10 @@ export default function BookDetail() {
             src={book.cover}
             alt={`Cover of ${book.title}`}
             className="w-full rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
+            onError={(e) => {
+              e.currentTarget.onerror = null
+              e.currentTarget.src = PLACEHOLDER_COVER
+            }}
           />
 
           <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]">
@@ -250,7 +443,7 @@ export default function BookDetail() {
               {isAvailable ? '● Available' : '● Fully Borrowed'}
             </p>
             <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#888]">
-              {availableCopies} of {totalCopies} copies available
+              {book.availableCopies} of {book.totalCopies} copies available
             </p>
           </div>
 
@@ -270,6 +463,20 @@ export default function BookDetail() {
               onClick={handleShare}
             >
               {shareCopied ? '✓ Copied!' : 'Share'}
+            </button>
+
+            <button
+              className={`w-full cursor-pointer rounded-lg py-[0.85rem] text-[0.9rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                isFavorite
+                  ? 'border border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388] dark:hover:bg-[#4a211e]'
+                  : 'border border-[#ccc] bg-white text-[#555] hover:bg-[#f0f0f0] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#242424]'
+              }`}
+              onClick={handleToggleFavorite}
+              disabled={favoriteBusy}
+              aria-pressed={isFavorite}
+              aria-label={isFavorite ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
+            >
+              {isFavorite ? '♥ Favorited' : '♡ Add to Favorites'}
             </button>
 
             {admin && (
@@ -307,9 +514,11 @@ export default function BookDetail() {
           </div>
 
           <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
-            {book.description.split('\n\n').map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+            {String(book.description)
+              .split('\n\n')
+              .map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
           </div>
 
           <ul
@@ -322,7 +531,12 @@ export default function BookDetail() {
               ['Publisher', book.publisher],
               ['ISBN', book.isbn],
               ['Language', book.language === 'FR' ? 'French' : 'English'],
-              ['Rating', `⭐ ${book.rating}`],
+              [
+                'Rating',
+                reviewStats.count > 0
+                  ? `⭐ ${reviewStats.average.toFixed(1)} (${reviewStats.count} ${reviewStats.count === 1 ? 'review' : 'reviews'})`
+                  : 'Not yet rated',
+              ],
               ['Campus', bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus],
             ].map(([label, value]) => (
               <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#888]">
@@ -410,6 +624,138 @@ export default function BookDetail() {
         </section>
       </article>
 
+      <section
+        className="mx-auto mt-10 max-w-[1000px] border-t border-[#e5e2dc] px-4 pt-8 sm:px-6 md:mt-12 md:px-8 dark:border-[#333]"
+        aria-labelledby="reviews-heading"
+      >
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 id="reviews-heading" className="text-[1.3rem] font-bold text-[#1a1a1a] dark:text-white">
+              Reader Reviews
+            </h2>
+            {reviewStats.count > 0 ? (
+              <p className="mt-1 text-[0.85rem] text-[#666] dark:text-[#888]">
+                <span className="font-semibold text-[#1a1a1a] dark:text-white">
+                  {reviewStats.average.toFixed(1)}
+                </span>{' '}
+                <span aria-hidden="true">{'★'.repeat(Math.round(reviewStats.average)).padEnd(5, '☆')}</span>{' '}
+                from {reviewStats.count} {reviewStats.count === 1 ? 'review' : 'reviews'}
+              </p>
+            ) : (
+              <p className="mt-1 text-[0.85rem] text-[#888] dark:text-[#888]">No reviews yet.</p>
+            )}
+          </div>
+        </div>
+
+        <form
+          onSubmit={handleSubmitReview}
+          className="mb-8 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
+        >
+          <p className="mb-3 text-[0.75rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]">
+            {myReview ? 'Your review' : isLoggedInUser() ? 'Leave a review' : 'Sign in to leave a review'}
+          </p>
+
+          <div className="mb-3 flex items-center gap-1" role="radiogroup" aria-label="Star rating">
+            {[1, 2, 3, 4, 5].map((value) => {
+              const filled = (reviewHover || reviewRating) >= value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={reviewRating === value}
+                  aria-label={`${value} star${value === 1 ? '' : 's'}`}
+                  onClick={() => setReviewRating(value)}
+                  onMouseEnter={() => setReviewHover(value)}
+                  onMouseLeave={() => setReviewHover(0)}
+                  className={`text-2xl leading-none transition ${
+                    filled ? 'text-[#e4b028]' : 'text-[#d8d4cd] dark:text-[#3a3a3a]'
+                  } hover:scale-110`}
+                >
+                  {filled ? '★' : '☆'}
+                </button>
+              )
+            })}
+            {reviewRating > 0 && (
+              <span className="ml-2 text-[0.8rem] text-[#666] dark:text-[#888]">
+                {reviewRating}/5
+              </span>
+            )}
+          </div>
+
+          <textarea
+            value={reviewComment}
+            onChange={(e) => setReviewComment(e.target.value)}
+            placeholder="Share your thoughts (optional)"
+            rows={3}
+            className="w-full resize-y rounded-md border border-[#e5e2dc] bg-[#fafaf8] p-3 text-[0.9rem] text-[#333] outline-none transition focus:border-[#1a6644] focus:bg-white dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#ddd] dark:focus:border-[#5ecba1]"
+          />
+
+          {reviewError && (
+            <p className="mt-2 text-[0.8rem] text-[#b5392b] dark:text-[#ff9388]" role="alert">
+              {reviewError}
+            </p>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={reviewSubmitting}
+              className="cursor-pointer rounded-lg bg-[#1a4a3a] px-5 py-[0.65rem] text-[0.85rem] font-semibold text-white transition hover:enabled:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {reviewSubmitting ? 'Saving...' : myReview ? 'Update review' : 'Submit review'}
+            </button>
+            {myReview && (
+              <button
+                type="button"
+                onClick={() => handleDeleteReview(myReview.id)}
+                className="text-[0.8rem] font-semibold text-[#b5392b] transition hover:text-[#8a2c20] dark:text-[#ff9388] dark:hover:text-[#ffb5ad]"
+              >
+                Delete my review
+              </button>
+            )}
+          </div>
+        </form>
+
+        {reviewsLoading ? (
+          <p className="text-[0.85rem] text-[#888] dark:text-[#888]">Loading reviews...</p>
+        ) : reviews.length === 0 ? (
+          <p className="text-[0.85rem] text-[#888] dark:text-[#888]">
+            Be the first to share your thoughts on this book.
+          </p>
+        ) : (
+          <ul className="space-y-4">
+            {reviews.map((r) => {
+              const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''
+              return (
+                <li
+                  key={r.id}
+                  className="rounded-lg border border-[#e5e2dc] bg-white p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
+                >
+                  <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[0.9rem] font-semibold text-[#1a1a1a] dark:text-white">
+                        {r.reviewer_name || 'Anonymous'}
+                      </span>
+                      <span className="text-[0.95rem] text-[#e4b028]" aria-label={`${r.rating} out of 5 stars`}>
+                        {'★'.repeat(r.rating)}
+                        <span className="text-[#d8d4cd] dark:text-[#3a3a3a]">{'☆'.repeat(5 - r.rating)}</span>
+                      </span>
+                    </div>
+                    {date && (
+                      <span className="text-[0.72rem] text-[#aaa] dark:text-[#777]">{date}</span>
+                    )}
+                  </div>
+                  {r.comment && (
+                    <p className="text-[0.88rem] leading-[1.6] text-[#555] dark:text-[#bbb]">{r.comment}</p>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
       {relatedBooks.length > 0 && (
         <section
           className="mx-auto mt-10 max-w-[1000px] border-t border-[#e5e2dc] px-4 pt-8 sm:px-6 md:mt-12 md:px-8 dark:border-[#333]"
@@ -428,6 +774,10 @@ export default function BookDetail() {
                     src={related.cover}
                     alt={`Cover of ${related.title}`}
                     className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-transform duration-200 group-hover:-translate-y-1"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = PLACEHOLDER_COVER
+                    }}
                   />
                   <p className="mb-[0.2rem] mt-[0.6rem] text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-white">
                     {related.title}

@@ -2,6 +2,8 @@ import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import FormInput from "../components/FormInput"
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+
 function Login() {
 
 	const navigate = useNavigate()
@@ -36,7 +38,7 @@ function Login() {
 		}
 	}
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 
 		e.preventDefault()
 		const nextErrors = {}
@@ -63,24 +65,36 @@ function Login() {
 			return
 		}
 
-		const savedUser = JSON.parse(localStorage.getItem("user"))
+		try {
+			const response = await fetch(`${API_BASE}/auth/login`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					email: trimmedEmail,
+					password,
+				}),
+			})
 
-		if (!savedUser) {
-			setFieldErrors({})
-			setFormError("No account found. Please register first.")
-			return
-		}
+			const data = await response.json().catch(() => ({}))
 
-		if (trimmedEmail === savedUser.email && password === savedUser.password) {
+			if (!response.ok) {
+				throw new Error(data.message || "Login failed. Please try again.")
+			}
+
+			localStorage.setItem("token", data.token)
+			localStorage.setItem("user", JSON.stringify(data.user))
+			localStorage.setItem("isLoggedIn", "true")
+			window.dispatchEvent(new Event("auth-change"))
 			setFieldErrors({})
 			setFormError("")
 			setAuthError(false)
-			localStorage.setItem("isLoggedIn", "true")
-			navigate(location.state?.from || "/dashboard")
-		} else {
+			navigate("/dashboard")
+		} catch (error) {
 			setFieldErrors({})
 			setAuthError(true)
-			setFormError("Invalid email or password.")
+			setFormError(error.message || "Unable to log in. Please try again.")
 		}
 	}
 
