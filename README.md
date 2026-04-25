@@ -15,7 +15,7 @@ persistent, secure full-stack app.
 | Resource | URL |
 |----------|-----|
 | Deployed Frontend | https://library-1-tau.vercel.app |
-| Deployed Backend API | _TBD — added during Phase 2 deployment_ |
+| Deployed Backend API | https://library-api-46jn.onrender.com |
 | GitHub Repository | https://github.com/Kareemalhammoud/library-1 |
 
 ---
