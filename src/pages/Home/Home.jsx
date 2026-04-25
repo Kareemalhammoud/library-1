@@ -147,7 +147,7 @@ function normalizeBook(book) {
     genre: book.category || 'General',
     genreColor: getGenreColor(book.category || 'General'),
     cover: sanitizeImage(book.image),
-    badge: Number(book.available_copies ?? 0) > 0 ? 'Available' : '',
+    badge: Number(book.available_copies ?? book.copies ?? 0) > 0 ? 'Available' : '',
   }
 }
 
