@@ -39,7 +39,7 @@ function normalizeBook(book) {
     genre: book.category || 'General',
     language: book.language || 'EN',
     campus: book.campus || 'Beirut',
-    copies: Number(book.available_copies ?? book.availableCopies ?? 0),
+    copies: Number(book.available_copies ?? book.availableCopies ?? book.copies ?? 0),
     year: book.year ? Number(book.year) : 2024,
     rating: book.rating ? Number(book.rating) : 0,
     cover: sanitizeImage(book.image),
