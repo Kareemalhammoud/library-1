@@ -45,12 +45,14 @@ async function seedBooks(books) {
     b.color ?? null,
     b.genreColor ?? null,
     b.badge ?? null,
+    b.availableCopies ?? 3,
   ]);
 
   await pool.query(
     `INSERT INTO books
       (id, title, author, genre, language, year, rating, pages,
-       publisher, isbn, description, cover, color, genre_color, badge)
+       publisher, isbn, description, cover, color, genre_color, badge,
+       available_copies)
      VALUES ?`,
     [values]
   );
