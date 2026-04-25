@@ -1,8 +1,14 @@
 const pool = require("../config/db");
 
+// Cache the books-table column set after the first request. The schema
+// doesn't change at runtime, and SHOW COLUMNS adds a round-trip per call —
+// noticeable when the DB is in a different region than the API.
+let cachedColumns = null;
 async function getBookColumns() {
+  if (cachedColumns) return cachedColumns;
   const [rows] = await pool.query("SHOW COLUMNS FROM books");
-  return new Set(rows.map((row) => row.Field));
+  cachedColumns = new Set(rows.map((row) => row.Field));
+  return cachedColumns;
 }
 
 const normalizeString = (value) => {
