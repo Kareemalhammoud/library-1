@@ -354,8 +354,8 @@ function EventDetails() {
               <div className="space-y-4 text-[0.82rem]">
                 {[
                   ['Format', event.format || 'In-Person'],
-                  ['Category', event.category],
-                  ['Campus', event.location.includes('Byblos') ? 'Byblos' : 'Beirut'],
+                  ['Category', event.category || '—'],
+                  ['Campus', event.location?.includes('Byblos') ? 'Byblos' : 'Beirut'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-start justify-between gap-4 border-b border-[#eef2ef] pb-3 last:border-b-0 last:pb-0 dark:border-[#2b2b2b]">
                     <span className="text-[#5a6b62] dark:text-[#8c9691]">{label}</span>

@@ -90,12 +90,17 @@ function bookSelectSql(columns) {
     : has("copies")
       ? "copies"
       : "0 AS copies";
+  const totalCopiesExpr = has("total_copies")
+    ? "total_copies AS totalCopies"
+    : has("available_copies")
+      ? "available_copies AS totalCopies"
+      : "0 AS totalCopies";
 
   return `
     ${idExpr}, ${titleExpr}, ${authorExpr}, ${genreExpr}, ${languageExpr},
     ${campusExpr}, ${yearExpr}, ${ratingExpr}, ${pagesExpr}, ${publisherExpr},
     ${isbnExpr}, ${descriptionExpr}, ${authorBiographyExpr}, ${coverExpr},
-    ${colorExpr}, ${genreColorExpr}, ${badgeExpr}, ${copiesExpr}
+    ${colorExpr}, ${genreColorExpr}, ${badgeExpr}, ${copiesExpr}, ${totalCopiesExpr}
   `;
 }
 
@@ -300,6 +305,7 @@ const createBook = async (req, res) => {
     if (copies !== null) {
       addField("available_copies", copies, true);
       addField("copies", copies, true);
+      addField("total_copies", copies, true);
     }
     if (columns.has("created_by")) addField("created_by", req.user.id, true);
 
@@ -414,6 +420,7 @@ const updateBook = async (req, res) => {
     if (copies !== null) {
       addSet("available_copies", copies);
       addSet("copies", copies);
+      addSet("total_copies", copies);
     }
 
     if (sets.length === 0) {

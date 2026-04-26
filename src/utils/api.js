@@ -118,6 +118,10 @@ export function createLoan(bookId) {
   return request('/loans', { method: 'POST', body: { bookId }, auth: true })
 }
 
+export function returnLoan(loanId) {
+  return request(`/loans/${loanId}/return`, { method: 'POST', auth: true })
+}
+
 // --- Reviews ---
 
 export function getReviewsForBook(bookId) {

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { createEvent, getEvent, updateEvent } from '@/utils/api'
-import { isAdminUser } from '@/utils'
 
 const CATEGORIES = ['Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']
 const FORMATS = ['In-Person', 'Online']
@@ -34,12 +33,6 @@ function AddEditEvent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-
-  useEffect(() => {
-    if (!isAdminUser()) {
-      navigate('/events', { replace: true })
-    }
-  }, [navigate])
 
   useEffect(() => {
     if (!isEdit) return
