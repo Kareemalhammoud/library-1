@@ -54,24 +54,42 @@ Attributes: `id`, `title`, `author`, `genre`, `year`, `publisher`, `isbn`, `page
 **Events** — Defined in `src/data/eventsData.js`
 Attributes: `id`, `title`, `category`, `date`, `time`, `location`, `format`, `description`, `speaker`, `seats`, `registered`, `image`, `featured` flag.
 
-**Users** — A single registered user account stored in `localStorage`
-Attributes: `username`, `email`, `password`, `createdAt`, optional `profilePic`.
+**Users** — Persisted in the MySQL `users` table.
+Attributes: `id`, `full_name`, `email` (unique), `password` (bcrypt hash), `created_at`.
 
-**Loans** — Borrowing records persisted in `localStorage`
-Attributes: `bookId`, `borrowedAt`, `dueAt`, `renewCount`, `isReserved`.
+**Loans** — Persisted in the MySQL `loans` table; one row per borrow event.
+Attributes: `id`, `user_id` (FK → users), `book_id` (FK → books), `borrow_date`, `due_date`, `return_date`, `renew_count`, `status` (`active`, `returned`).
+
+**Reviews** and **Favorites** are supporting entities, persisted as their own
+MySQL tables (`reviews`, `favorites`) with foreign keys to `users` and `books`.
+The full schema is in [`server/db/schema.sql`](server/db/schema.sql).
 
 ---
 
 ## Technology Stack
 
+### Frontend
+
 | Technology | Role |
 |------------|------|
 | **React 18** | UI framework — functional components and hooks (`useState`, `useEffect`, `useMemo`, `useRef`, `useContext`) |
 | **React Router v6** | Client-side routing and navigation |
-| **Tailwind CSS v4** | Utility-first styling with responsive design and dark mode support |
-| **Vite** | Project scaffolding and development server |
-| **localStorage** | Client-side data persistence |
-| **CSS Modules** | Scoped component-level styling |
+| **Tailwind CSS v4** | Utility-first styling, responsive design, dark mode |
+| **Vite** | Build tool and dev server |
+| **localStorage** | Session-only state (JWT, dark-mode preference) |
+
+### Backend
+
+| Technology | Role |
+|------------|------|
+| **Node.js + Express 5** | HTTP server and routing |
+| **MySQL 8** | Persistent store for users, books, events, loans, reviews, favorites |
+| **mysql2** | Promise-based MySQL client with connection pooling |
+| **bcrypt** | Password hashing on registration; constant-time compare on login |
+| **jsonwebtoken** | JWT issuance on login/register, verification in `authMiddleware` |
+| **morgan** | HTTP request logging (`dev` locally, `combined` in production) |
+| **swagger-ui-express** | Interactive API docs at `/api-docs` |
+| **dotenv** | Loads `server/.env` for DB credentials, JWT secret, port |
 
 ---
 
@@ -113,13 +131,6 @@ and need no `.env` for the standard local setup:
 If you point the frontend at a non-default backend (e.g. a deployed API),
 set both — they should be the same host, with and without the `/api`
 suffix.
-
-### Building for Production
-
-```bash
-npm run build
-npm run preview
-```
 
 ---
 
@@ -426,7 +437,7 @@ A detailed view for individual books.
 
 ### Services (`/services`)
 
-![Services](./images/ServicesAnimation.gif)
+![Services](./images/Services%20Animation.gif)
 
 A multi-section page reflecting real LAU library services:
 
@@ -493,7 +504,7 @@ A protected route that requires user authentication before access is granted. Th
 
 ### Add / Edit Book (`/books/add`, `/books/:id/edit`)
 
-![Add/Edit Book](./images/AddEdit.gif)
+![Add/Edit Book](./images/AddEditAnimation.gif)
 
 A dynamic form that handles both adding new books and editing existing entries. When editing, the form is pre-filled with existing data from the global context. Key features include:
 
@@ -519,72 +530,40 @@ The application supports a fully responsive dark mode designed for accessibility
 
 ---
 
-## Mock Data & Simulated Interactions
+## Data Sources & Client-Side State
 
-The application runs entirely client-side with no backend.
+Phase 2 replaced Phase 1's in-memory simulation with a real Node/Express
++ MySQL backend. A few client-side bits remain by design — they are
+documented here so the architecture is unambiguous.
 
-### Static Mock Data
+### Seed data, not mock data
 
-- `BOOKS` — Array of 53 books with full metadata and cover images
-- `EVENTS` — Array of simulated library events
+- `src/data/bookData.js` — 53 books with full metadata and cover images.
+- `src/data/eventsData.js` — 8 library events.
 
-Both are managed through a React Context (`BooksContext`) and support in-memory CRUD operations.
+These arrays are now **seed sources**, not runtime data. `npm run seed`
+in `server/` reads them and inserts the rows into the `books` and
+`events` tables. The frontend reads everything from the API.
 
-### localStorage Persistence
+### What's still in localStorage
 
-Used for: user authentication state, registered user data, loan records, reading progress per book, dark mode preference, and borrowed book status.
+- `token` — the JWT issued at login; sent as `Authorization: Bearer <token>` on protected calls.
+- `user` — minimal profile snapshot for the current session.
+- `isLoggedIn` — convenience flag used by route guards.
+- Dark-mode preference.
 
-### Simulated Interactions
+Loans, favorites, reviews, and reading progress are persisted on the
+backend; localStorage is no longer the source of truth for any
+domain data.
 
-- Book borrowing and loan renewal
-- Study room reservation
-- Ask a Librarian chat
-- Client-side filtering, sorting, and search
-- Event registration interface _(non-functional in Phase 1)_
+### What's still simulated
 
----
+- **Ask a Librarian** chat widget — UI-only, no backend.
+- **Study room reservation** form — UI-only.
+- **Event registration** button — UI-only (the seat counter on each event is read from the API but no booking endpoint exists).
 
-## Project Structure
-
-```
-src/
-├── assets/           # Static assets (images, icons)
-├── components/       # Reusable UI components
-├── context/          # React Context providers (BooksContext, etc.)
-├── data/             # Mock data files (bookData.js, eventsData.js)
-├── hooks/            # Custom React hooks
-├── pages/            # Page-level components (ListView, BookDetail, etc.)
-├── styles/           # CSS Modules and global styles
-├── utils/            # Helper functions
-├── App.jsx           # Root component with routing
-└── main.jsx          # Entry point
-```
-
----
-
-## Accessibility
-
-- Semantic HTML elements throughout
-- Descriptive `alt` text for all images
-- Proper `<label>` associations for all form inputs
-- ARIA attributes on dynamic and interactive elements
-- Full keyboard accessibility
-- Adequate color contrast in both light and dark modes
-
----
-
-## Dark Mode
-
-Global dark mode is toggled via a button in the Header component and persisted to `localStorage`. The implementation uses Tailwind CSS dark mode utilities alongside `:global(body.dark)` selectors within CSS Modules for scoped component overrides.
-
----
-
-## Technical Notes
-
-- `--legacy-peer-deps` is required at install time due to a version conflict between Vite and the Tailwind CSS v4 PostCSS plugin.
-- `postcss.config.js` must use `@tailwindcss/postcss` (not the standard `tailwindcss` plugin) due to a v4 API change.
-- Related books shuffle stability is achieved via `useMemo` with a `[book.id, book.genre]` dependency array to prevent re-shuffling on unrelated re-renders.
-- All `localStorage` writes follow a consistent `useEffect` + unique-key pattern for predictable persistence behavior.
+Everything else (book borrow/return/renew, book CRUD, event CRUD,
+favorites, reviews, dashboard) is backed by real API calls.
 
 ---
 
@@ -595,9 +574,11 @@ Global dark mode is toggled via a button in the Header component and persisted t
 The backend is on Render free tier and the MySQL is on Railway. Wiring them
 together exposed three real-world issues we had to solve:
 
-1. **Port collision on macOS.** Apple's AirPlay Receiver squats `:5000`, so
-   `app.listen(5000)` silently exits on dev machines. We made the port
-   configurable via `PORT` in `server/.env` and now run locally on `5001`.
+1. **Port collision on macOS.** Apple's AirPlay Receiver squats `:5000` on
+   recent macOS releases, so `app.listen(5000)` silently exits on those
+   dev machines. We made the port configurable via `PORT` in `server/.env`
+   so anyone hitting this can switch to `5001` (or anything else) without
+   touching code.
 2. **Connecting to a managed DB requires more config than the local one.**
    Railway's MySQL proxy uses a non-3306 port and benefits from SSL. The
    original `server/config/db.js` only read `DB_HOST`, `DB_USER`,
