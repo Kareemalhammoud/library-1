@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-
-const API_BASE = 'http://localhost:5000'
+import { createBook, deleteBook, getBook, updateBook } from '@/utils/api'
 
 const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
@@ -78,14 +77,9 @@ const AddEditBook = () => {
         setLoading(true)
         setError('')
 
-        const response = await fetch(`${API_BASE}/api/books/${id}`)
-        const data = await response.json()
+        const data = await getBook(id)
 
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to load book')
-        }
-
-        const safeImage = sanitizeImage(data.image)
+        const safeImage = sanitizeImage(data.cover || data.image)
 
         setFormData({
           id: data.id ?? null,
@@ -93,13 +87,10 @@ const AddEditBook = () => {
           author: data.author || '',
           authorBiography: data.authorBiography || '',
           publisher: data.publisher || '',
-          genre: data.category || '',
+          genre: data.genre || data.category || '',
           isbn: data.isbn || '',
           year: data.year ?? '',
-          copies:
-            data.available_copies !== undefined && data.available_copies !== null
-              ? data.available_copies
-              : '',
+          copies: data.copies ?? data.available_copies ?? data.availableCopies ?? '',
           pages: data.pages ?? '',
           rating: data.rating ?? '',
           campus: data.campus || '',
@@ -112,7 +103,11 @@ const AddEditBook = () => {
         setImagePreview(safeImage)
         setShowAuthorBioEditor(Boolean(data.authorBiography))
       } catch (err) {
-        setError(err.message || 'Failed to load book')
+        setError(
+          err.status === 404
+            ? 'Book not found'
+            : err.message || 'Failed to load book'
+        )
       } finally {
         setLoading(false)
       }
@@ -176,18 +171,11 @@ const AddEditBook = () => {
       setError('')
       setSuccess('')
 
-      const token = localStorage.getItem('token')
-
-      if (!token) {
-        setError('You must be logged in')
-        return
-      }
-
       const payload = {
         title: formData.title,
         author: formData.author,
         publisher: formData.publisher,
-        category: formData.genre,
+        genre: formData.genre,
         isbn: formData.isbn,
         year: formData.year === '' ? null : Number(formData.year),
         pages: formData.pages === '' ? null : Number(formData.pages),
@@ -200,25 +188,10 @@ const AddEditBook = () => {
         availableCopies: formData.copies === '' ? 1 : Number(formData.copies),
       }
 
-      const url = id
-        ? `${API_BASE}/api/books/${id}`
-        : `${API_BASE}/api/books`
-
-      const method = id ? 'PUT' : 'POST'
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Request failed')
+      if (id) {
+        await updateBook(id, payload)
+      } else {
+        await createBook(payload)
       }
 
       setSuccess(id ? 'Book updated successfully' : 'Book created successfully')
@@ -227,6 +200,14 @@ const AddEditBook = () => {
         navigate('/books')
       }, 1000)
     } catch (err) {
+      if (err.status === 401) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        localStorage.setItem('isLoggedIn', 'false')
+        setError('Your session expired. Please log in again.')
+        return
+      }
+
       setError(err.message || 'Something went wrong')
     } finally {
       setLoading(false)
@@ -247,30 +228,7 @@ const AddEditBook = () => {
       setError('')
       setSuccess('')
 
-      const token = localStorage.getItem('token')
-
-      if (!token) {
-        setError('You must be logged in')
-        return
-      }
-
-      const response = await fetch(`${API_BASE}/api/books/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      let data = {}
-      try {
-        data = await response.json()
-      } catch {
-        data = {}
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete book')
-      }
+      await deleteBook(id)
 
       setSuccess('Book deleted successfully')
 
@@ -278,6 +236,14 @@ const AddEditBook = () => {
         navigate('/books')
       }, 800)
     } catch (err) {
+      if (err.status === 401) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        localStorage.setItem('isLoggedIn', 'false')
+        setError('Your session expired. Please log in again.')
+        return
+      }
+
       setError(err.message || 'Something went wrong while deleting')
     } finally {
       setDeleting(false)

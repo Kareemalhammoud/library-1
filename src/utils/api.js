@@ -53,6 +53,18 @@ export function getBook(id) {
   return request(`/books/${id}`)
 }
 
+export function createBook(payload) {
+  return request('/books', { method: 'POST', body: payload, auth: true })
+}
+
+export function updateBook(id, payload) {
+  return request(`/books/${id}`, { method: 'PUT', body: payload, auth: true })
+}
+
+export function deleteBook(id) {
+  return request(`/books/${id}`, { method: 'DELETE', auth: true })
+}
+
 // --- Events ---
 
 export function getEvents(params = {}) {
