@@ -101,9 +101,18 @@ npm install --legacy-peer-deps   # peer conflict between Vite and Tailwind v4
 npm run dev
 ```
 
-Open `http://localhost:5173`. The frontend reads `VITE_API_URL` for the
-backend base URL — defaults to `http://localhost:5000/api`, no `.env` needed
-locally.
+Open `http://localhost:5173`. The frontend reads two Vite env vars to
+locate the backend; both default to a local API at `http://localhost:5000`
+and need no `.env` for the standard local setup:
+
+| Variable | Used by | Default |
+|----------|---------|---------|
+| `VITE_API_URL`  | The shared `src/utils/api.js` client and auth/dashboard pages. Points at the API root **including `/api`**. | `http://localhost:5000/api` |
+| `VITE_API_BASE` | A few pages (`Home`, `BookDetail`) that build full URLs themselves. Points at the API root **without `/api`**. | `http://localhost:5000` |
+
+If you point the frontend at a non-default backend (e.g. a deployed API),
+set both — they should be the same host, with and without the `/api`
+suffix.
 
 ### Building for Production
 
@@ -159,15 +168,15 @@ Response shape (both endpoints):
 |--------|------|------|-------------|
 | GET | `/api/users/me` | ✅ | Returns the currently authenticated user (`id`, `full_name`, `email`, `createdAt`). 401 if the JWT is missing or invalid. |
 
-### Books (full CRUD, owner-scoped writes)
+### Books (full CRUD, admin-only writes)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET    | `/api/books`     | — | List all books. Optional query params: `search`, `genre`, `language`, `limit`. |
 | GET    | `/api/books/:id` | — | Single book by id. 404 if not found. |
-| POST   | `/api/books`     | ✅ | Create a book. Required body: `title`, `author`. Optional: `genre`, `language`, `year`, `pages`, `rating`, `publisher`, `isbn`, `description`, `cover`, `availableCopies` (defaults to schema default `3`). |
-| PUT    | `/api/books/:id` | ✅ | Update a book. Same body shape as POST. 404 if not found. (Ownership: scoped to creator if `created_by` is set; see [Known limitations](#known-backend-limitations).) |
-| DELETE | `/api/books/:id` | ✅ | Delete a book. 404 if not found. Same ownership note as PUT. |
+| POST   | `/api/books`     | 🛡️ admin | Create a book. Required body: `title`, `author`. Optional: `genre`, `language`, `year`, `pages`, `rating`, `publisher`, `isbn`, `description`, `cover`, `availableCopies` (defaults to schema default `3`). |
+| PUT    | `/api/books/:id` | 🛡️ admin | Update a book. Same body shape as POST. 404 if not found. |
+| DELETE | `/api/books/:id` | 🛡️ admin | Delete a book. 404 if not found. |
 
 Book response shape (aliased to match the frontend):
 
@@ -192,15 +201,15 @@ Book response shape (aliased to match the frontend):
 }
 ```
 
-### Events (full CRUD, owner-scoped)
+### Events (full CRUD, admin-only writes)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/events` | — | List events. Optional query params: `category`, `format`, `month` (1–12), `search`, `featured=true`. Sorted by date ascending. |
 | GET | `/api/events/:id` | — | Single event by id. |
-| POST | `/api/events` | ✅ | Create an event. The creator becomes `created_by`. Required body: `title`, `date` (YYYY-MM-DD). Optional: `time`, `location`, `category`, `format`, `featured`, `image`, `description`, `longDescription`, `speaker`, `seats`, `registered`, `audience`, `takeaway`, `highlights` (array). |
-| PUT | `/api/events/:id` | ✅ | Update an event. 403 unless you are the original creator. Body takes any subset of the POST fields. |
-| DELETE | `/api/events/:id` | ✅ | Delete an event. 403 unless you are the original creator. |
+| POST | `/api/events` | 🛡️ admin | Create an event. Required body: `title`, `date` (YYYY-MM-DD). Optional: `time`, `location`, `category`, `format`, `featured`, `image`, `description`, `longDescription`, `speaker`, `seats`, `registered`, `audience`, `takeaway`, `highlights` (array). |
+| PUT | `/api/events/:id` | 🛡️ admin | Update an event. Body takes any subset of the POST fields. |
+| DELETE | `/api/events/:id` | 🛡️ admin | Delete an event. |
 
 Event response shape:
 
@@ -228,8 +237,9 @@ Event response shape:
 }
 ```
 
-Seeded events have `createdBy: null` so they are immutable via the public CRUD
-endpoints — they can only be managed by re-running `npm run seed`.
+Seeded events have `createdBy: null`. Together with the admin-only write
+rule, this means the seed-shipped event list is only mutable by an admin
+account, or by re-running `npm run seed`.
 
 ### Dashboard
 
@@ -314,18 +324,43 @@ Review response shape:
 For seeded reviews `userId` is `null` and `reviewer_name` is the hand-picked
 display name from `server/scripts/seed.js`.
 
-### Ownership semantics for books and events
+### Authorization model: admin-only writes on books and events
 
-Both books and events carry a `created_by` foreign key to `users(id)`.
-`PUT` and `DELETE` are gated on it:
+Books and events are the library's curated catalog, not user-contributed
+content, so writes on those collections are restricted to a single admin
+account. The check is implemented as an `adminOnly` middleware that
+runs after `authMiddleware` and rejects any user whose email is not the
+configured admin email (currently `admin@lau.edu`).
 
-- **User-created** rows can only be modified or deleted by the user who
-  created them. Anyone else gets a 403.
-- **Seeded books** are inserted with `created_by = NULL` so they remain
-  editable by any logged-in user — they represent the library's open
-  inventory rather than user-contributed entries. Seeded **events** behave
-  the opposite way (immutable via the API; only re-seeding changes them);
-  this asymmetry is intentional and matches how the two pages are used.
+| Action | Public read | Authenticated user | Admin |
+|--------|-------------|--------------------|-------|
+| `GET /api/books`, `/api/events` | ✅ | ✅ | ✅ |
+| `POST` / `PUT` / `DELETE` on books or events | ❌ | ❌ (403) | ✅ |
+
+Per-user resources — favorites, loans, and reviews — remain user-scoped:
+each user can only create or remove their own. See those sections above
+for the exact rules.
+
+### Admin account
+
+The frontend recognizes a single hard-coded admin email
+(`admin@lau.edu`, defined in [`src/utils/auth.js`](src/utils/auth.js)).
+Any account registered under that email has admin powers; in the UI it
+sees the "Add Book" button on the catalog and "Edit" / "Delete" controls
+on each book.
+
+For local development, register the admin once after seeding the
+database:
+
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"full_name":"LAU Admin","email":"admin@lau.edu","password":"Admin123!"}'
+```
+
+Then sign in at `/login` with `admin@lau.edu` / `Admin123!`. The
+deployed environment provisions the admin the same way against the
+hosted database.
 
 ---
 

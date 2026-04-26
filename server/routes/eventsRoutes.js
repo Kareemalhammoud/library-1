@@ -7,6 +7,7 @@ const {
   deleteEvent
 } = require("../controllers/eventsController");
 const authMiddleware = require("../middleware/authMiddleware");
+const adminOnly = require("../middleware/adminOnly");
 
 const router = express.Router();
 
@@ -14,9 +15,9 @@ const router = express.Router();
 router.get("/", getAllEvents);
 router.get("/:id", getEventById);
 
-// Protected writes — only the event's creator can edit or delete it
-router.post("/", authMiddleware, createEvent);
-router.put("/:id", authMiddleware, updateEvent);
-router.delete("/:id", authMiddleware, deleteEvent);
+// Admin-only writes
+router.post("/", authMiddleware, adminOnly, createEvent);
+router.put("/:id", authMiddleware, adminOnly, updateEvent);
+router.delete("/:id", authMiddleware, adminOnly, deleteEvent);
 
 module.exports = router;
