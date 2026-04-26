@@ -107,6 +107,27 @@ function normalizeBookRow(row) {
   };
 }
 
+function buildCreatedBookFallback(id, payload) {
+  return normalizeBookRow({
+    id,
+    title: payload.title,
+    author: payload.author,
+    genre: payload.genre || null,
+    language: payload.language || null,
+    year: payload.year,
+    rating: payload.rating,
+    pages: payload.pages,
+    publisher: payload.publisher || null,
+    isbn: payload.isbn || null,
+    description: payload.description || null,
+    cover: payload.cover || null,
+    color: null,
+    genreColor: null,
+    badge: null,
+    copies: payload.copies ?? 0
+  });
+}
+
 const getAllBooks = async (req, res) => {
   try {
     const { search, genre, language, limit } = req.query;
@@ -251,12 +272,35 @@ const createBook = async (req, res) => {
       values
     );
 
-    const [rows] = await pool.query(
-      `SELECT ${bookSelectSql(columns)} FROM books WHERE id = ?`,
-      [result.insertId]
-    );
+    try {
+      const [rows] = await pool.query(
+        `SELECT ${bookSelectSql(columns)} FROM books WHERE id = ?`,
+        [result.insertId]
+      );
 
-    res.status(201).json(normalizeBookRow(rows[0]));
+      if (rows.length > 0) {
+        return res.status(201).json(normalizeBookRow(rows[0]));
+      }
+    } catch (readError) {
+      console.error("Create book reload warning:", readError);
+    }
+
+    res.status(201).json(
+      buildCreatedBookFallback(result.insertId, {
+        title,
+        author,
+        genre,
+        language,
+        year,
+        rating,
+        pages,
+        publisher,
+        isbn,
+        description,
+        cover,
+        copies
+      })
+    );
   } catch (error) {
     console.error("Create book error:", error);
     res.status(500).json({ message: "Failed to create book" });

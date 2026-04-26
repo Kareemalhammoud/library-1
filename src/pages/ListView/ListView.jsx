@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getBooks } from '@/utils/api'
 import { isAdminUser } from '@/utils'
 
-const API_BASE = 'http://localhost:5000'
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
 const AVAIL_OPTIONS = ['All', 'Available', 'Unavailable']
@@ -32,17 +32,25 @@ function sanitizeImage(url) {
 }
 
 function normalizeBook(book) {
+  const rawLanguage = book.language || ''
+  const normalizedLanguage =
+    rawLanguage === 'FR' || rawLanguage === 'French'
+      ? 'French'
+      : rawLanguage === 'EN' || rawLanguage === 'English'
+        ? 'English'
+        : rawLanguage
+
   return {
     id: book.id,
     title: book.title || '',
     author: book.author || '',
-    genre: book.category || 'General',
-    language: book.language || 'EN',
+    genre: book.genre || book.category || 'General',
+    language: normalizedLanguage || 'English',
     campus: book.campus || 'Beirut',
     copies: Number(book.available_copies ?? book.availableCopies ?? book.copies ?? 0),
     year: book.year ? Number(book.year) : 2024,
     rating: book.rating ? Number(book.rating) : 0,
-    cover: sanitizeImage(book.image),
+    cover: sanitizeImage(book.cover || book.image),
     badge: '',
   }
 }
@@ -68,14 +76,7 @@ export default function ListView() {
       try {
         setLoading(true)
         setError('')
-
-        const response = await fetch(`${API_BASE}/api/books`)
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch books')
-        }
-
+        const data = await getBooks()
         setBooks(data.map(normalizeBook))
       } catch (err) {
         setError(err.message || 'Something went wrong')
@@ -123,7 +124,7 @@ export default function ListView() {
     const result = books.filter((book) => {
       const bookCampus = book.campus === 'both' ? 'both' : book.campus || 'Beirut'
       const bookAvail = Number(book.copies) > 0
-      const bookLang = book.language === 'FR' ? 'French' : 'English'
+      const bookLang = book.language === 'French' ? 'French' : 'English'
 
       if (
         search &&
