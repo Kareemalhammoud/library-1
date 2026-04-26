@@ -78,15 +78,8 @@ function App() {
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/circulation" element={<CirculationPage />} />
           <Route path="/services/studyrooms" element={<StudyRoomsPage />} />
-          <Route path="/services/StudyRooms" element={<StudyRoomsPage />} />
           <Route path="/services/printing" element={<PrintingPage />} />
           <Route path="/services/writingcenter" element={<WritingCenterPage />} />
-
-          <Route path="/Services" element={<ServicesPage />} />
-          <Route path="/Services/Circulation" element={<CirculationPage />} />
-          <Route path="/Services/StudyRooms" element={<StudyRoomsPage />} />
-          <Route path="/Services/Printing" element={<PrintingPage />} />
-          <Route path="/Services/WritingCenter" element={<WritingCenterPage />} />
         </Routes>
       </main>
 

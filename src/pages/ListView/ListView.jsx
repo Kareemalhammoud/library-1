@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAdminUser } from '@/utils'
 
-const API_BASE = 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
 const AVAIL_OPTIONS = ['All', 'Available', 'Unavailable']
@@ -468,7 +468,7 @@ export default function ListView() {
             {totalPages > 1 && (
               <nav className="mt-10 flex flex-wrap items-center justify-center gap-2 sm:mt-12 sm:gap-4" aria-label="Pagination">
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]}"
                   onClick={() => {
                     setPage((p) => p - 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -482,7 +482,7 @@ export default function ListView() {
                   {page} / {totalPages}
                 </span>
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]}"
                   onClick={() => {
                     setPage((p) => p + 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })

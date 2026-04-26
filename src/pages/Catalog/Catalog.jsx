@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GENRES } from '@/data/bookData'
-import { getBooks, getFavorites, addFavorite, removeFavorite, getActiveLoans, createLoan } from '@/utils/api'
-import { getAvailability, getCallNumber, getCampus, getCopies, getResourceType } from '@/utils/bookUtils'
+import {
+  getBooks,
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+  getActiveLoans,
+  createLoan,
+} from '@/utils/api'
 import { isAdminUser, isLoggedInUser } from '@/utils'
 
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
@@ -44,8 +49,20 @@ function sanitizeImage(url) {
 
 function normalizeBook(book) {
   return {
-    ...book,
+    id: book.id,
+    title: book.title || '',
+    author: book.author || '',
+    genre: book.genre || book.category || 'General',
+    description: book.description || '',
     cover: sanitizeImage(book.cover || book.image),
+    copies: Number(book.available_copies ?? book.availableCopies ?? book.copies ?? 0),
+    year: book.year ? Number(book.year) : null,
+    language: book.language || 'EN',
+    publisher: book.publisher || 'Library Collection',
+    isbn: book.isbn || '',
+    pages: book.pages ? Number(book.pages) : null,
+    campus: book.campus || 'Beirut',
+    resourceType: book.resourceType || 'Book',
   }
 }
 
@@ -99,6 +116,8 @@ function formatYear(year) {
 
 export default function Catalog() {
   const navigate = useNavigate()
+  const admin = isAdminUser()
+
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('All')
   const [language, setLanguage] = useState('All Languages')
@@ -115,8 +134,6 @@ export default function Catalog() {
   const [advFormat, setAdvFormat] = useState('All')
   const [advYear, setAdvYear] = useState('')
 
-  const admin = isAdminUser()
-
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -129,6 +146,7 @@ export default function Catalog() {
     let cancelled = false
     setLoading(true)
     setLoadError('')
+
     getBooks()
       .then((data) => {
         if (cancelled) return
@@ -141,25 +159,25 @@ export default function Catalog() {
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
+
     return () => {
       cancelled = true
     }
   }, [])
 
-  // Load the user's favorite set + active loans once on mount so each card
-  // can show the right heart state and a disabled borrow icon if already
-  // borrowed. Guests skip this entirely — no auth token, no request.
   useEffect(() => {
     if (!isLoggedInUser()) return
+
     let cancelled = false
-    Promise.all([
-      getFavorites().catch(() => []),
-      getActiveLoans().catch(() => []),
-    ]).then(([favs, loans]) => {
-      if (cancelled) return
-      setFavoriteIds(new Set(favs.map((b) => b.id)))
-      setBorrowedIds(new Set(loans.map((l) => l.book_id)))
-    })
+
+    Promise.all([getFavorites().catch(() => []), getActiveLoans().catch(() => [])]).then(
+      ([favs, loans]) => {
+        if (cancelled) return
+        setFavoriteIds(new Set(favs.map((b) => b.id)))
+        setBorrowedIds(new Set(loans.map((l) => l.book_id)))
+      }
+    )
+
     return () => {
       cancelled = true
     }
@@ -170,20 +188,20 @@ export default function Catalog() {
       navigate('/login', { state: { from: '/catalog' } })
       return
     }
+
     if (borrowedIds.has(bookId) || borrowingId === bookId) return
 
     setBorrowingId(bookId)
-    // Optimistic — mark as borrowed right away so the icon updates without
-    // waiting on the round-trip. Roll back if the API says no.
+
     setBorrowedIds((prev) => {
       const next = new Set(prev)
       next.add(bookId)
       return next
     })
+
     try {
       await createLoan(bookId)
     } catch (error) {
-      // 409 means they already have it on loan — keep it marked as borrowed.
       if (error.status !== 409) {
         setBorrowedIds((prev) => {
           const next = new Set(prev)
@@ -202,20 +220,21 @@ export default function Catalog() {
       navigate('/login', { state: { from: '/catalog' } })
       return
     }
+
     const willFavorite = !favoriteIds.has(bookId)
     setTogglingFavoriteId(bookId)
-    // Optimistic update so the heart flips instantly.
+
     setFavoriteIds((prev) => {
       const next = new Set(prev)
       if (willFavorite) next.add(bookId)
       else next.delete(bookId)
       return next
     })
+
     try {
       if (willFavorite) await addFavorite(bookId)
       else await removeFavorite(bookId)
     } catch {
-      // Roll back on failure.
       setFavoriteIds((prev) => {
         const next = new Set(prev)
         if (willFavorite) next.delete(bookId)
@@ -227,13 +246,16 @@ export default function Catalog() {
     }
   }
 
-  // Filter and sort books based on the current search/filter selections
+  const genres = useMemo(() => {
+    return ['All', ...new Set(books.map((book) => book.genre).filter(Boolean))]
+  }, [books])
+
   const filtered = useMemo(() => {
     const results = books.filter((book) => {
-      const bookCampus = getCampus(book.id)
-      const bookLang = book.language === 'FR' ? 'French' : 'English'
-      const bookAvail = getAvailability(book.id)
-      const bookType = getResourceType(book.id)
+      const bookCampus = getBookCampus(book)
+      const bookLang = getBookLanguageLabel(book.language)
+      const bookAvail = getBookAvailability(book)
+      const bookType = getBookType(book)
 
       if (search) {
         const q = search.toLowerCase()
@@ -494,7 +516,7 @@ export default function Catalog() {
                 label: 'Subject',
                 value: genre,
                 setValue: setGenre,
-                options: ['All Subjects', ...GENRES.filter((g) => g !== 'All')],
+                options: ['All Subjects', ...genres.filter((g) => g !== 'All')],
                 mapValue: (option) => (option === 'All Subjects' ? 'All' : option),
               },
               { label: 'Campus', value: campus, setValue: setCampus, options: CAMPUS_OPTIONS },
@@ -644,12 +666,7 @@ export default function Catalog() {
           </section>
         )}
 
-        {loading ? (
-          <section className="mx-auto flex max-w-[440px] flex-col items-center gap-3 px-4 py-16 text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
-            <p className="text-[0.84rem] text-[#5a6b62] dark:text-[#8c9691]">Loading catalog...</p>
-          </section>
-        ) : loadError ? (
+        {loadError ? (
           <section className="mx-auto flex max-w-[440px] flex-col items-center gap-2 px-4 py-16 text-center">
             <h2 className="text-[1.1rem] font-bold tracking-[-0.01em] text-[#b5392b] dark:text-[#ff9388]">Couldn&apos;t load the catalog</h2>
             <p className="text-[0.84rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">{loadError}</p>
@@ -696,6 +713,9 @@ export default function Catalog() {
               const bookAvail = getBookAvailability(book)
               const bookCampusLabel = getBookCampusLabel(book)
               const bookType = getBookType(book)
+              const isFavorite = favoriteIds.has(book.id)
+              const isBorrowed = borrowedIds.has(book.id)
+              const isBusyBorrow = borrowingId === book.id
 
               return (
                 <li key={book.id} className="flex flex-col gap-2">
@@ -755,206 +775,144 @@ export default function Catalog() {
                           handleToggleFavorite(book.id)
                         }}
                         disabled={togglingFavoriteId === book.id}
-                        aria-pressed={favoriteIds.has(book.id)}
-                        aria-label={favoriteIds.has(book.id) ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
-                        title={favoriteIds.has(book.id) ? 'Remove from favorites' : 'Add to favorites'}
+                        aria-pressed={isFavorite}
+                        aria-label={isFavorite ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
+                        title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                         className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:opacity-60 ${
-                          favoriteIds.has(book.id)
-                            ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
-                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#c0392b] hover:text-[#b5392b] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#ff9388] dark:hover:text-[#ff9388]'
+                          isFavorite
+                            ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
+                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#c0392b] hover:text-[#b5392b] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691]'
                         }`}
                       >
-                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={favoriteIds.has(book.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z" />
-                        </svg>
+                        ♥
                       </button>
+
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleBorrow(book.id)
                         }}
-                        disabled={borrowedIds.has(book.id) || borrowingId === book.id}
-                        aria-label={borrowedIds.has(book.id) ? `${book.title} already borrowed` : `Borrow ${book.title}`}
-                        title={borrowedIds.has(book.id) ? 'Already borrowed' : 'Borrow'}
-                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed ${
-                          borrowedIds.has(book.id)
-                            ? 'border-[#1a6644] bg-[#e6f4ec] text-[#006751] dark:border-[#1a6644] dark:bg-[#143c2f] dark:text-[#5ecba1]'
-                            : 'border-[#d0ddd8] bg-white text-[#006751] hover:border-[#1a6644] hover:bg-[#EDF3F0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#181818]'
+                        disabled={!bookAvail || isBorrowed || isBusyBorrow}
+                        aria-label={isBorrowed ? `${book.title} already borrowed` : `Borrow ${book.title}`}
+                        title={isBorrowed ? 'Already borrowed' : 'Borrow'}
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          isBorrowed
+                            ? 'border-[#987432] bg-[#fbf4e6] text-[#987432] dark:border-[#5d4a1d] dark:bg-[#3a2f14] dark:text-[#e1c375]'
+                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#1a6644] hover:text-[#1a6644] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691]'
                         }`}
                       >
-                        {borrowedIds.has(book.id) ? (
-                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M5 12l5 5L20 7" />
-                          </svg>
-                        ) : (
-                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M4 5v14a2 2 0 0 1 2-2h6V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 0Z" />
-                            <path d="M20 5v14a2 2 0 0 0-2-2h-6V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 0Z" />
-                          </svg>
-                        )}
+                        {isBusyBorrow ? '…' : '↗'}
                       </button>
-                    </div>
 
-                    {admin && (
-                      <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]">
-                        <button
-                          className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigate(`/books/edit/${book.id}`)
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </div>
-                    )}
+                      <span className="ml-auto text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">
+                        {book.copies} copy{book.copies === 1 ? '' : 'ies'}
+                      </span>
+                    </div>
                   </div>
                 </li>
               )
             })}
           </ul>
         ) : (
-          <ul className="overflow-hidden rounded-[10px] bg-[#d0ddd8] dark:bg-[#121212]">
-            {filtered.map((book, index) => {
+          <ul className="space-y-3">
+            {filtered.map((book) => {
               const bookAvail = getBookAvailability(book)
-              const total = Number(book.copies ?? 0)
-              const available = Number(book.copies ?? 0)
               const bookCampusLabel = getBookCampusLabel(book)
               const bookType = getBookType(book)
-              const callNum = getBookCallNumber(book)
+              const isFavorite = favoriteIds.has(book.id)
+              const isBorrowed = borrowedIds.has(book.id)
+              const isBusyBorrow = borrowingId === book.id
 
               return (
                 <li
                   key={book.id}
-                  className={`flex cursor-pointer gap-4 bg-white px-4 py-4 transition hover:bg-[rgba(237,243,240,0.45)] dark:bg-[#121212] dark:hover:bg-[#1d1d1d] dark:hover:shadow-[inset_0_0_0_1px_rgba(94,203,161,0.08)] ${
-                    index !== 0 ? 'border-t border-[#d0ddd8] dark:border-[#1f1f1f]' : ''
-                  }`}
-                  onClick={() => navigate(`/books/${book.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      navigate(`/books/${book.id}`)
-                    }
-                  }}
-                  role="link"
-                  tabIndex={0}
+                  className="rounded-[10px] border border-[#d0ddd8] bg-white p-4 transition hover:border-[#bcd2c8] dark:border-[#2a2a2a] dark:bg-[#121212]"
                 >
-                  <img
-                    src={book.cover}
-                    alt={`Cover of ${book.title}`}
-                    className="h-[68px] w-[46px] shrink-0 rounded-[2px_4px_4px_2px] object-cover shadow-[-1px_0_3px_rgba(28,43,36,0.12),0_2px_6px_rgba(28,43,36,0.08)]"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null
-                      e.currentTarget.src = PLACEHOLDER_IMAGE
-                    }}
-                  />
-
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-[0.88rem] font-bold leading-[1.3] tracking-[-0.01em] text-[#1C2B24] dark:text-[#f5f7f6]">
-                      <a
-                        href={`/books/${book.id}`}
-                        className="transition hover:text-[#006751] dark:hover:text-[#5ecba1]"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          navigate(`/books/${book.id}`)
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      className="shrink-0 cursor-pointer overflow-hidden rounded-md"
+                      onClick={() => navigate(`/books/${book.id}`)}
+                    >
+                      <img
+                        src={book.cover}
+                        alt={`Cover of ${book.title}`}
+                        className="h-[120px] w-[82px] rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null
+                          e.currentTarget.src = PLACEHOLDER_IMAGE
                         }}
-                      >
-                        {book.title}
-                      </a>
-                    </h2>
+                      />
+                    </button>
 
-                    <p className="text-[0.78rem] text-[#5a6b62] dark:text-[#8c9691]">{book.author}</p>
-                    <p className="truncate text-[0.7rem] tracking-[0.005em] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
-                      {book.publisher}
-                      {book.year ? `, ${formatYear(book.year)}` : ''}
-                      {book.pages ? ` - ${book.pages} pp.` : ''}
-                      {book.isbn ? ` - ISBN ${book.isbn}` : ''}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h2 className="text-[1rem] font-bold text-[#1C2B24] dark:text-[#f5f7f6]">
+                            <a
+                              href={`/books/${book.id}`}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                navigate(`/books/${book.id}`)
+                              }}
+                              className="hover:text-[#006751] dark:hover:text-[#5ecba1]"
+                            >
+                              {book.title}
+                            </a>
+                          </h2>
+                          <p className="mt-1 text-[0.8rem] text-[#5a6b62] dark:text-[#8c9691]">
+                            {book.author}
+                          </p>
+                          <p className="mt-1 text-[0.72rem] text-[#8a9690] dark:text-[#66706b]">
+                            {getBookCallNumber(book)} • {formatYear(book.year)} • {bookCampusLabel}
+                          </p>
+                        </div>
 
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      <span className={tagClass('resource')}>{bookType}</span>
-                      <span className={tagClass('subject')}>{book.genre}</span>
-                      <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>
-                        {bookAvail ? 'Available' : 'On Loan'}
-                      </span>
-                    </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFavorite(book.id)}
+                            disabled={togglingFavoriteId === book.id}
+                            className={`rounded-md border px-3 py-1.5 text-[0.72rem] font-semibold transition disabled:opacity-60 ${
+                              isFavorite
+                                ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
+                                : 'border-[#d0ddd8] bg-white text-[#5a6b62] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691]'
+                            }`}
+                          >
+                            {isFavorite ? '♥ Favorited' : '♡ Favorite'}
+                          </button>
 
-                    <div className="mt-2 flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleToggleFavorite(book.id)
-                        }}
-                        disabled={togglingFavoriteId === book.id}
-                        aria-pressed={favoriteIds.has(book.id)}
-                        aria-label={favoriteIds.has(book.id) ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
-                        title={favoriteIds.has(book.id) ? 'Remove from favorites' : 'Add to favorites'}
-                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:opacity-60 ${
-                          favoriteIds.has(book.id)
-                            ? 'border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388]'
-                            : 'border-[#d0ddd8] bg-white text-[#5a6b62] hover:border-[#c0392b] hover:text-[#b5392b] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#8c9691] dark:hover:border-[#ff9388] dark:hover:text-[#ff9388]'
-                        }`}
-                      >
-                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={favoriteIds.has(book.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleBorrow(book.id)
-                        }}
-                        disabled={borrowedIds.has(book.id) || borrowingId === book.id}
-                        aria-label={borrowedIds.has(book.id) ? `${book.title} already borrowed` : `Borrow ${book.title}`}
-                        title={borrowedIds.has(book.id) ? 'Already borrowed' : 'Borrow'}
-                        className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition disabled:cursor-not-allowed ${
-                          borrowedIds.has(book.id)
-                            ? 'border-[#1a6644] bg-[#e6f4ec] text-[#006751] dark:border-[#1a6644] dark:bg-[#143c2f] dark:text-[#5ecba1]'
-                            : 'border-[#d0ddd8] bg-white text-[#006751] hover:border-[#1a6644] hover:bg-[#EDF3F0] dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#181818]'
-                        }`}
-                      >
-                        {borrowedIds.has(book.id) ? (
-                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M5 12l5 5L20 7" />
-                          </svg>
-                        ) : (
-                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M4 5v14a2 2 0 0 1 2-2h6V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 0Z" />
-                            <path d="M20 5v14a2 2 0 0 0-2-2h-6V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 0Z" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-
-                    {admin && (
-                      <div className="mt-2 border-t border-[#EDF3F0] pt-2 dark:border-[#333333]">
-                        <button
-                          className="text-[0.66rem] font-semibold text-[#006751] transition hover:text-[#005040] dark:text-[#5ecba1] dark:hover:text-white"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigate(`/books/edit/${book.id}`)
-                          }}
-                        >
-                          Edit
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => handleBorrow(book.id)}
+                            disabled={!bookAvail || isBorrowed || isBusyBorrow}
+                            className="rounded-md bg-[#1a6644] px-3 py-1.5 text-[0.72rem] font-semibold text-white transition hover:bg-[#14533a] disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isBusyBorrow ? 'Borrowing...' : isBorrowed ? 'Borrowed' : 'Borrow'}
+                          </button>
+                        </div>
                       </div>
-                    )}
-                  </div>
 
-                  <div className="hidden shrink-0 flex-col items-end gap-1 pt-1 text-right md:flex">
-                    <span className="rounded border border-transparent bg-[#EDF3F0] px-2 py-1 font-mono text-[0.64rem] tracking-[0.02em] text-[rgba(28,43,36,0.52)] dark:border-[#1f1f1f] dark:bg-[#121212] dark:text-[#8c9691]">
-                      {callNum}
-                    </span>
-                    <span className="text-[0.68rem] text-[#5a6b62] dark:text-[#8c9691]">
-                      {bookCampusLabel}
-                    </span>
-                    <span className="text-[0.64rem] text-[rgba(28,43,36,0.38)] dark:text-[#66706b]">
-                      {available} of {total} available
-                    </span>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        <span className={tagClass('resource')}>{bookType}</span>
+                        <span className={tagClass('subject')}>{book.genre}</span>
+                        <span className={tagClass(bookAvail ? 'available' : 'on-loan')}>
+                          {bookAvail ? 'Available' : 'On Loan'}
+                        </span>
+                      </div>
+
+                      <p className="mt-3 line-clamp-2 text-[0.8rem] leading-[1.6] text-[#5a6b62] dark:text-[#8c9691]">
+                        {book.description || 'No description available.'}
+                      </p>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-[0.74rem] text-[#5a6b62] dark:text-[#8c9691] sm:grid-cols-4">
+                        <span><strong>ISBN:</strong> {book.isbn || 'N/A'}</span>
+                        <span><strong>Pages:</strong> {book.pages || 'N/A'}</span>
+                        <span><strong>Language:</strong> {getBookLanguageLabel(book.language)}</span>
+                        <span><strong>Copies:</strong> {book.copies}</span>
+                      </div>
+                    </div>
                   </div>
                 </li>
               )
