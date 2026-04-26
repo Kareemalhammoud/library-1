@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const swaggerUi = require("swagger-ui-express");
 
 require("dotenv").config();
@@ -17,6 +18,9 @@ const reviewsRoutes = require("./routes/reviewsRoutes");
 
 const app = express();
 
+// Request logging. "dev" is concise and color-coded for local; "combined" is
+// the standard Apache log line — better for hosted log aggregation on Render.
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(cors());
 app.use(express.json());
 
@@ -48,6 +52,21 @@ app.get("/test-db", async (req, res) => {
       error: error.message
     });
   }
+});
+
+// 404 for any unmatched route. Has to come after all the real routes.
+app.use((req, res) => {
+  res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });
+});
+
+// Centralized error handler. Anything thrown synchronously inside a handler,
+// or passed to next(err), ends up here so we don't duplicate the same 500
+// shape in every catch block. Stack traces are logged but never sent back.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({ message: err.expose ? err.message : "Internal server error" });
 });
 
 const PORT = process.env.PORT || 5000;
