@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import defaultPic from "../assets/default-profile.png"
-import { BOOKS } from "../data/bookData"
 import { getStoredUser } from "../utils"
 import { getFavorites, removeFavorite } from "../utils/api"
 
@@ -12,20 +11,6 @@ function formatDate(value) {
 	if (!value) return "N/A"
 	const date = new Date(value)
 	return Number.isNaN(date.getTime()) ? "N/A" : date.toLocaleDateString()
-}
-
-function getBookMeta(entry) {
-	if (!entry) return null
-
-	return (
-		BOOKS.find(
-			(book) =>
-				book.title === entry.title &&
-				(!entry.author || book.author === entry.author)
-		) ||
-		BOOKS.find((book) => book.title === entry.title) ||
-		null
-	)
 }
 
 function EmptyState({ title, description }) {
@@ -39,8 +24,8 @@ function EmptyState({ title, description }) {
 
 function LoanRow({ entry, variant = "active" }) {
 	const navigate = useNavigate()
-	const bookMeta = getBookMeta(entry)
-	const bookId = bookMeta?.id
+	const bookId = entry.book_id
+	const cover = entry.cover
 	const badgeClass =
 		variant === "overdue"
 			? "bg-[#b8565c] text-white"
@@ -52,18 +37,24 @@ function LoanRow({ entry, variant = "active" }) {
 		<li className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-800 shadow-sm dark:border-[#333] dark:bg-[#242424] dark:text-white">
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex min-w-0 items-center gap-4">
-						{bookMeta ? (
+						{bookId ? (
 							<button
 								type="button"
 								className="w-[52px] flex-shrink-0 cursor-pointer border-0 bg-transparent p-0 text-left"
 								onClick={() => navigate(`/books/${bookId}`)}
 								aria-label={`View ${entry.title}`}
 							>
-							<img
-								src={bookMeta.cover}
-								alt={`Cover of ${entry.title}`}
-								className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
-							/>
+							{cover ? (
+								<img
+									src={cover}
+									alt={`Cover of ${entry.title}`}
+									className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
+								/>
+							) : (
+								<div className="flex h-[78px] w-[52px] items-center justify-center rounded-md bg-[#eef2ef] text-[0.7rem] font-semibold text-[#355246] dark:bg-[#2e2e2e] dark:text-[#c5cec9]">
+									Book
+								</div>
+							)}
 						</button>
 					) : (
 						<div className="flex h-[78px] w-[52px] flex-shrink-0 items-center justify-center rounded-md bg-[#eef2ef] text-[0.7rem] font-semibold text-[#355246] dark:bg-[#2e2e2e] dark:text-[#c5cec9]">
@@ -72,7 +63,7 @@ function LoanRow({ entry, variant = "active" }) {
 					)}
 
 					<div className="min-w-0">
-						{bookMeta ? (
+						{bookId ? (
 							<button
 								type="button"
 								className="cursor-pointer border-0 bg-transparent p-0 text-left"
@@ -89,7 +80,7 @@ function LoanRow({ entry, variant = "active" }) {
 						)}
 
 						<p className="text-sm text-gray-600 dark:text-[#888]">
-							{entry.author || bookMeta?.author || "Unknown author"}
+							{entry.author || "Unknown author"}
 						</p>
 
 						<div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500 dark:text-[#888]">
