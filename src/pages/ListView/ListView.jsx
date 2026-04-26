@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getBooks } from '@/utils/api'
 import { isAdminUser } from '@/utils'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 const CAMPUS_OPTIONS = ['All Campuses', 'Beirut', 'Byblos']
 const LANG_OPTIONS = ['All Languages', 'English', 'French']
 const AVAIL_OPTIONS = ['All', 'Available', 'Unavailable']
@@ -32,17 +32,25 @@ function sanitizeImage(url) {
 }
 
 function normalizeBook(book) {
+  const rawLanguage = book.language || ''
+  const normalizedLanguage =
+    rawLanguage === 'FR' || rawLanguage === 'French'
+      ? 'French'
+      : rawLanguage === 'EN' || rawLanguage === 'English'
+        ? 'English'
+        : rawLanguage
+
   return {
     id: book.id,
     title: book.title || '',
     author: book.author || '',
-    genre: book.category || 'General',
-    language: book.language || 'EN',
+    genre: book.genre || book.category || 'General',
+    language: normalizedLanguage || 'English',
     campus: book.campus || 'Beirut',
     copies: Number(book.available_copies ?? book.availableCopies ?? book.copies ?? 0),
     year: book.year ? Number(book.year) : 2024,
     rating: book.rating ? Number(book.rating) : 0,
-    cover: sanitizeImage(book.image),
+    cover: sanitizeImage(book.cover || book.image),
     badge: '',
   }
 }
@@ -68,14 +76,7 @@ export default function ListView() {
       try {
         setLoading(true)
         setError('')
-
-        const response = await fetch(`${API_BASE}/api/books`)
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch books')
-        }
-
+        const data = await getBooks()
         setBooks(data.map(normalizeBook))
       } catch (err) {
         setError(err.message || 'Something went wrong')
@@ -123,7 +124,7 @@ export default function ListView() {
     const result = books.filter((book) => {
       const bookCampus = book.campus === 'both' ? 'both' : book.campus || 'Beirut'
       const bookAvail = Number(book.copies) > 0
-      const bookLang = book.language === 'FR' ? 'French' : 'English'
+      const bookLang = book.language === 'French' ? 'French' : 'English'
 
       if (
         search &&
@@ -409,7 +410,7 @@ export default function ListView() {
         ) : (
           <>
             <ul
-              className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-6 p-0 sm:grid-cols-3 md:grid-cols-4 lg:gap-x-6 lg:gap-y-8 xl:grid-cols-5"
+              className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-6 p-0 sm:grid-cols-3 md:grid-cols-4 lg:gap-x-6 lg:gap-y-8 xl:grid-cols-6"
               aria-label={`${filtered.length} books found`}
             >
               {paginated.map((book) => {
@@ -468,7 +469,7 @@ export default function ListView() {
             {totalPages > 1 && (
               <nav className="mt-10 flex flex-wrap items-center justify-center gap-2 sm:mt-12 sm:gap-4" aria-label="Pagination">
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]}"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]"
                   onClick={() => {
                     setPage((p) => p - 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -482,7 +483,7 @@ export default function ListView() {
                   {page} / {totalPages}
                 </span>
                 <button
-                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]}"
+                  className="cursor-pointer rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-[0.82rem] font-semibold text-[#333] transition-all hover:enabled:border-[#1a4a3a] hover:enabled:text-[#1a4a3a] disabled:cursor-not-allowed disabled:opacity-35 sm:px-5 sm:text-[0.85rem] dark:border-[#333] dark:bg-[#242424] dark:text-[#888] dark:hover:enabled:border-[#5ecba1] dark:hover:enabled:text-[#5ecba1]"
                   onClick={() => {
                     setPage((p) => p + 1)
                     window.scrollTo({ top: 0, behavior: 'smooth' })

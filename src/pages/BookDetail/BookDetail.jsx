@@ -13,6 +13,8 @@ import {
 } from '@/utils/api'
 import { getStoredUser, isAdminUser, isLoggedInUser } from '@/utils'
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
+
 const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
   <rect width="300" height="450" fill="#f5f2ed"/>
@@ -61,22 +63,6 @@ export default function BookDetail() {
   const [loadError, setLoadError] = useState('')
   const [notFound, setNotFound] = useState(false)
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [borrowed, setBorrowed] = useState(false)
-  const [confirmed, setConfirmed] = useState(false)
-  const [shareCopied, setShareCopied] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [favoriteBusy, setFavoriteBusy] = useState(false)
-  const [reviews, setReviews] = useState([])
-  const [reviewsLoading, setReviewsLoading] = useState(true)
-  const [reviewRating, setReviewRating] = useState(0)
-  const [reviewHover, setReviewHover] = useState(0)
-  const [reviewComment, setReviewComment] = useState('')
-  const [reviewSubmitting, setReviewSubmitting] = useState(false)
-  const [reviewError, setReviewError] = useState('')
-  const currentUser = getStoredUser()
-
   useEffect(() => {
     let cancelled = false
     setLoading(true)
@@ -88,7 +74,7 @@ export default function BookDetail() {
       .then(([oneBook, allBooks]) => {
         if (cancelled) return
         setBook(normalizeBook(oneBook))
-        setBooks(allBooks.map(normalizeBook))
+        setBooks(allBooks)
       })
       .catch((error) => {
         if (cancelled) return
@@ -107,39 +93,54 @@ export default function BookDetail() {
     }
   }, [id])
 
+  const [modalOpen, setModalOpen] = useState(false)
+  const [borrowed, setBorrowed] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [favoriteBusy, setFavoriteBusy] = useState(false)
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewHover, setReviewHover] = useState(0)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const currentUser = getStoredUser()
+
+  // Whenever a book loads (or the user navigates to a different book), check
+  // whether it's in this user's favorites. Skip the API call for guests.
   useEffect(() => {
     if (!book || !isLoggedInUser()) {
       setIsFavorite(false)
       return
     }
-
     let cancelled = false
-
     getFavorites()
       .then((favs) => {
         if (cancelled) return
         setIsFavorite(favs.some((fav) => fav.id === book.id))
       })
-      .catch(() => {})
-
+      .catch(() => {
+        /* non-critical — leave as unfavorited */
+      })
     return () => {
       cancelled = true
     }
   }, [book])
 
+  // Load reviews whenever the book changes. If the current user already has
+  // one, pre-fill the form so they can edit rather than add a duplicate.
   useEffect(() => {
     if (!book) return
-
     let cancelled = false
     setReviewsLoading(true)
-
     getReviewsForBook(book.id)
       .then((data) => {
         if (cancelled) return
         setReviews(data)
-
         const mine = currentUser ? data.find((r) => r.userId === currentUser.id) : null
-
         if (mine) {
           setReviewRating(mine.rating)
           setReviewComment(mine.comment || '')
@@ -148,15 +149,17 @@ export default function BookDetail() {
           setReviewComment('')
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        /* non-critical — reviews just won't show */
+      })
       .finally(() => {
         if (!cancelled) setReviewsLoading(false)
       })
-
     return () => {
       cancelled = true
     }
-  }, [book, currentUser])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [book])
 
   const reviewStats = useMemo(() => {
     if (reviews.length === 0) return { average: 0, count: 0 }
@@ -168,14 +171,11 @@ export default function BookDetail() {
 
   async function handleSubmitReview(e) {
     e.preventDefault()
-
     if (!book) return
-
     if (!isLoggedInUser()) {
       navigate('/login', { state: { from: `/books/${book.id}` } })
       return
     }
-
     if (reviewRating < 1) {
       setReviewError('Pick a star rating before submitting.')
       return
@@ -183,13 +183,8 @@ export default function BookDetail() {
 
     setReviewError('')
     setReviewSubmitting(true)
-
     try {
-      const saved = await submitReview(book.id, {
-        rating: reviewRating,
-        comment: reviewComment,
-      })
-
+      const saved = await submitReview(book.id, { rating: reviewRating, comment: reviewComment })
       setReviews((prev) => {
         const without = prev.filter((r) => r.id !== saved.id)
         return [saved, ...without]
@@ -214,7 +209,6 @@ export default function BookDetail() {
 
   async function handleToggleFavorite() {
     if (!book) return
-
     if (!isLoggedInUser()) {
       navigate('/login', { state: { from: `/books/${book.id}` } })
       return
@@ -222,8 +216,9 @@ export default function BookDetail() {
 
     const next = !isFavorite
     setFavoriteBusy(true)
+    // Optimistic update — flip immediately, revert on failure so the heart
+    // feels responsive even on a slow connection.
     setIsFavorite(next)
-
     try {
       if (next) {
         await addFavorite(book.id)
@@ -261,7 +256,8 @@ export default function BookDetail() {
 
   const isAvailable = Number(book?.availableCopies ?? 0) > 0
   const bookCampus = book?.campus === 'both' ? 'Beirut / Byblos' : book?.campus || 'Beirut'
-  const authorBiography = book?.authorBiography || 'No biography available for this author yet.'
+  const authorBiography =
+    book?.authorBiography || 'No biography available for this author yet.'
 
   const { relatedBooks, relatedTitle } = useMemo(() => {
     if (!book || books.length === 0) {
@@ -269,12 +265,10 @@ export default function BookDetail() {
     }
 
     const sameGenre = books.filter((b) => b.genre === book.genre && b.id !== book.id)
-
     const nextRelatedBooks =
       sameGenre.length >= 2
         ? sameGenre.slice(0, 4)
-        : books
-            .filter((b) => b.id !== book.id)
+        : books.filter((b) => b.id !== book.id)
             .sort(() => Math.random() - 0.5)
             .slice(0, 4)
 
@@ -307,9 +301,13 @@ export default function BookDetail() {
   async function handleConfirm() {
     if (!book) return
 
+    // Persist to the DB first. Without this, the dashboard can't show the
+    // loan — it reads from the `loans` table, not localStorage.
     try {
       await createLoan(book.id)
     } catch (error) {
+      // Already-borrowed (409) is effectively success from the UI's POV; any
+      // other error aborts so the user knows something went wrong.
       if (error.status !== 409) {
         alert(error.message || 'Failed to borrow this book')
         return
@@ -333,7 +331,8 @@ export default function BookDetail() {
     let currentBorrowedBooks = []
 
     try {
-      currentBorrowedBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
+      currentBorrowedBooks =
+        JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
     } catch {
       currentBorrowedBooks = []
     }
@@ -351,7 +350,9 @@ export default function BookDetail() {
       })
     )
 
-    const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
+    const alreadyTracked = currentBorrowedBooks.some(
+      (entry) => entry.id === book.id
+    )
 
     if (!alreadyTracked) {
       localStorage.setItem(
