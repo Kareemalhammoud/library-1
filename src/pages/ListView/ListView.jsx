@@ -410,7 +410,7 @@ export default function ListView() {
         ) : (
           <>
             <ul
-              className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-6 p-0 sm:grid-cols-3 md:grid-cols-4 lg:gap-x-6 lg:gap-y-8 xl:grid-cols-5"
+              className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-6 p-0 sm:grid-cols-3 md:grid-cols-4 lg:gap-x-6 lg:gap-y-8 xl:grid-cols-6"
               aria-label={`${filtered.length} books found`}
             >
               {paginated.map((book) => {
