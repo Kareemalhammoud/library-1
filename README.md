@@ -320,10 +320,6 @@ display name from `server/scripts/seed.js`.
   user can `PUT` or `DELETE` any book. The ownership check exists in code but
   is conditional on the column being present. Tracked as part of the Phase 2
   cleanup.
-- The Express app does not yet have global request-logging or
-  error-handling middleware. Each controller handles its own errors with
-  `try/catch` and an explicit 500 response. Adding `morgan` + a centralized
-  error handler is on the same cleanup list.
 
 ---
 
