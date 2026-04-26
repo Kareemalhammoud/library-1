@@ -116,18 +116,58 @@ npm run preview
 
 ## Backend API
 
-Base URL: `http://localhost:5000/api` (local).
+Base URLs:
 
-Authenticated endpoints expect `Authorization: Bearer <jwt>` — the token is
-issued by `/api/auth/login` and stored by the frontend in `localStorage` under
-the key `token`.
+| Environment | URL |
+|-------------|-----|
+| Production | `https://library-api-46jn.onrender.com/api` |
+| Local      | `http://localhost:5000/api` (or whatever `PORT` is in `server/.env`) |
 
-### Books (read-only on this branch — admin CRUD is owned by Rayan)
+Authenticated endpoints expect `Authorization: Bearer <jwt>`. The token is
+issued by `/api/auth/login` (and `/api/auth/register`) and is stored by the
+frontend in `localStorage` under the key `token`.
+
+Errors come back as JSON of shape `{ "message": "..." }` with an HTTP status
+that matches the failure (`400` invalid input, `401` unauthenticated, `403`
+forbidden, `404` not found, `409` conflict, `500` server error).
+
+### Auth
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/books` | — | List all books. Optional query params: `search`, `genre`, `language`, `limit`. |
-| GET | `/api/books/:id` | — | Single book by id. 404 if not found. |
+| POST | `/api/auth/register` | — | Create a user. Body: `full_name`, `email`, `password`. Returns the new user + a JWT. 400 on missing fields or duplicate email. |
+| POST | `/api/auth/login`    | — | Authenticate. Body: `email`, `password`. Returns the user + a JWT. 401 on bad credentials. |
+
+Response shape (both endpoints):
+
+```json
+{
+  "message": "Login successful",
+  "token": "eyJhbGciOi...",
+  "user": {
+    "id": 7,
+    "full_name": "Karim Hammoud",
+    "email": "karim@example.com",
+    "createdAt": "2026-04-25T18:00:00.000Z"
+  }
+}
+```
+
+### Users
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/users/me` | ✅ | Returns the currently authenticated user (`id`, `full_name`, `email`, `createdAt`). 401 if the JWT is missing or invalid. |
+
+### Books (full CRUD, owner-scoped writes)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET    | `/api/books`     | — | List all books. Optional query params: `search`, `genre`, `language`, `limit`. |
+| GET    | `/api/books/:id` | — | Single book by id. 404 if not found. |
+| POST   | `/api/books`     | ✅ | Create a book. Required body: `title`, `author`. Optional: `genre`, `language`, `year`, `pages`, `rating`, `publisher`, `isbn`, `description`, `cover`, `availableCopies` (defaults to schema default `3`). |
+| PUT    | `/api/books/:id` | ✅ | Update a book. Same body shape as POST. 404 if not found. (Ownership: scoped to creator if `created_by` is set; see [Known limitations](#known-backend-limitations).) |
+| DELETE | `/api/books/:id` | ✅ | Delete a book. 404 if not found. Same ownership note as PUT. |
 
 Book response shape (aliased to match the frontend):
 
@@ -147,7 +187,8 @@ Book response shape (aliased to match the frontend):
   "cover": "https://.../cover.jpg",
   "color": "amber",
   "genreColor": "#8C6A1E",
-  "badge": null
+  "badge": null,
+  "copies": 3
 }
 ```
 
@@ -189,6 +230,100 @@ Event response shape:
 
 Seeded events have `createdBy: null` so they are immutable via the public CRUD
 endpoints — they can only be managed by re-running `npm run seed`.
+
+### Dashboard
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/dashboard` | ✅ | Aggregated view for the logged-in user. Returns four lists in one payload — used by the Dashboard page so the frontend doesn't have to chain four requests. |
+
+Response shape:
+
+```json
+{
+  "activeLoans": [
+    { "id": 12, "title": "...", "author": "...", "borrow_date": "...",
+      "due_date": "...", "renew_count": 0, "status": "active" }
+  ],
+  "history": [
+    { "id": 12, "title": "...", "author": "...", "borrow_date": "...",
+      "due_date": "...", "return_date": null, "renew_count": 0, "status": "active" }
+  ],
+  "overdue": [
+    { "id": 9, "title": "...", "author": "...", "due_date": "...", "renew_count": 0 }
+  ],
+  "renewals": [
+    { "id": 9, "title": "...", "renew_count": 1, "due_date": "..." }
+  ]
+}
+```
+
+### Favorites
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET    | `/api/favorites`           | ✅ | List the current user's favorite books. Same book shape as `/api/books`. |
+| POST   | `/api/favorites/:bookId`   | ✅ | Add a book to favorites. Idempotent — favoriting an already-favorited book is a no-op (still 201). 404 if the book doesn't exist. |
+| DELETE | `/api/favorites/:bookId`   | ✅ | Remove a book from favorites. Always 200 (silent if not present). |
+
+### Loans
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET  | `/api/loans` | ✅ | Active (un-returned) loans for the current user, ordered newest-first. |
+| POST | `/api/loans` | ✅ | Borrow a book. Body: `{ "bookId": 0 }`. Issues a 14-day loan. 404 if the book doesn't exist; **409** if you already have an active loan on that book. |
+
+Loan response shape:
+
+```json
+{
+  "id": 12,
+  "book_id": 0,
+  "title": "The Story of Art",
+  "author": "E.H. Gombrich",
+  "borrow_date": "2026-04-26",
+  "due_date":    "2026-05-10",
+  "return_date": null,
+  "renew_count": 0,
+  "status": "active"
+}
+```
+
+### Reviews
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET    | `/api/reviews/book/:bookId` | — | Reviews for a book, newest first. |
+| POST   | `/api/reviews/book/:bookId` | ✅ | Submit (or update) a review. Body: `{ "rating": 1-5, "comment": "..." }`. One review per `(user, book)` — re-posting updates the existing row (returns 200 instead of 201). |
+| DELETE | `/api/reviews/:id`          | ✅ | Delete your own review. 403 if it isn't yours. Seeded reviews (`user_id = null`) cannot be deleted via the API. |
+
+Review response shape:
+
+```json
+{
+  "id": 1,
+  "bookId": 0,
+  "userId": 7,
+  "reviewer_name": "Karim Hammoud",
+  "rating": 5,
+  "comment": "Made me fall in love with art history.",
+  "createdAt": "2026-04-26T01:00:00.000Z"
+}
+```
+
+For seeded reviews `userId` is `null` and `reviewer_name` is the hand-picked
+display name from `server/scripts/seed.js`.
+
+### Known backend limitations
+
+- `books.created_by` is not yet a column in the schema, so any authenticated
+  user can `PUT` or `DELETE` any book. The ownership check exists in code but
+  is conditional on the column being present. Tracked as part of the Phase 2
+  cleanup.
+- The Express app does not yet have global request-logging or
+  error-handling middleware. Each controller handles its own errors with
+  `try/catch` and an explicit 500 response. Adding `morgan` + a centralized
+  error handler is on the same cleanup list.
 
 ---
 
@@ -401,3 +536,75 @@ Global dark mode is toggled via a button in the Header component and persisted t
 - `postcss.config.js` must use `@tailwindcss/postcss` (not the standard `tailwindcss` plugin) due to a v4 API change.
 - Related books shuffle stability is achieved via `useMemo` with a `[book.id, book.genre]` dependency array to prevent re-shuffling on unrelated re-renders.
 - All `localStorage` writes follow a consistent `useEffect` + unique-key pattern for predictable persistence behavior.
+
+---
+
+## Technical Challenges & How We Solved Them
+
+### Deploying a backend that needed a managed database
+
+The backend is on Render free tier and the MySQL is on Railway. Wiring them
+together exposed three real-world issues we had to solve:
+
+1. **Port collision on macOS.** Apple's AirPlay Receiver squats `:5000`, so
+   `app.listen(5000)` silently exits on dev machines. We made the port
+   configurable via `PORT` in `server/.env` and now run locally on `5001`.
+2. **Connecting to a managed DB requires more config than the local one.**
+   Railway's MySQL proxy uses a non-3306 port and benefits from SSL. The
+   original `server/config/db.js` only read `DB_HOST`, `DB_USER`,
+   `DB_PASSWORD`, `DB_NAME`. We added `DB_PORT` and an optional
+   `DB_SSL=true` toggle (gated so local dev still works with no SSL).
+3. **Loading the schema and seed against the cloud DB.** We wrote two
+   reusable Node scripts under `server/scripts/`:
+   - `apply-schema.js` — runs `server/db/schema.sql` against whatever DB
+     the current `.env` points to.
+   - `migrate-add-copies.js` — idempotent ALTER for adding the
+     `available_copies` column without re-seeding (used to fix the
+     "fully borrowed" bug below without dropping production data).
+
+### "Fully Borrowed" on every book after backend integration
+
+Phase 1's `bookData.js` had no `copies` field, so the Phase 2 schema didn't
+get one either. The catalog read `book.copies ?? 0`, which was always `0`,
+which the UI rendered as "fully borrowed" everywhere. We:
+
+1. Added `available_copies INT NOT NULL DEFAULT 3` to `server/db/schema.sql`.
+2. Aliased it to `copies` in the SQL projection (so the frontend keeps using
+   the short name).
+3. Ran `migrate-add-copies.js` against the live Railway DB to backfill
+   without losing data.
+
+### Frontend pages reading the wrong field name
+
+A subtler version of the same bug: `BookDetail`, `ListView`, and `Home`
+were reading `data.available_copies` / `data.image` / `data.category` while
+the API returns `copies` / `cover` / `genre`. Worse, `BookDetail` defined a
+`normalizeBook()` function that did the right mapping but **was never
+called** — `setBook(oneBook)` stored the raw API payload. Fix was to
+actually invoke `normalizeBook` and add the API field names to its fallback
+chains so legacy payload shapes still work.
+
+### Vercel SPA 404s on deep routes
+
+Vercel returns its own 404 for any URL without a matching file. React Router
+handles `/catalog`, `/books/0`, etc. client-side, so a refresh or shared
+link 404'd before reaching the SPA. Adding a `vercel.json` rewriting
+`/(.*)` to `/index.html` lets the router take over.
+
+### Safari ignoring the SVG favicon
+
+Safari has spotty SVG-favicon support, so the tab icon was blank. We
+generated a 64×64 PNG (entirely in Python with `struct` + `zlib`, no
+external image libraries — see commit `Add PNG favicon as Safari
+fallback`) and declared it in `index.html` *before* the SVG so Safari
+picks the PNG and other browsers still get the SVG.
+
+### Render env-var name typo causing a generic ECONNREFUSED
+
+When the backend first deployed, `/api/books` returned a generic 500. The
+Render logs showed `code: 'ECONNREFUSED'` with no other context — a
+classic "default to localhost:3306" failure. Cause: the Render env tab had
+`DB-HOST` (hyphen) instead of `DB_HOST` (underscore), so Node's
+`process.env.DB_HOST` was `undefined`. Catching this required reading
+the actual deploy logs rather than guessing. Hard-won lesson: when
+debugging deployments, always look at logs first.
