@@ -29,9 +29,11 @@ CREATE TABLE IF NOT EXISTS books (
   genre_color      VARCHAR(16),
   badge            VARCHAR(60),
   available_copies INT NOT NULL DEFAULT 3,
+  created_by       INT,
   created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_books_genre (genre),
-  INDEX idx_books_language (language)
+  INDEX idx_books_language (language),
+  CONSTRAINT fk_books_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS events (

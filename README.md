@@ -314,12 +314,18 @@ Review response shape:
 For seeded reviews `userId` is `null` and `reviewer_name` is the hand-picked
 display name from `server/scripts/seed.js`.
 
-### Known backend limitations
+### Ownership semantics for books and events
 
-- `books.created_by` is not yet a column in the schema, so any authenticated
-  user can `PUT` or `DELETE` any book. The ownership check exists in code but
-  is conditional on the column being present. Tracked as part of the Phase 2
-  cleanup.
+Both books and events carry a `created_by` foreign key to `users(id)`.
+`PUT` and `DELETE` are gated on it:
+
+- **User-created** rows can only be modified or deleted by the user who
+  created them. Anyone else gets a 403.
+- **Seeded books** are inserted with `created_by = NULL` so they remain
+  editable by any logged-in user — they represent the library's open
+  inventory rather than user-contributed entries. Seeded **events** behave
+  the opposite way (immutable via the API; only re-seeding changes them);
+  this asymmetry is intentional and matches how the two pages are used.
 
 ---
 
