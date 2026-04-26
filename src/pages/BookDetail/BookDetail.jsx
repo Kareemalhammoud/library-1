@@ -73,7 +73,7 @@ export default function BookDetail() {
     Promise.all([getBook(id), getBooks()])
       .then(([oneBook, allBooks]) => {
         if (cancelled) return
-        setBook(oneBook)
+        setBook(normalizeBook(oneBook))
         setBooks(allBooks)
       })
       .catch((error) => {
