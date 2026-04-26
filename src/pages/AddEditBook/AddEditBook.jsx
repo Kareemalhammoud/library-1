@@ -210,6 +210,23 @@ const AddEditBook = () => {
         return
       }
 
+      if (err.status === 400) {
+        setError(err.message || 'Please check the book details and try again.')
+        return
+      }
+
+      if (err.status === 403) {
+        setError(err.message || 'You are not allowed to create or edit this book.')
+        return
+      }
+
+      if (err.status === 500) {
+        setError(
+          `${err.message || 'Server error while saving the book.'} If you are testing the deployed site, redeploy the backend service too.`
+        )
+        return
+      }
+
       setError(err.message || 'Something went wrong')
     } finally {
       setLoading(false)
