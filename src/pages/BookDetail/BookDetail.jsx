@@ -13,7 +13,7 @@ import {
 } from '@/utils/api'
 import { getStoredUser, isAdminUser, isLoggedInUser } from '@/utils'
 
-const API_BASE = 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
 
 const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">

@@ -1,5 +1,8 @@
 const pool = require("../config/db");
 
+const ADMIN_EMAIL = "admin@lau.edu";
+const isAdmin = (user) => user?.email === ADMIN_EMAIL;
+
 // Cache the books-table column set after the first request. The schema
 // doesn't change at runtime, and SHOW COLUMNS adds a round-trip per call —
 // noticeable when the DB is in a different region than the API.
@@ -359,7 +362,7 @@ const updateBook = async (req, res) => {
     }
 
     const existing = existingRows[0];
-    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id) {
+    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id && !isAdmin(req.user)) {
       return res.status(403).json({ message: "Not authorized to update this book" });
     }
 
@@ -447,7 +450,7 @@ const deleteBook = async (req, res) => {
     }
 
     const existing = existingRows[0];
-    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id) {
+    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id && !isAdmin(req.user)) {
       return res.status(403).json({ message: "Not authorized to delete this book" });
     }
 
