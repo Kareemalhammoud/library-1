@@ -40,7 +40,7 @@ function normalizeBook(data) {
     description: data.description || 'No description available for this book yet.',
     cover: sanitizeImage(data.cover || data.image),
     availableCopies: Number(data.available_copies ?? data.availableCopies ?? data.copies ?? 0),
-    totalCopies: Number(data.available_copies ?? data.availableCopies ?? data.copies ?? 0),
+    totalCopies: Number(data.totalCopies ?? data.total_copies ?? data.available_copies ?? data.availableCopies ?? data.copies ?? 0),
     year: data.year || 'N/A',
     pages: data.pages || 'N/A',
     publisher: data.publisher || 'Library Collection',
@@ -305,6 +305,13 @@ export default function BookDetail() {
     // loan — it reads from the `loans` table, not localStorage.
     try {
       await createLoan(book.id)
+      // Reflect the decremented available count on this page without a full refetch.
+      // total_copies stays the same — only the available count drops.
+      setBook((prev) => (prev ? {
+        ...prev,
+        copies: Math.max(0, (prev.copies ?? 0) - 1),
+        availableCopies: Math.max(0, (prev.availableCopies ?? 0) - 1),
+      } : prev))
     } catch (error) {
       // Already-borrowed (409) is effectively success from the UI's POV; any
       // other error aborts so the user knows something went wrong.
