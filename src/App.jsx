@@ -11,6 +11,7 @@ import AddEditBook from '@/pages/AddEditBook/AddEditBook'
 import Visit from '@/pages/Visit/Visit'
 import Events from '@/pages/Events/Events'
 import EventDetails from '@/pages/EventDetails/EventDetails'
+import AddEditEvent from '@/pages/AddEditEvent/AddEditEvent'
 import ServicesPage from '@/pages/Services/Services'
 import CirculationPage from '@/pages/Services/Circulation'
 import StudyRoomsPage from '@/pages/Services/StudyRooms'
@@ -54,7 +55,23 @@ function App() {
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/visit" element={<Visit />} />
           <Route path="/events" element={<Events />} />
+          <Route
+            path="/events/add"
+            element={
+              <ProtectedRoute>
+                <AddEditEvent />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/events/:id" element={<EventDetails />} />
+          <Route
+            path="/events/edit/:id"
+            element={
+              <ProtectedRoute>
+                <AddEditEvent />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/books" element={<ListView />} />
           <Route
