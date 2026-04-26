@@ -304,53 +304,53 @@ The check is implemented as an `adminOnly` middleware that runs after
 
 ---
 
-## Screenshots
+## GIFs
 
-> The screenshots below showcase the final, deployed application.
+> The GIFs below showcase the final, deployed application.
 
 ### Homepage (`/`)
 
-_[screenshot placeholder]_
+![Homepage](./images/HomeAnimation.gif)
 
 ### Book Catalog (`/catalog`)
 
-_[screenshot placeholder]_
+![Book Catalog](./images/CatalogAnimation.gif)
 
 ### Book List (`/books`)
 
-_[screenshot placeholder]_
+![Book List](./images/ListViewAnimation.gif)
 
 ### Book Detail (`/books/:id`)
 
-_[screenshot placeholder]_
+![Book Detail](./images/BookDetailsAnimation.gif)
 
 ### Add / Edit Book (`/books/add`, `/books/:id/edit`) — admin only
 
-_[screenshot placeholder]_
+![Add/Edit Book](./images/AddEditAnimation.gif)
 
 ### Events (`/events`)
 
-_[screenshot placeholder]_
-
-### Event Detail (`/events/:id`)
-
-_[screenshot placeholder]_
+![Events](./images/EventsAnimation.gif)
 
 ### Services (`/services`)
 
-_[screenshot placeholder]_
+![Services](./images/Services%20Animation.gif)
+
+### Visit (`/visit`)
+
+![Visit](./images/VisitAnimation.gif)
 
 ### User Dashboard (`/dashboard`)
 
-_[screenshot placeholder]_
+![Dashboard](./images/DashboardAnimation.gif)
 
 ### Login & Register (`/login`, `/register`)
 
-_[screenshot placeholder]_
+![Login](./images/LoginAnimation.gif) ![Register](./images/RegisterAnimation.gif)
 
 ### Dark Mode
 
-_[screenshot placeholder]_
+![Dark Mode](./images/DarkModeAnimation.gif)
 
 ---
 
