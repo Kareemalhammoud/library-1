@@ -176,6 +176,7 @@ const AddEditBook = () => {
         author: formData.author,
         publisher: formData.publisher,
         genre: formData.genre,
+        category: formData.genre,
         isbn: formData.isbn,
         year: formData.year === '' ? null : Number(formData.year),
         pages: formData.pages === '' ? null : Number(formData.pages),
@@ -184,6 +185,7 @@ const AddEditBook = () => {
         language: formData.language,
         description: formData.description,
         authorBiography: formData.authorBiography,
+        cover: sanitizeImage(formData.coverImage),
         image: sanitizeImage(formData.coverImage),
         availableCopies: formData.copies === '' ? 1 : Number(formData.copies),
       }

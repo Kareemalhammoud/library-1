@@ -4,11 +4,19 @@ const pool = require("../config/db");
 // doesn't change at runtime, and SHOW COLUMNS adds a round-trip per call —
 // noticeable when the DB is in a different region than the API.
 let cachedColumns = null;
+let cachedColumnMeta = null;
 async function getBookColumns() {
   if (cachedColumns) return cachedColumns;
   const [rows] = await pool.query("SHOW COLUMNS FROM books");
+  cachedColumnMeta = new Map(rows.map((row) => [row.Field, row]));
   cachedColumns = new Set(rows.map((row) => row.Field));
   return cachedColumns;
+}
+
+async function getBookColumnMeta() {
+  if (cachedColumnMeta) return cachedColumnMeta;
+  await getBookColumns();
+  return cachedColumnMeta;
 }
 
 const normalizeString = (value) => {
@@ -29,6 +37,24 @@ const parseOptionalNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+function getVarcharLength(type) {
+  const match = /^varchar\((\d+)\)/i.exec(type || "");
+  return match ? Number.parseInt(match[1], 10) : null;
+}
+
+function normalizeLanguageForColumn(language, columnMeta) {
+  const value = normalizeString(language);
+  if (!value) return "";
+
+  const maxLength = getVarcharLength(columnMeta?.Type);
+  if (maxLength !== null && maxLength <= 4) {
+    if (/^fr(ench)?$/i.test(value)) return "FR";
+    if (/^en(glish)?$/i.test(value)) return "EN";
+  }
+
+  return value;
+}
+
 function bookSelectSql(columns) {
   const has = (name) => columns.has(name);
 
@@ -41,12 +67,14 @@ function bookSelectSql(columns) {
       ? "category AS genre"
       : "NULL AS genre";
   const languageExpr = has("language") ? "language" : "NULL AS language";
+  const campusExpr = has("campus") ? "campus" : "NULL AS campus";
   const yearExpr = has("year") ? "year" : "NULL AS year";
   const ratingExpr = has("rating") ? "rating" : "NULL AS rating";
   const pagesExpr = has("pages") ? "pages" : "NULL AS pages";
   const publisherExpr = has("publisher") ? "publisher" : "NULL AS publisher";
   const isbnExpr = has("isbn") ? "isbn" : "NULL AS isbn";
   const descriptionExpr = has("description") ? "description" : "NULL AS description";
+  const authorBiographyExpr = has("authorBiography") ? "authorBiography" : "NULL AS authorBiography";
   const coverExpr = has("cover")
     ? "cover"
     : has("image")
@@ -63,9 +91,9 @@ function bookSelectSql(columns) {
 
   return `
     ${idExpr}, ${titleExpr}, ${authorExpr}, ${genreExpr}, ${languageExpr},
-    ${yearExpr}, ${ratingExpr}, ${pagesExpr}, ${publisherExpr}, ${isbnExpr},
-    ${descriptionExpr}, ${coverExpr}, ${colorExpr}, ${genreColorExpr},
-    ${badgeExpr}, ${copiesExpr}
+    ${campusExpr}, ${yearExpr}, ${ratingExpr}, ${pagesExpr}, ${publisherExpr},
+    ${isbnExpr}, ${descriptionExpr}, ${authorBiographyExpr}, ${coverExpr},
+    ${colorExpr}, ${genreColorExpr}, ${badgeExpr}, ${copiesExpr}
   `;
 }
 
@@ -114,12 +142,14 @@ function buildCreatedBookFallback(id, payload) {
     author: payload.author,
     genre: payload.genre || null,
     language: payload.language || null,
+    campus: payload.campus || null,
     year: payload.year,
     rating: payload.rating,
     pages: payload.pages,
     publisher: payload.publisher || null,
     isbn: payload.isbn || null,
     description: payload.description || null,
+    authorBiography: payload.authorBiography || null,
     cover: payload.cover || null,
     color: null,
     genreColor: null,
@@ -217,13 +247,16 @@ const getBookById = async (req, res) => {
 const createBook = async (req, res) => {
   try {
     const columns = await getBookColumns();
+    const columnMeta = await getBookColumnMeta();
     const title = normalizeString(req.body.title);
     const author = normalizeString(req.body.author);
     const genre = normalizeString(req.body.genre || req.body.category);
-    const language = normalizeString(req.body.language);
+    const language = normalizeLanguageForColumn(req.body.language, columnMeta.get("language"));
+    const campus = normalizeString(req.body.campus);
     const publisher = normalizeString(req.body.publisher);
     const isbn = normalizeString(req.body.isbn);
     const description = normalizeString(req.body.description);
+    const authorBiography = normalizeString(req.body.authorBiography);
     const cover = normalizeString(req.body.cover || req.body.image || req.body.coverImage);
     const year = parseOptionalInt(req.body.year);
     const pages = parseOptionalInt(req.body.pages);
@@ -252,9 +285,11 @@ const createBook = async (req, res) => {
     if (columns.has("genre")) addField("genre", genre || null, true);
     if (columns.has("category")) addField("category", genre || null, true);
     addField("language", language || null, true);
+    addField("campus", campus || null, true);
     addField("publisher", publisher || null, true);
     addField("isbn", isbn || null, true);
     addField("description", description || null, true);
+    addField("authorBiography", authorBiography || null, true);
     addField("cover", cover || null, true);
     addField("image", cover || null, true);
     addField("year", year, true);
@@ -291,12 +326,14 @@ const createBook = async (req, res) => {
         author,
         genre,
         language,
+        campus,
         year,
         rating,
         pages,
         publisher,
         isbn,
         description,
+        authorBiography,
         cover,
         copies
       })
@@ -315,6 +352,7 @@ const updateBook = async (req, res) => {
     }
 
     const columns = await getBookColumns();
+    const columnMeta = await getBookColumnMeta();
     const [existingRows] = await pool.query("SELECT * FROM books WHERE id = ?", [bookId]);
     if (existingRows.length === 0) {
       return res.status(404).json({ message: "Book not found" });
@@ -328,10 +366,12 @@ const updateBook = async (req, res) => {
     const title = normalizeString(req.body.title);
     const author = normalizeString(req.body.author);
     const genre = normalizeString(req.body.genre || req.body.category);
-    const language = normalizeString(req.body.language);
+    const language = normalizeLanguageForColumn(req.body.language, columnMeta.get("language"));
+    const campus = normalizeString(req.body.campus);
     const publisher = normalizeString(req.body.publisher);
     const isbn = normalizeString(req.body.isbn);
     const description = normalizeString(req.body.description);
+    const authorBiography = normalizeString(req.body.authorBiography);
     const cover = normalizeString(req.body.cover || req.body.image || req.body.coverImage);
     const year = parseOptionalInt(req.body.year);
     const pages = parseOptionalInt(req.body.pages);
@@ -359,9 +399,11 @@ const updateBook = async (req, res) => {
     if (columns.has("genre")) addSet("genre", genre || null);
     if (columns.has("category")) addSet("category", genre || null);
     addSet("language", language || null);
+    addSet("campus", campus || null);
     addSet("publisher", publisher || null);
     addSet("isbn", isbn || null);
     addSet("description", description || null);
+    addSet("authorBiography", authorBiography || null);
     addSet("cover", cover || null);
     addSet("image", cover || null);
     addSet("year", year);
