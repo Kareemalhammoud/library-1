@@ -1,9 +1,8 @@
 // Thin wrapper around `fetch` that prepends the API base URL and throws
 // on non-2xx responses, so each page can just `await` and handle errors
-// with a single try/catch. Used by the books and events pages to replace
-// the old static imports from src/data/*.
+// with a single try/catch.
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 async function request(path, { method = 'GET', body, auth = false } = {}) {
   const headers = {}
@@ -40,11 +39,13 @@ async function request(path, { method = 'GET', body, auth = false } = {}) {
 
 export function getBooks(params = {}) {
   const query = new URLSearchParams()
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       query.set(key, value)
     }
   })
+
   const suffix = query.toString() ? `?${query.toString()}` : ''
   return request(`/books${suffix}`)
 }
@@ -69,11 +70,13 @@ export function deleteBook(id) {
 
 export function getEvents(params = {}) {
   const query = new URLSearchParams()
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       query.set(key, value)
     }
   })
+
   const suffix = query.toString() ? `?${query.toString()}` : ''
   return request(`/events${suffix}`)
 }

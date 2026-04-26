@@ -8,18 +8,26 @@ const EVENT_COLUMNS = `
   created_by AS createdBy, created_at AS createdAt
 `;
 
-// MySQL returns a DATE column as a JS Date in the local timezone, which can
-// shift the day across midnight. The frontend wants "YYYY-MM-DD" strings, so
-// format it ourselves.
 const formatEventRow = (row) => {
   if (!row) return row;
+
   const copy = { ...row };
+
   if (copy.date instanceof Date) {
     const y = copy.date.getFullYear();
     const m = String(copy.date.getMonth() + 1).padStart(2, "0");
     const d = String(copy.date.getDate()).padStart(2, "0");
     copy.date = `${y}-${m}-${d}`;
   }
+
+  if (typeof copy.highlights === "string") {
+    try {
+      copy.highlights = JSON.parse(copy.highlights);
+    } catch {
+      copy.highlights = [];
+    }
+  }
+
   return copy;
 };
 
@@ -41,7 +49,6 @@ const getAllEvents = async (req, res) => {
     }
 
     if (month) {
-      // month is an integer 1-12 — filter by MONTH(date).
       const parsedMonth = Number.parseInt(month, 10);
       if (Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
         conditions.push("MONTH(date) = ?");
@@ -76,6 +83,7 @@ const getAllEvents = async (req, res) => {
 const getEventById = async (req, res) => {
   try {
     const eventId = Number.parseInt(req.params.id, 10);
+
     if (!Number.isInteger(eventId)) {
       return res.status(400).json({ message: "Invalid event id" });
     }
@@ -114,7 +122,7 @@ const createEvent = async (req, res) => {
       registered,
       audience,
       takeaway,
-      highlights
+      highlights,
     } = req.body;
 
     if (!title || !date) {
@@ -140,11 +148,11 @@ const createEvent = async (req, res) => {
         longDescription ?? null,
         speaker ?? null,
         seats ?? null,
-        registered ?? null,
+        registered ?? 0,
         audience ?? null,
         takeaway ?? null,
         highlights ? JSON.stringify(highlights) : null,
-        req.user.id
+        req.user.id,
       ]
     );
 
@@ -163,22 +171,18 @@ const createEvent = async (req, res) => {
 const updateEvent = async (req, res) => {
   try {
     const eventId = Number.parseInt(req.params.id, 10);
+
     if (!Number.isInteger(eventId)) {
       return res.status(400).json({ message: "Invalid event id" });
     }
 
     const [existing] = await pool.query(
-      "SELECT created_by FROM events WHERE id = ?",
+      "SELECT id FROM events WHERE id = ?",
       [eventId]
     );
 
     if (existing.length === 0) {
       return res.status(404).json({ message: "Event not found" });
-    }
-
-    // Ownership check: only the user who created the event can edit it.
-    if (existing[0].created_by !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to edit this event" });
     }
 
     const {
@@ -197,7 +201,7 @@ const updateEvent = async (req, res) => {
       registered,
       audience,
       takeaway,
-      highlights
+      highlights,
     } = req.body;
 
     await pool.query(
@@ -236,7 +240,7 @@ const updateEvent = async (req, res) => {
         audience ?? null,
         takeaway ?? null,
         highlights ? JSON.stringify(highlights) : null,
-        eventId
+        eventId,
       ]
     );
 
@@ -244,6 +248,7 @@ const updateEvent = async (req, res) => {
       `SELECT ${EVENT_COLUMNS} FROM events WHERE id = ?`,
       [eventId]
     );
+
     res.json(formatEventRow(rows[0]));
   } catch (error) {
     console.error("Update event error:", error);
@@ -254,21 +259,18 @@ const updateEvent = async (req, res) => {
 const deleteEvent = async (req, res) => {
   try {
     const eventId = Number.parseInt(req.params.id, 10);
+
     if (!Number.isInteger(eventId)) {
       return res.status(400).json({ message: "Invalid event id" });
     }
 
     const [existing] = await pool.query(
-      "SELECT created_by FROM events WHERE id = ?",
+      "SELECT id FROM events WHERE id = ?",
       [eventId]
     );
 
     if (existing.length === 0) {
       return res.status(404).json({ message: "Event not found" });
-    }
-
-    if (existing[0].created_by !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to delete this event" });
     }
 
     await pool.query("DELETE FROM events WHERE id = ?", [eventId]);
@@ -284,5 +286,5 @@ module.exports = {
   getEventById,
   createEvent,
   updateEvent,
-  deleteEvent
+  deleteEvent,
 };

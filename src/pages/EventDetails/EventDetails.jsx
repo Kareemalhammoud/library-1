@@ -1,10 +1,23 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getEvent, getEvents } from '@/utils/api'
-import { getStoredUser } from '@/utils'
+import { getStoredUser, isAdminUser } from '@/utils'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const PLACEHOLDER_EVENT = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+  <rect width="800" height="500" fill="#f3f0eb"/>
+  <text x="400" y="235" font-family="Arial, sans-serif" font-size="42" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO EVENT</text>
+  <text x="400" y="290" font-family="Arial, sans-serif" font-size="42" font-weight="700" text-anchor="middle" fill="#2f2f2f">IMAGE</text>
+</svg>
+`)}`
+
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_EVENT
+  return url
+}
 
 function formatEventDate(dateStr) {
   const date = new Date(`${dateStr}T00:00:00`)
@@ -52,8 +65,19 @@ function getSeatState(eventItem, registeredEvents) {
   }
 }
 
+function normalizeEvent(event) {
+  return {
+    ...event,
+    image: sanitizeImage(event.image),
+    highlights: Array.isArray(event.highlights) ? event.highlights : [],
+  }
+}
+
 function EventDetails() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const admin = isAdminUser()
+
   const [event, setEvent] = useState(null)
   const [allEvents, setAllEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,12 +86,17 @@ function EventDetails() {
   const [registeredEvents, setRegisteredEvents] = useState([])
   const [modalOpen, setModalOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
-  const dialogTitleId = confirmed ? 'event-details-registration-success-title' : 'event-details-registration-confirm-title'
-  const dialogDescriptionId = confirmed ? 'event-details-registration-success-description' : 'event-details-registration-confirm-description'
+
+  const dialogTitleId = confirmed
+    ? 'event-details-registration-success-title'
+    : 'event-details-registration-confirm-title'
+  const dialogDescriptionId = confirmed
+    ? 'event-details-registration-success-description'
+    : 'event-details-registration-confirm-description'
+
   const storedUser = getStoredUser()
   const prefix = storedUser?.email ? `${storedUser.email}:` : ''
   const registeredEventsKey = `${prefix}registeredEvents`
-  const isRegistered = registeredEvents.some((item) => item.id === event?.id)
 
   useEffect(() => {
     let cancelled = false
@@ -79,8 +108,8 @@ function EventDetails() {
     Promise.all([getEvent(id), getEvents()])
       .then(([one, all]) => {
         if (cancelled) return
-        setEvent(one)
-        setAllEvents(all)
+        setEvent(normalizeEvent(one))
+        setAllEvents((Array.isArray(all) ? all : []).map(normalizeEvent))
       })
       .catch((error) => {
         if (cancelled) return
@@ -100,8 +129,8 @@ function EventDetails() {
   }, [id])
 
   useEffect(() => {
-    // Load this user's registered events so the page can reflect the current seat state.
-    const rawRegisteredEvents = localStorage.getItem(registeredEventsKey) || localStorage.getItem('registeredEvents')
+    const rawRegisteredEvents =
+      localStorage.getItem(registeredEventsKey) || localStorage.getItem('registeredEvents')
 
     if (!rawRegisteredEvents) {
       setRegisteredEvents([])
@@ -139,9 +168,7 @@ function EventDetails() {
 
     if (seatState.isRegistered || seatState.isFull) return
 
-    // Update localStorage so the registration also shows up in the dashboard calendar.
     const nextRegisteredEvents = [...registeredEvents, { id: event.id, title: event.title, date: event.date }]
-
     localStorage.setItem(registeredEventsKey, JSON.stringify(nextRegisteredEvents))
     setRegisteredEvents(nextRegisteredEvents)
     setConfirmed(true)
@@ -166,7 +193,7 @@ function EventDetails() {
       <main className="min-h-screen bg-[#F2F5F3] px-5 py-20 text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
         <div className="mx-auto max-w-[760px] rounded-[18px] border border-[#d0ddd8] bg-white p-8 text-center shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f]">
           <p className="mb-3 text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-[#b5392b] dark:text-[#ff9388]">Error</p>
-          <h1 className="mb-4 text-[clamp(1.4rem,2.6vw,1.85rem)] font-extrabold tracking-[-0.03em]">Couldn&apos;t load this event.</h1>
+          <h1 className="mb-4 text-[clamp(1.4rem,2.6vw,1.85rem)] font-extrabold tracking-[-0.03em]">Couldn't load this event.</h1>
           <p className="mx-auto mb-6 max-w-[44ch] text-[0.9rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">{loadError}</p>
           <Link to="/events" className="inline-flex rounded-lg bg-[#1a6644] px-5 py-2.5 text-[0.82rem] font-semibold text-white transition hover:bg-[#14533a]">
             Back to Events
@@ -224,6 +251,7 @@ function EventDetails() {
               <h1 className="mb-4 max-w-[16ch] text-[clamp(2rem,4.2vw,3.4rem)] font-extrabold leading-[1.04] tracking-[-0.05em] text-[rgba(240,248,244,0.96)]">
                 {event.title}
               </h1>
+
               <p className="mb-7 max-w-[58ch] text-[0.96rem] leading-[1.8] text-[rgba(240,248,244,0.58)]">
                 {event.longDescription || event.description}
               </p>
@@ -244,7 +272,15 @@ function EventDetails() {
             </div>
 
             <div className="relative overflow-hidden rounded-[24px] border border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.22)]">
-              <img src={event.image} alt={event.title} className="h-full w-full object-cover" />
+              <img
+                src={event.image}
+                alt={event.title}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null
+                  e.currentTarget.src = PLACEHOLDER_EVENT
+                }}
+              />
               <div className="absolute left-4 top-4 flex w-16 flex-col items-center rounded-[12px] border border-white/12 bg-[rgba(6,26,18,0.8)] py-2 shadow-[0_4px_16px_rgba(0,0,0,0.28)] backdrop-blur-[10px]">
                 <span className="text-[0.58rem] font-bold uppercase tracking-[0.14em] text-[#5ecba1]">{month}</span>
                 <span className="text-[1.65rem] font-extrabold leading-none text-[rgba(240,248,244,0.95)]">{day}</span>
@@ -277,12 +313,16 @@ function EventDetails() {
 
             <article className="grid gap-4 rounded-[18px] border border-[#d0ddd8] bg-[linear-gradient(160deg,rgba(253,250,244,1)_0%,rgba(247,242,232,1)_100%)] p-6 shadow-sm md:grid-cols-2 dark:border-[#333333] dark:bg-[#1f1f1f] dark:[background-image:none]">
               <div>
-                <p className="mb-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[#5a6b62]/60 dark:text-[#8c9691]">Who It&apos;s For</p>
-                <p className="text-[0.86rem] leading-[1.8] text-[#4f6158] dark:text-[#c5cec9]">{event.audience || 'Students, faculty, researchers, and community members interested in the topic.'}</p>
+                <p className="mb-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[#5a6b62]/60 dark:text-[#8c9691]">Who It's For</p>
+                <p className="text-[0.86rem] leading-[1.8] text-[#4f6158] dark:text-[#c5cec9]">
+                  {event.audience || 'Students, faculty, researchers, and community members interested in the topic.'}
+                </p>
               </div>
               <div>
                 <p className="mb-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-[#5a6b62]/60 dark:text-[#8c9691]">Why Attend</p>
-                <p className="text-[0.86rem] leading-[1.8] text-[#4f6158] dark:text-[#c5cec9]">{event.takeaway || 'A focused session with practical insight, useful conversation, and time to connect with others.'}</p>
+                <p className="text-[0.86rem] leading-[1.8] text-[#4f6158] dark:text-[#c5cec9]">
+                  {event.takeaway || 'A focused session with practical insight, useful conversation, and time to connect with others.'}
+                </p>
               </div>
             </article>
           </div>
@@ -290,12 +330,12 @@ function EventDetails() {
           <aside className="space-y-6">
             <div className="rounded-[18px] border border-[#d0ddd8] bg-white p-6 shadow-sm dark:border-[#333333] dark:bg-[#1f1f1f]">
               <h2 className="mb-4 text-[1rem] font-extrabold tracking-[-0.02em]">Attendance</h2>
+
               {seatsLeft !== null ? (
                 <>
                   <div
                     className="mb-3 h-[7px] overflow-hidden rounded-full bg-[#d0ddd8] dark:bg-[#333333]"
                     role="progressbar"
-                    aria-label={`Registration progress for ${event.title}`}
                     aria-valuemin={0}
                     aria-valuemax={event.seats}
                     aria-valuenow={seatState.effectiveRegistered}
@@ -307,13 +347,40 @@ function EventDetails() {
                   </p>
                 </>
               ) : (
-                <p className="mb-5 text-[0.84rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">This event is open attendance, so you can simply drop in during the scheduled hours.</p>
+                <p className="mb-5 text-[0.84rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">
+                  This event is open attendance, so you can simply drop in during the scheduled hours.
+                </p>
               )}
 
               <div className="mb-3 flex flex-wrap items-center gap-3">
-                <button type="button" onClick={handleRegister} disabled={seatState.isFull && !seatState.isRegistered} aria-label={`${seatState.isRegistered ? 'Cancel registration for' : seatState.isFull ? 'Seats are full for' : seatsLeft !== null ? 'Reserve a spot for' : 'Add to your plans for'} ${event.title}`} className={`rounded-lg px-5 py-3 text-[0.82rem] font-semibold transition ${seatState.isRegistered ? 'bg-[#cfcfcf] text-[#4f4f4f] hover:bg-[#bdbdbd] dark:bg-[#4a4a4a] dark:text-[#f1f1f1] dark:hover:bg-[#5a5a5a]' : 'bg-[#1a6644] text-white hover:bg-[#14533a]'} disabled:cursor-not-allowed disabled:bg-[#b9b9b9] disabled:text-[#666] dark:disabled:bg-[#355246] dark:disabled:text-[#d7e4de]`}>
-                  {seatState.isRegistered ? 'Cancel Registration' : seatState.isFull ? 'Seats Full' : seatsLeft !== null ? 'Reserve a Spot' : 'Add to Your Plans'}
+                <button
+                  type="button"
+                  onClick={handleRegister}
+                  disabled={seatState.isFull && !seatState.isRegistered}
+                  className={`rounded-lg px-5 py-3 text-[0.82rem] font-semibold transition ${
+                    seatState.isRegistered
+                      ? 'bg-[#cfcfcf] text-[#4f4f4f] hover:bg-[#bdbdbd] dark:bg-[#4a4a4a] dark:text-[#f1f1f1] dark:hover:bg-[#5a5a5a]'
+                      : 'bg-[#1a6644] text-white hover:bg-[#14533a]'
+                  } disabled:cursor-not-allowed disabled:bg-[#b9b9b9] disabled:text-[#666]`}
+                >
+                  {seatState.isRegistered
+                    ? 'Cancel Registration'
+                    : seatState.isFull
+                    ? 'Seats Full'
+                    : seatsLeft !== null
+                    ? 'Reserve a Spot'
+                    : 'Add to Your Plans'}
                 </button>
+
+                {admin && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/events/edit/${event.id}`)}
+                    className="rounded-lg border border-[#1a6644] px-5 py-3 text-[0.82rem] font-semibold text-[#1a6644] transition hover:bg-[#1a6644] hover:text-white"
+                  >
+                    Edit Event
+                  </button>
+                )}
               </div>
             </div>
 
@@ -323,7 +390,7 @@ function EventDetails() {
                 {[
                   ['Format', event.format || 'In-Person'],
                   ['Category', event.category],
-                  ['Campus', event.location.includes('Byblos') ? 'Byblos' : 'Beirut'],
+                  ['Campus', event.location?.includes('Byblos') ? 'Byblos' : 'Beirut'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-start justify-between gap-4 border-b border-[#eef2ef] pb-3 last:border-b-0 last:pb-0 dark:border-[#2b2b2b]">
                     <span className="text-[#5a6b62] dark:text-[#8c9691]">{label}</span>
@@ -391,7 +458,7 @@ function EventDetails() {
                 </p>
                 <div className="mt-2 flex w-full gap-3">
                   <button
-                    className="flex-1 rounded-lg border border-[#ccc] bg-white px-4 py-[0.75rem] text-[0.9rem] font-semibold text-[#555] hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
+                    className="flex-1 rounded-lg border border-[#ccc] bg-white px-4 py-[0.75rem] text-[0.9rem] font-semibold text-[#555] hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#888]"
                     onClick={handleCloseModal}
                   >
                     Cancel
