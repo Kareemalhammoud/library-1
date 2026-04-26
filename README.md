@@ -327,10 +327,10 @@ display name from `server/scripts/seed.js`.
 ### Authorization model: admin-only writes on books and events
 
 Books and events are the library's curated catalog, not user-contributed
-content, so writes on those collections are restricted to a single admin
-account. The check is implemented as an `adminOnly` middleware that
-runs after `authMiddleware` and rejects any user whose email is not the
-configured admin email (currently `admin@lau.edu`).
+content, so writes on those collections are restricted to admin
+accounts. The check is implemented as an `adminOnly` middleware that
+runs after `authMiddleware` and rejects any user whose email is not in
+the configured admin list.
 
 | Action | Public read | Authenticated user | Admin |
 |--------|-------------|--------------------|-------|
@@ -341,16 +341,28 @@ Per-user resources — favorites, loans, and reviews — remain user-scoped:
 each user can only create or remove their own. See those sections above
 for the exact rules.
 
-### Admin account
+### Admin accounts
 
-The frontend recognizes a single hard-coded admin email
-(`admin@lau.edu`, defined in [`src/utils/auth.js`](src/utils/auth.js)).
-Any account registered under that email has admin powers; in the UI it
-sees the "Add Book" button on the catalog and "Edit" / "Delete" controls
-on each book.
+Two admin emails are recognized by default: **`admin@lau.edu`** and
+**`superadmin@lau.edu`**. Any account registered under one of those
+emails has admin powers; in the UI it sees the "Add Book" button on
+the catalog and "Edit" / "Delete" controls on each book.
 
-For local development, register the admin once after seeding the
-database:
+The list is configurable per environment, so you don't need to ship
+code to add or rotate an admin:
+
+| Side | Variable | Default |
+|------|----------|---------|
+| Backend | `ADMIN_EMAILS` (comma-separated) | `admin@lau.edu,superadmin@lau.edu` |
+| Frontend | `VITE_ADMIN_EMAILS` (comma-separated) | `admin@lau.edu,superadmin@lau.edu` |
+
+Both variables must agree — the backend enforces, the frontend gates
+the admin-only UI controls. Setting only the backend yields a working
+but incomplete experience (the UI hides the admin buttons even though
+the API would accept the writes).
+
+For local development, register one of the admin accounts after
+seeding the database:
 
 ```bash
 curl -X POST http://localhost:5000/api/auth/register \
@@ -359,8 +371,8 @@ curl -X POST http://localhost:5000/api/auth/register \
 ```
 
 Then sign in at `/login` with `admin@lau.edu` / `Admin123!`. The
-deployed environment provisions the admin the same way against the
-hosted database.
+deployed environment provisions admin accounts the same way against
+the hosted database, with passwords chosen at registration time.
 
 ---
 

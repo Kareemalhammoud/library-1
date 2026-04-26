@@ -1,7 +1,6 @@
 const pool = require("../config/db");
 
-const ADMIN_EMAIL = "admin@lau.edu";
-const isAdmin = (user) => user?.email === ADMIN_EMAIL;
+const { isAdmin } = require("../middleware/adminOnly");
 
 // Cache the books-table column set after the first request. The schema
 // doesn't change at runtime, and SHOW COLUMNS adds a round-trip per call —
