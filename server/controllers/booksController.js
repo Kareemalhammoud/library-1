@@ -1,5 +1,7 @@
 const pool = require("../config/db");
 
+const { isAdmin } = require("../middleware/adminOnly");
+
 // Cache the books-table column set after the first request. The schema
 // doesn't change at runtime, and SHOW COLUMNS adds a round-trip per call —
 // noticeable when the DB is in a different region than the API.
@@ -88,12 +90,17 @@ function bookSelectSql(columns) {
     : has("copies")
       ? "copies"
       : "0 AS copies";
+  const totalCopiesExpr = has("total_copies")
+    ? "total_copies AS totalCopies"
+    : has("available_copies")
+      ? "available_copies AS totalCopies"
+      : "0 AS totalCopies";
 
   return `
     ${idExpr}, ${titleExpr}, ${authorExpr}, ${genreExpr}, ${languageExpr},
     ${campusExpr}, ${yearExpr}, ${ratingExpr}, ${pagesExpr}, ${publisherExpr},
     ${isbnExpr}, ${descriptionExpr}, ${authorBiographyExpr}, ${coverExpr},
-    ${colorExpr}, ${genreColorExpr}, ${badgeExpr}, ${copiesExpr}
+    ${colorExpr}, ${genreColorExpr}, ${badgeExpr}, ${copiesExpr}, ${totalCopiesExpr}
   `;
 }
 
@@ -298,6 +305,7 @@ const createBook = async (req, res) => {
     if (copies !== null) {
       addField("available_copies", copies, true);
       addField("copies", copies, true);
+      addField("total_copies", copies, true);
     }
     if (columns.has("created_by")) addField("created_by", req.user.id, true);
 
@@ -359,7 +367,7 @@ const updateBook = async (req, res) => {
     }
 
     const existing = existingRows[0];
-    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id) {
+    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id && !isAdmin(req.user)) {
       return res.status(403).json({ message: "Not authorized to update this book" });
     }
 
@@ -412,6 +420,7 @@ const updateBook = async (req, res) => {
     if (copies !== null) {
       addSet("available_copies", copies);
       addSet("copies", copies);
+      addSet("total_copies", copies);
     }
 
     if (sets.length === 0) {
@@ -447,7 +456,7 @@ const deleteBook = async (req, res) => {
     }
 
     const existing = existingRows[0];
-    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id) {
+    if (columns.has("created_by") && existing.created_by !== null && existing.created_by !== req.user.id && !isAdmin(req.user)) {
       return res.status(403).json({ message: "Not authorized to delete this book" });
     }
 

@@ -5,7 +5,7 @@ import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
 
-const API_BASE = 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
 
 // Images that rotate in the hero banner at the top of the page
 const HERO_SLIDES = [

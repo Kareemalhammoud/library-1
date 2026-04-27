@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { getEvent, getEvents } from '@/utils/api'
-import { getStoredUser } from '@/utils'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { deleteEvent, getEvent, getEvents } from '@/utils/api'
+import { getStoredUser, isAdminUser } from '@/utils'
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -54,6 +54,8 @@ function getSeatState(eventItem, registeredEvents) {
 
 function EventDetails() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const admin = isAdminUser()
   const [event, setEvent] = useState(null)
   const [allEvents, setAllEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -68,6 +70,17 @@ function EventDetails() {
   const prefix = storedUser?.email ? `${storedUser.email}:` : ''
   const registeredEventsKey = `${prefix}registeredEvents`
   const isRegistered = registeredEvents.some((item) => item.id === event?.id)
+
+  async function handleAdminDelete() {
+    if (!event) return
+    if (!window.confirm(`Delete "${event.title}"? This cannot be undone.`)) return
+    try {
+      await deleteEvent(event.id)
+      navigate('/events', { replace: true })
+    } catch (err) {
+      window.alert(err.message || 'Failed to delete event.')
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -203,10 +216,29 @@ function EventDetails() {
       <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-14 sm:px-6 md:px-10 md:py-16">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_80%,rgba(0,171,142,0.08)_0%,transparent_70%),radial-gradient(ellipse_40%_40%_at_80%_20%,rgba(196,112,95,0.06)_0%,transparent_70%)]" />
         <div className="relative mx-auto max-w-[var(--container-max)]">
-          <Link to="/events" className="mb-6 inline-flex items-center gap-2 text-[0.78rem] font-semibold text-[rgba(240,248,244,0.72)] transition hover:text-white">
-            <span aria-hidden="true">&larr;</span>
-            Back to events
-          </Link>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <Link to="/events" className="inline-flex items-center gap-2 text-[0.78rem] font-semibold text-[rgba(240,248,244,0.72)] transition hover:text-white">
+              <span aria-hidden="true">&larr;</span>
+              Back to events
+            </Link>
+            {admin && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  to={`/events/edit/${event.id}`}
+                  className="rounded-md border border-white/20 bg-white/5 px-4 py-1.5 text-[0.74rem] font-semibold text-[rgba(240,248,244,0.85)] transition hover:border-white/40 hover:bg-white/10"
+                >
+                  Edit Event
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleAdminDelete}
+                  className="rounded-md border border-[#ff9388]/40 bg-[#ff9388]/10 px-4 py-1.5 text-[0.74rem] font-semibold text-[#ff9388] transition hover:bg-[#ff9388]/20"
+                >
+                  Delete Event
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_360px] lg:items-center">
             <div>
@@ -322,8 +354,8 @@ function EventDetails() {
               <div className="space-y-4 text-[0.82rem]">
                 {[
                   ['Format', event.format || 'In-Person'],
-                  ['Category', event.category],
-                  ['Campus', event.location.includes('Byblos') ? 'Byblos' : 'Beirut'],
+                  ['Category', event.category || '—'],
+                  ['Campus', event.location?.includes('Byblos') ? 'Byblos' : 'Beirut'],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-start justify-between gap-4 border-b border-[#eef2ef] pb-3 last:border-b-0 last:pb-0 dark:border-[#2b2b2b]">
                     <span className="text-[#5a6b62] dark:text-[#8c9691]">{label}</span>

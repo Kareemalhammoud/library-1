@@ -443,7 +443,8 @@ const AddEditBook = () => {
                   name="rating"
                   min="0"
                   max="5"
-                  step="0.1"
+                  step="any"
+                  inputMode="decimal"
                   value={formData.rating}
                   onChange={handleChange}
                   className={fieldClassName}

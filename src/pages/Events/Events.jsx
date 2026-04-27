@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { getEvents } from '@/utils/api'
-import { getStoredUser } from '@/utils'
+import { deleteEvent, getEvents } from '@/utils/api'
+import { getStoredUser, isAdminUser } from '@/utils'
 
 // Filter options for the upcoming events section
 const CATEGORIES = ['All', 'Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']
@@ -89,6 +89,17 @@ function Events() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const admin = isAdminUser()
+
+  async function handleDeleteEvent(eventId, eventTitle) {
+    if (!window.confirm(`Delete "${eventTitle}"? This cannot be undone.`)) return
+    try {
+      await deleteEvent(eventId)
+      setEvents((prev) => prev.filter((e) => e.id !== eventId))
+    } catch (err) {
+      window.alert(err.message || 'Failed to delete event.')
+    }
+  }
   const dialogTitleId = confirmed ? 'event-registration-success-title' : 'event-registration-confirm-title'
   const dialogDescriptionId = confirmed ? 'event-registration-success-description' : 'event-registration-confirm-description'
 
@@ -325,7 +336,18 @@ function Events() {
               <h2 className="mb-2 text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] before:mb-[1.15rem] before:block before:h-[3px] before:w-10 before:rounded-full before:bg-gradient-to-r before:from-[#006751] before:to-[rgba(0,103,81,0.35)] dark:before:from-[#5ecba1] dark:before:to-[rgba(94,203,161,0.25)]">Upcoming Events</h2>
               <p className="max-w-[48ch] text-[0.86rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">Browse what&apos;s coming up, or narrow things down by topic, month, or format.</p>
             </div>
-            {activeFilterCount > 0 && <button type="button" className="inline-flex items-center gap-2 rounded-full border border-[#d0ddd8] px-3 py-1.5 text-[0.72rem] font-semibold text-[#5a6b62] transition hover:border-[#1a6644] hover:bg-[#1a6644]/5 hover:text-[#1a6644] dark:border-[#333333] dark:text-[#8c9691] dark:hover:border-[#1a6644] dark:hover:text-[#1a6644]" onClick={clearAll}>Clear all <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1a6644] text-[0.58rem] font-bold text-white dark:bg-[#1a6644] dark:text-white">{activeFilterCount}</span></button>}
+            <div className="flex flex-wrap items-center gap-2">
+              {admin && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/events/add')}
+                  className="rounded-md bg-[#1a6644] px-4 py-2 text-[0.78rem] font-semibold text-white transition hover:bg-[#14533a]"
+                >
+                  + Add Event
+                </button>
+              )}
+              {activeFilterCount > 0 && <button type="button" className="inline-flex items-center gap-2 rounded-full border border-[#d0ddd8] px-3 py-1.5 text-[0.72rem] font-semibold text-[#5a6b62] transition hover:border-[#1a6644] hover:bg-[#1a6644]/5 hover:text-[#1a6644] dark:border-[#333333] dark:text-[#8c9691] dark:hover:border-[#1a6644] dark:hover:text-[#1a6644]" onClick={clearAll}>Clear all <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1a6644] text-[0.58rem] font-bold text-white dark:bg-[#1a6644] dark:text-white">{activeFilterCount}</span></button>}
+            </div>
           </div>
 
           <div className="mb-6 max-w-[560px]">
@@ -436,6 +458,23 @@ function Events() {
                             </button>
                           )}
                           <Link to={`/events/${event.id}`} className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-center text-[0.68rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">Learn More</Link>
+                          {admin && (
+                            <>
+                              <Link
+                                to={`/events/edit/${event.id}`}
+                                className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-center text-[0.68rem] font-semibold text-[#5a6b62] transition hover:border-[#1a6644] hover:text-[#1a6644] sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#8c9691] dark:hover:border-[#5ecba1] dark:hover:text-[#5ecba1]"
+                              >
+                                Edit
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteEvent(event.id, event.title)}
+                                className="rounded-md border border-[#e6c5c0] bg-[#fff5f3] px-3 py-1.5 text-center text-[0.68rem] font-semibold text-[#b5392b] transition hover:bg-[#fbecea] sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#5b3631] dark:bg-[#3a1f1c] dark:text-[#ff9388] dark:hover:bg-[#4a2a25]"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

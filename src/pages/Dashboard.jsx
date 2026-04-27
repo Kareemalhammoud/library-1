@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import defaultPic from "../assets/default-profile.png"
 import { getStoredUser } from "../utils"
-import { getFavorites, removeFavorite } from "../utils/api"
+import { getFavorites, removeFavorite, returnLoan } from "../utils/api"
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
 const DASHBOARD_URL = `${API_BASE}/dashboard`
@@ -22,8 +22,19 @@ function EmptyState({ title, description }) {
 	)
 }
 
-function LoanRow({ entry, variant = "active" }) {
+function LoanRow({ entry, variant = "active", onReturn }) {
 	const navigate = useNavigate()
+	const [returning, setReturning] = useState(false)
+
+	async function handleReturnClick() {
+		if (!onReturn) return
+		setReturning(true)
+		try {
+			await onReturn(entry)
+		} finally {
+			setReturning(false)
+		}
+	}
 	const bookId = entry.book_id
 	const cover = entry.cover
 	const badgeClass =
@@ -120,6 +131,16 @@ function LoanRow({ entry, variant = "active" }) {
 						{variant === "overdue" && "Overdue"}
 						{variant === "renewal" && "Renewed"}
 					</span>
+					{(variant === "active" || variant === "overdue") && onReturn && (
+						<button
+							type="button"
+							onClick={handleReturnClick}
+							disabled={returning}
+							className="rounded-md bg-[#1a6644] px-3 py-1 text-[0.7rem] font-semibold text-white transition hover:bg-[#14533a] disabled:cursor-not-allowed disabled:opacity-60"
+						>
+							{returning ? "Returning..." : "Return"}
+						</button>
+					)}
 				</div>
 			</div>
 		</li>
@@ -230,6 +251,20 @@ function Dashboard() {
 			isActive = false
 		}
 	}, [navigate])
+
+	async function handleReturnLoan(entry) {
+		try {
+			await returnLoan(entry.id)
+			setDashboardData((prev) => ({
+				...prev,
+				activeLoans: prev.activeLoans.filter((l) => l.id !== entry.id),
+				overdue: prev.overdue.filter((l) => l.id !== entry.id),
+				history: [{ ...entry, return_date: new Date().toISOString().slice(0, 10), status: "returned" }, ...prev.history],
+			}))
+		} catch (err) {
+			window.alert(err.message || "Failed to return book.")
+		}
+	}
 
 	async function handleRemoveFavorite(bookId) {
 		setRemovingFavoriteId(bookId)
@@ -540,7 +575,7 @@ function Dashboard() {
 							) : (
 								<ul className="space-y-3">
 									{activeLoans.map((entry) => (
-										<LoanRow key={entry.id} entry={entry} variant="active" />
+										<LoanRow key={entry.id} entry={entry} variant="active" onReturn={handleReturnLoan} />
 									))}
 								</ul>
 							)}
@@ -563,7 +598,7 @@ function Dashboard() {
 							) : (
 								<ul className="space-y-3">
 									{overdue.map((entry) => (
-										<LoanRow key={entry.id} entry={entry} variant="overdue" />
+										<LoanRow key={entry.id} entry={entry} variant="overdue" onReturn={handleReturnLoan} />
 									))}
 								</ul>
 							)}
