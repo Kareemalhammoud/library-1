@@ -52,6 +52,80 @@ foreign keys to `users` and `books`.
 
 ---
 
+## Perla Imad - Phase 2 Full-Stack Ownership
+
+Perla's Phase 1 ownership covered the Book List view, Book Detail page,
+Services pages, and responsive behavior. In Phase 2, those surfaces were
+connected to the live backend and expanded with persistent data flows.
+
+### Frontend pages owned
+
+- **List View (`/books`)** - fetches the collection from the backend and
+  sends search/filter/sort parameters to `GET /api/books`.
+- **Book Detail (`/books/:id`)** - fetches a single book from
+  `GET /api/books/:id`, then integrates reviews, favorites, borrowing,
+  and reservation actions.
+- **Services (`/services`)** - persists study-room bookings and
+  librarian/help requests instead of leaving them only in local state.
+- **Responsive Design QA** - preserved mobile/desktop behavior after
+  replacing mock/static data with asynchronous API calls.
+
+### Backend and database work owned
+
+- Added persistent **study room bookings** with the
+  `study_room_bookings` table.
+- Added persistent **librarian/help requests** with the `help_requests`
+  table.
+- Added persistent **book reservations** with the `reservations` table.
+- Extended borrowing behavior so `POST /api/books/:id/borrow` uses the
+  same loan rules as `POST /api/loans`.
+- Added `POST /api/books/:id/reserve` for unavailable books.
+- Hardened study-room validation:
+  - campus must be `Beirut` or `Byblos`
+  - room must exist
+  - room must belong to the selected campus
+  - duration and time slot must be valid
+  - group size must be between 1 and 20
+  - duplicate active bookings for the same room/date/time are rejected
+- Hardened borrowing and reservation logic:
+  - a user cannot borrow a missing book
+  - a user cannot borrow when no copies are available
+  - a user cannot hold duplicate active loans for the same book
+  - a user cannot reserve a book they already borrowed
+  - available books cannot be reserved; users are told to borrow instead
+  - returning a book restores inventory without exceeding `total_copies`
+
+### Frontend states handled
+
+- Loading states while books and detail data are fetched.
+- Error states for failed book loads, failed borrow/reserve actions, and
+  failed review submission.
+- Success messages for borrow, reserve, study-room booking, help request,
+  favorite toggle, and review flows.
+- Defensive fallbacks for cover images and legacy API field names.
+
+### Live verification performed
+
+The deployed Render API was smoke-tested against the Railway MySQL
+database. The tested paths included:
+
+- `GET /api/books`
+- `GET /api/books/:id`
+- `GET /api/books?search=...&availability=Available&sort=title-asc`
+- `POST /api/auth/register`
+- `POST /api/books/:id/borrow`
+- duplicate borrow rejection (`409`)
+- `POST /api/books/:id/reserve`
+- available-book reservation rejection (`409`)
+- `POST /api/loans/:id/return`
+- `POST /api/study-room-bookings`
+- duplicate study-room slot rejection (`409`)
+- room/campus mismatch rejection (`400`)
+- `POST /api/help-requests`
+- unauthenticated private service reads rejected with `401`
+
+---
+
 ## Deployed Application
 
 | Resource | URL |
@@ -188,8 +262,10 @@ Response shape for both endpoints:
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/books` | — | List all books. Optional query params: `search`, `genre`, `language`, `limit`. |
-| GET | `/api/books/:id` | — | Single book by id. 404 if not found. |
+| GET | `/api/books` | public | List all books. Optional query params: `search`, `genre`, `language`, `campus`, `availability`, `sort`, `limit`. |
+| GET | `/api/books/:id` | public | Single book by id. 404 if not found. |
+| POST | `/api/books/:id/borrow` | auth | Borrow a book through Book Detail. Uses the same loan rules as `/api/loans`. |
+| POST | `/api/books/:id/reserve` | auth | Reserve an unavailable book. 409 if copies are available or the user already borrowed/reserved it. |
 | POST | `/api/books` | 🛡️ admin | Create a book. Required body: `title`, `author`. Optional: `genre`, `language`, `year`, `pages`, `rating`, `publisher`, `isbn`, `description`, `cover`, `availableCopies`. |
 | PUT | `/api/books/:id` | 🛡️ admin | Update a book. Same body shape as `POST`. |
 | DELETE | `/api/books/:id` | 🛡️ admin | Delete a book. |
@@ -248,7 +324,9 @@ Event response shape:
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/loans` | ✅ | Active (un-returned) loans for the current user. |
-| POST | `/api/loans` | ✅ | Borrow a book. Body: `{ "bookId": 0 }`. Issues a 14-day loan. 404 if the book doesn't exist; **409** if you already have an active loan on that book. |
+| POST | `/api/loans` | auth | Borrow a book. Body: `{ "bookId": 0 }`. Issues a 14-day loan. 404 if the book does not exist; 409 if you already have an active loan or no copies are available. |
+| POST | `/api/loans/:id/return` | auth | Return one of your active loans and restore one available copy without exceeding `total_copies`. |
+| POST | `/api/loans/reservations` | auth | Reserve an unavailable book. Body: `{ "bookId": 0 }`. |
 
 Loan response shape:
 
@@ -287,6 +365,17 @@ Loan response shape:
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/dashboard` | ✅ | Aggregated view for the logged-in user — active loans, history, overdue, and renewals — in a single payload. |
+
+### Services
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/study-room-bookings` | public | Create a study-room booking. Body: `{ campus, room, date, duration, time, people, studentId }`. Validates room/campus matching and rejects duplicate active slots with 409. |
+| GET | `/api/study-room-bookings` | admin | List study-room bookings for admin review. |
+| PATCH | `/api/study-room-bookings/:id/status` | admin | Update booking status to `pending`, `confirmed`, or `cancelled`. |
+| POST | `/api/help-requests` | public | Create a librarian/help request. Body: `{ message, name?, email? }`. |
+| GET | `/api/help-requests` | admin | List help requests for admin review. |
+| PATCH | `/api/help-requests/:id/status` | admin | Update help request status to `open`, `in_progress`, or `resolved`. |
 
 ### Authorization Model
 
@@ -416,3 +505,4 @@ Safari has spotty SVG-favicon support, so the tab icon was blank in
 Safari. We generated a 64×64 PNG (entirely with Python `struct` +
 `zlib`, no image libraries) and declared it in `index.html` before
 the SVG so Safari picks the PNG and other browsers still get the SVG.
+
