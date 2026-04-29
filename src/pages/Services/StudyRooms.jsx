@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+
 
 // ─── Accent colour for this page: sage green (sage card) ─────────────────────
 // bg-[#d6ede0]  accent-[#1a6644]
 
+
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
+
+// Campus-specific room data including library names, equipment, and room lists
+// Each campus object contains library information and available study rooms
 const CAMPUS_ROOMS = {
   Beirut: {
     library: "Our Libraries (RNL)",
@@ -42,6 +48,9 @@ const CAMPUS_ROOMS = {
   },
 };
 
+
+// Array of rules and guidelines for using Group Study Rooms (GSRs)
+// These are the terms and conditions that users must follow
 const RULES = [
   "GSRs can be booked for a maximum of 2 hours at any one time, renewable upon availability.",
   "When vacant, rooms are available on a first-come, first-served basis.",
@@ -54,8 +63,11 @@ const RULES = [
   "Reservation schedule is updated every Friday.",
 ];
 
+
 // ─── Shared back button ───────────────────────────────────────────────────────
 
+
+// Reusable navigation button component for returning to services page
 const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -68,21 +80,33 @@ const BackButton = ({ onClick }) => (
   </button>
 );
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+BackButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+};
+
+
+// ─── Main Study Rooms Page Component ──────────────────────────────────────────
+// This component renders the Group Study Rooms booking page with campus selection,
+// room listings, and usage rules. Users can switch between Beirut and Byblos campuses.
+
 
 const StudyRoomsPage = () => {
   const navigate = useNavigate();
-  // Campus tab state
+  // State to track which campus is currently selected (Beirut or Byblos)
   const [campus, setCampus] = useState("Beirut");
+  // Get the data for the currently selected campus
   const data = CAMPUS_ROOMS[campus];
 
-  return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
-      {/* Hero — sage green accent */}
+  return (
+    // Main semantic container for the page content
+    <main className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
+
+
+      {/* Hero section with page title and description */}
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#1a6644]/8 pointer-events-none" />
-        <BackButton onClick={() => navigate("/Services")} />
+        <BackButton onClick={() => navigate("/services")} />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Services · Study Rooms
         </p>
@@ -94,29 +118,33 @@ const StudyRoomsPage = () => {
         </p>
       </section>
 
+
       <div className="px-8 md:px-16 py-10 max-w-4xl">
 
-        {/* Quick stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+
+        {/* Quick statistics overview section */}
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {[
             { label: "Max booking",   value: "2 hrs" },
             { label: "Min group size", value: "2 people" },
             { label: "Beirut rooms",   value: "5" },
             { label: "Byblos rooms",   value: "14" },
           ].map((s) => (
-            <div key={s.label} className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4">
+            <article key={s.label} className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4">
               <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mb-1">{s.label}</p>
               <p className="text-[#162a1f] dark:text-white text-xl font-bold">{s.value}</p>
-            </div>
+            </article>
           ))}
-        </div>
+        </section>
 
-        {/* Campus toggle + room list */}
-        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
+
+        {/* Room selection and booking section */}
+        <section className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-4">Available rooms</h3>
 
-          {/* Toggle pills */}
-          <div className="flex gap-2 mb-5">
+
+          {/* Campus selection navigation */}
+          <nav className="flex gap-2 mb-5">
             {["Beirut", "Byblos"].map((c) => (
               <button
                 key={c}
@@ -130,9 +158,10 @@ const StudyRoomsPage = () => {
                 {c === "Beirut" ? "🏙 Beirut (RNL)" : "🌿 Byblos (JGJL / HSL)"}
               </button>
             ))}
-          </div>
+          </nav>
 
-          {/* Library name + equipment badge */}
+
+          {/* Library information and equipment details */}
           <p className="text-[#5e7a68] dark:text-[#888] text-[12px] mb-1">{data.library}</p>
           <div className="flex flex-wrap gap-2 mb-4">
             <span className="bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#1a6644] dark:text-[#5ecba1] text-[11px] font-medium px-3 py-1 rounded-full">
@@ -145,20 +174,22 @@ const StudyRoomsPage = () => {
             )}
           </div>
 
-          {/* Room grid */}
+
+          {/* Grid of available rooms for the selected campus */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {data.rooms.map((room) => (
-              <div
+              <article
                 key={room.id}
                 className="bg-[#f7fbf8] dark:bg-[#2e2e2e] border border-[#cfe2d6] dark:border-[#333] rounded-xl px-4 py-3"
               >
                 <p className="text-[#162a1f] dark:text-white text-[13px] font-semibold">{room.name}</p>
                 <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mt-0.5">{campus} campus</p>
-              </div>
+              </article>
             ))}
           </div>
 
-          {/* Book CTA */}
+
+          {/* Call-to-action button for booking */}
           <a
             href={
               campus === "Beirut"
@@ -177,10 +208,11 @@ const StudyRoomsPage = () => {
             </svg>
             Book a room at {campus} campus
           </a>
-        </div>
+        </section>
 
-        {/* Rules */}
-        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
+
+        {/* Usage rules and guidelines section */}
+        <section className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-3">Rules for using GSRs</h3>
           <ul className="space-y-2">
             {RULES.map((r) => (
@@ -190,11 +222,16 @@ const StudyRoomsPage = () => {
               </li>
             ))}
           </ul>
-        </div>
+        </section>
+
 
       </div>
-    </div>
+    </main>
   );
 };
 
+
 export default StudyRoomsPage;
+
+
+

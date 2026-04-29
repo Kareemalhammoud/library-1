@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+
 
 // ─── Accent colour for this page: pale mint (mint card) ──────────────────────
 // bg-[#eaf5ee]  accent-[#1a6644]
 
+
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
+
+// Array of services offered by the Writing Center
+// Each service includes title, description, and icon identifier
 const SERVICES_OFFERED = [
   {
     title: "One-on-one tutoring",
@@ -39,19 +45,27 @@ const SERVICES_OFFERED = [
   },
 ];
 
+
+// Physical locations and contact information for Writing Center
 const LOCATIONS = [
   { campus: "Beirut", location: "Our Libraries, Room 807", phone: "+961-1-786456 Ext. 1583" },
   { campus: "Byblos", location: "Joseph G. Jabbra Library, Room 206", phone: "+961-9-547254 Ext. 2244" },
 ];
 
+
+// Staff directory with names, titles, and email addresses
 const STAFF = [
   { name: "Dr. Reine Azzi",  title: "Director, Writing and Communication Center",           email: "reine.azzi@lau.edu.lb" },
   { name: "Ms. Maya Akiki",  title: "Academic Writing Coordinator",                         email: "maya.akiki@lau.edu.lb" },
 ];
 
+
 // ─── Icon component ───────────────────────────────────────────────────────────
 
+
+// Reusable icon component that renders SVG icons based on name prop
 const WIcon = ({ name }) => {
+  // Icon definitions using SVG path elements
   const icons = {
     person: <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>,
     group:  <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
@@ -68,8 +82,15 @@ const WIcon = ({ name }) => {
   );
 };
 
+WIcon.propTypes = {
+  name: PropTypes.oneOf(["person", "group", "door", "pen", "mic", "ai"]).isRequired,
+};
+
+
 // ─── Shared back button ───────────────────────────────────────────────────────
 
+
+// Reusable navigation button component for returning to services page
 const BackButton = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -82,20 +103,31 @@ const BackButton = ({ onClick }) => (
   </button>
 );
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+BackButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+};
+
+
+// ─── Main Writing Center Page Component ──────────────────────────────────────
+// This component renders the Writing & Communication Center services page
+// with information about available services, locations, and contact details.
+
 
 const WritingCenterPage = () => {
   const navigate = useNavigate();
-  // Toggle for showing contact staff
+  // State to control visibility of staff directory
   const [showStaff, setShowStaff] = useState(false);
 
-  return (
-    <div className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
 
-      {/* Hero — pale mint accent */}
+  return (
+    // Main semantic container for the page content
+    <main className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
+
+
+      {/* Hero section with page title and call-to-action */}
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#1a6644]/8 pointer-events-none" />
-        <BackButton onClick={() => navigate("/Services")} />
+        <BackButton onClick={() => navigate("/services")} />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Services · Writing Center
         </p>
@@ -116,21 +148,24 @@ const WritingCenterPage = () => {
         </a>
       </section>
 
+
       <div className="px-8 md:px-16 py-10 max-w-4xl">
 
-        {/* Intro quote */}
-        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
-          <p className="text-[#3d6650] dark:text-[#888] text-[14px] leading-relaxed italic">
-            "Whether you are brainstorming, drafting, revising, or finalizing your work, our team works with you at every stage of the process to better provide guidance on content, structure, language, delivery and the responsible use of AI."
-          </p>
-        </div>
 
-        {/* Services grid */}
-        <div className="mb-4">
+        {/* Introductory quote section */}
+        <blockquote className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
+          <p className="text-[#3d6650] dark:text-[#888] text-[14px] leading-relaxed italic">
+            &ldquo;Whether you are brainstorming, drafting, revising, or finalizing your work, our team works with you at every stage of the process to better provide guidance on content, structure, language, delivery and the responsible use of AI.&rdquo;
+          </p>
+        </blockquote>
+
+
+        {/* Services offered section */}
+        <section className="mb-4">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-3">What we offer</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {SERVICES_OFFERED.map((s) => (
-              <div
+              <article
                 key={s.title}
                 className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4 flex gap-3"
               >
@@ -141,23 +176,24 @@ const WritingCenterPage = () => {
                   <p className="text-[#162a1f] dark:text-white text-[13px] font-bold mb-0.5">{s.title}</p>
                   <p className="text-[#5e7a68] dark:text-[#888] text-[12px] leading-relaxed">{s.desc}</p>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Locations */}
-        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
+
+        {/* Hours and locations section */}
+        <section className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
           <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-3">Hours & location</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             {LOCATIONS.map((l) => (
-              <div key={l.campus} className="bg-[#eaf5ee] dark:bg-[#2e2e2e] rounded-xl p-4">
+              <article key={l.campus} className="bg-[#eaf5ee] dark:bg-[#2e2e2e] rounded-xl p-4">
                 <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-wider uppercase mb-1">
                   {l.campus}
                 </p>
                 <p className="text-[#162a1f] dark:text-white text-[13px] font-semibold mb-0.5">{l.location}</p>
                 <p className="text-[#5e7a68] dark:text-[#888] text-[12px]">{l.phone}</p>
-              </div>
+              </article>
             ))}
           </div>
           <a
@@ -168,10 +204,11 @@ const WritingCenterPage = () => {
           >
             View weekly schedule →
           </a>
-        </div>
+        </section>
 
-        {/* Contact / Staff toggle */}
-        <div className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
+
+        {/* Contact information section */}
+        <section className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold">Contact us</h3>
             <button
@@ -182,6 +219,7 @@ const WritingCenterPage = () => {
             </button>
           </div>
 
+
           <div className="flex flex-col gap-2 mb-4">
             <a href="mailto:wcc@lau.edu.lb" className="flex items-center gap-2 text-[13px] text-[#162a1f] dark:text-white">
               <span className="w-6 h-6 rounded-lg bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center text-[#1a6644] dark:text-[#5ecba1]">
@@ -191,11 +229,12 @@ const WritingCenterPage = () => {
             </a>
           </div>
 
-          {/* Collapsible staff list */}
+
+          {/* Collapsible staff directory */}
           {showStaff && (
             <div className="border-t border-[#cfe2d6] dark:border-[#333] pt-4 space-y-3">
               {STAFF.map((s) => (
-                <div key={s.name} className="flex items-center gap-3">
+                <article key={s.name} className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-[#eaf5ee] dark:bg-[#2e2e2e] flex items-center justify-center text-[#1a6644] dark:text-[#5ecba1] text-[12px] font-bold flex-shrink-0">
                     {s.name.split(" ").filter(w => w.match(/^[A-Z]/)).map(w => w[0]).join("").slice(0, 2)}
                   </div>
@@ -206,15 +245,20 @@ const WritingCenterPage = () => {
                       {s.email}
                     </a>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
-        </div>
+        </section>
+
 
       </div>
-    </div>
+    </main>
   );
 };
 
+
 export default WritingCenterPage;
+
+
+

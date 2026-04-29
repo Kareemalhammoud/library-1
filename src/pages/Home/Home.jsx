@@ -59,7 +59,7 @@ const QUICK_ACTIONS = [
     title: 'Discover Study Spaces',
     body: 'Find quiet areas and comfortable places to focus and work.',
     detail: 'Reserve a space in advance',
-    href: '/services/StudyRooms',
+    href: '/services/studyrooms',
     colors: 'bg-[linear-gradient(150deg,rgba(245,249,246,1)_0%,rgba(237,245,240,1)_100%)] text-[#1C2B24] border-[#d0ddd8] dark:bg-[#1f1f1f] dark:border-[#333333] dark:text-[#f5f7f6] dark:[background-image:none]',
     iconWrap: 'bg-[rgba(68,124,96,0.09)] border-[rgba(68,124,96,0.14)] text-[#44785E] dark:bg-[#1a3428] dark:border-[#2e5541] dark:text-[#5ecba1]',
     eyebrowColor: 'text-[#44785E] dark:text-[#5ecba1]',

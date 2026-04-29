@@ -68,29 +68,54 @@ export default function ListView() {
   const [sort, setSort] = useState('default')
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [genreOptions, setGenreOptions] = useState(['All'])
 
   useEffect(() => {
+    let cancelled = false
+
     const fetchBooks = async () => {
       try {
-        setLoading(true)
+        setRefreshing(true)
         setError('')
-        const data = await getBooks()
-        setBooks(data.map(normalizeBook))
+        const data = await getBooks({
+          search,
+          genre,
+          language,
+          campus,
+          availability: avail,
+          sort,
+        })
+        if (cancelled) return
+        const normalized = data.map(normalizeBook)
+        setBooks(normalized)
+        setGenreOptions((prev) => [
+          'All',
+          ...new Set([
+            ...prev.filter((g) => g !== 'All'),
+            ...normalized.map((book) => book.genre).filter(Boolean),
+          ]),
+        ])
       } catch (err) {
+        if (cancelled) return
         setError(err.message || 'Something went wrong')
       } finally {
-        setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+          setRefreshing(false)
+        }
       }
     }
 
     fetchBooks()
-  }, [])
+    return () => {
+      cancelled = true
+    }
+  }, [search, genre, language, campus, avail, sort])
 
-  const genres = useMemo(() => {
-    return ['All', ...new Set(books.map((book) => book.genre).filter(Boolean))]
-  }, [books])
+  const genres = genreOptions
 
   useEffect(() => {
     setPage(1)
@@ -213,6 +238,7 @@ export default function ListView() {
           <div className="flex items-center gap-3">
             <p className="m-0 pb-1 text-[0.85rem] text-[#aaa]" aria-live="polite" aria-atomic="true">
               <span className="text-[1.1rem] font-bold text-[#555] dark:text-white">{filtered.length}</span> books
+              {refreshing && <span className="ml-2 text-[0.75rem] text-[#888]">Updating...</span>}
             </p>
             {admin && (
               <button
