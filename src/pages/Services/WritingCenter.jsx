@@ -47,7 +47,7 @@ const SERVICES_OFFERED = [
 
 // Physical locations and contact information for Writing Center
 const LOCATIONS = [
-  { campus: "Beirut", location: "Riyad Nassar Library, Room 807", phone: "+961-1-786456 Ext. 1583" },
+  { campus: "Beirut", location: "Our Libraries, Room 807", phone: "+961-1-786456 Ext. 1583" },
   { campus: "Byblos", location: "Joseph G. Jabbra Library, Room 206", phone: "+961-9-547254 Ext. 2244" },
 ];
 

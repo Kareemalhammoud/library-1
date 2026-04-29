@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 // Each campus object contains library information and available study rooms
 const CAMPUS_ROOMS = {
   Beirut: {
-    library: "Riyad Nassar Library (RNL)",
+    library: "Our Libraries (RNL)",
     equipment: "Whiteboards and flipcharts",
     cctv: true,
     rooms: [

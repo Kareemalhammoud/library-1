@@ -1,12 +1,16 @@
-import { useMemo, useState } from 'react'
-import { EVENTS } from '@/data/eventsData'
+import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { deleteEvent, getEvents } from '@/utils/api'
+import { getStoredUser, isAdminUser } from '@/utils'
 
+// Filter options for the upcoming events section
 const CATEGORIES = ['All', 'Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']
 const MONTHS = ['All Months', 'March', 'April', 'May', 'June']
 const FORMATS = ['All Formats', 'In-Person', 'Online']
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+// Date helpers — used across event cards and the featured section
 function formatDate(dateStr) {
   const d = new Date(`${dateStr}T00:00:00`)
   return { month: MONTH_NAMES[d.getMonth()], day: d.getDate(), weekday: DAY_NAMES[d.getDay()] }
@@ -17,6 +21,7 @@ function formatFullDate(dateStr) {
   return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
+// Each event category gets its own accent color
 function categoryColor(category) {
   const map = {
     Workshops: 'text-[#006751] dark:text-[#5ecba1]',
@@ -30,16 +35,106 @@ function categoryColor(category) {
   return map[category] || 'text-[#006751] dark:text-[#5ecba1]'
 }
 
+// Pull the user's registered events from localStorage
+function getRegisteredEvents() {
+  const storedUser = getStoredUser()
+  const prefix = storedUser?.email ? `${storedUser.email}:` : ''
+  const rawRegisteredEvents =
+    localStorage.getItem(`${prefix}registeredEvents`) ||
+    localStorage.getItem('registeredEvents')
+
+  if (!rawRegisteredEvents) return []
+
+  try {
+    const parsed = JSON.parse(rawRegisteredEvents)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+// Figures out seat availability and whether the user is already registered
+function getSeatState(eventItem, registeredEvents) {
+  if (!eventItem.seats) {
+    return {
+      isRegistered: registeredEvents.some((item) => item.id === eventItem.id),
+      effectiveRegistered: null,
+      seatsLeft: null,
+      isFull: false,
+    }
+  }
+
+  const isRegistered = registeredEvents.some((item) => item.id === eventItem.id)
+  const effectiveRegistered = Math.min(eventItem.seats, eventItem.registered + (isRegistered ? 1 : 0))
+  const seatsLeft = Math.max(0, eventItem.seats - effectiveRegistered)
+
+  return {
+    isRegistered,
+    effectiveRegistered,
+    seatsLeft,
+    isFull: seatsLeft === 0,
+  }
+}
+
 function Events() {
+  const navigate = useNavigate()
   const [activeCategory, setActiveCategory] = useState('All')
   const [search, setSearch] = useState('')
   const [month, setMonth] = useState('All Months')
   const [format, setFormat] = useState('All Formats')
+  const [registeredEvents, setRegisteredEvents] = useState([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const admin = isAdminUser()
 
-  const featuredEvent = EVENTS.find((e) => e.featured)
+  async function handleDeleteEvent(eventId, eventTitle) {
+    if (!window.confirm(`Delete "${eventTitle}"? This cannot be undone.`)) return
+    try {
+      await deleteEvent(eventId)
+      setEvents((prev) => prev.filter((e) => e.id !== eventId))
+    } catch (err) {
+      window.alert(err.message || 'Failed to delete event.')
+    }
+  }
+  const dialogTitleId = confirmed ? 'event-registration-success-title' : 'event-registration-confirm-title'
+  const dialogDescriptionId = confirmed ? 'event-registration-success-description' : 'event-registration-confirm-description'
 
+  // The one event marked as "featured" gets its own big section
+  // MySQL TINYINT(1) comes back as 0/1, so accept both forms.
+  const featuredEvent = events.find((e) => Boolean(e.featured))
+
+  useEffect(() => {
+    setRegisteredEvents(getRegisteredEvents())
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
+    getEvents()
+      .then((data) => {
+        if (cancelled) return
+        setEvents(data)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setLoadError(error.message || 'Failed to load events')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Apply category, month, format, and search filters to the event list
   const filtered = useMemo(() => {
-    let list = EVENTS.filter((e) => !e.featured)
+    let list = events.filter((e) => !e.featured)
 
     if (activeCategory !== 'All') list = list.filter((e) => e.category === activeCategory)
     if (month !== 'All Months') {
@@ -55,7 +150,7 @@ function Events() {
     }
 
     return list
-  }, [activeCategory, search, month, format])
+  }, [events, activeCategory, search, month, format])
 
   const activeFilterCount = (activeCategory !== 'All' ? 1 : 0) + (month !== 'All Months' ? 1 : 0) + (format !== 'All Formats' ? 1 : 0) + (search.trim() ? 1 : 0)
 
@@ -66,13 +161,70 @@ function Events() {
     setFormat('All Formats')
   }
 
+  // Handle register/unregister — redirects to login if not signed in
+  function handleRegister(eventItem) {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/events' } })
+      return
+    }
+
+    const storedUser = getStoredUser()
+    const prefix = storedUser?.email ? `${storedUser.email}:` : ''
+    const key = `${prefix}registeredEvents`
+    const currentRegisteredEvents = getRegisteredEvents()
+    const seatState = getSeatState(eventItem, currentRegisteredEvents)
+
+    if (seatState.isRegistered) {
+      const nextRegisteredEvents = currentRegisteredEvents.filter((item) => item.id !== eventItem.id)
+      localStorage.setItem(key, JSON.stringify(nextRegisteredEvents))
+      setRegisteredEvents(nextRegisteredEvents)
+      return
+    }
+
+    if (seatState.isFull) return
+
+    setSelectedEvent(eventItem)
+    setConfirmed(false)
+    setModalOpen(true)
+  }
+
+  function handleConfirmRegistration() {
+    if (!selectedEvent) return
+
+    const storedUser = getStoredUser()
+    const prefix = storedUser?.email ? `${storedUser.email}:` : ''
+    const key = `${prefix}registeredEvents`
+    const currentRegisteredEvents = getRegisteredEvents()
+    const seatState = getSeatState(selectedEvent, currentRegisteredEvents)
+
+    if (seatState.isRegistered || seatState.isFull) return
+
+    const nextRegisteredEvents = [
+      ...currentRegisteredEvents,
+      { id: selectedEvent.id, title: selectedEvent.title, date: selectedEvent.date }
+    ]
+
+    localStorage.setItem(key, JSON.stringify(nextRegisteredEvents))
+    setRegisteredEvents(nextRegisteredEvents)
+    setConfirmed(true)
+  }
+
+  function handleCloseModal() {
+    setModalOpen(false)
+    setConfirmed(false)
+    setSelectedEvent(null)
+  }
+
   return (
-    <div className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
+    <main className="min-h-screen bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
+      {/* Hero section — split layout with intro text and image grid */}
       <section className="grid md:min-h-[480px] md:grid-cols-2">
         <div className="relative flex items-center overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-9 sm:px-6 sm:py-12 md:px-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_80%,rgba(0,171,142,0.07)_0%,transparent_70%),radial-gradient(ellipse_40%_40%_at_80%_20%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
           <div className="relative max-w-[480px]">
-            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Riyad Nassar Library</p>
+            <p className="mb-4 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[#5ecba1]">Our Libraries</p>
             <h1 className="mb-5 text-[clamp(1.8rem,3.5vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.035em] text-[rgba(240,248,244,0.96)]">Library Events</h1>
             <p className="mb-8 max-w-[42ch] text-[0.9rem] leading-[1.75] text-[rgba(240,248,244,0.48)]">Author talks, research workshops, film screenings, poetry evenings: the library is where ideas find their audience and community takes shape.</p>
             <div className="mb-8 flex flex-wrap gap-3">
@@ -81,7 +233,7 @@ function Events() {
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2">
               <span className="h-[7px] w-[7px] rounded-full bg-[#5ecba1] shadow-[0_0_0_3px_rgba(94,203,161,0.18)]" />
-              <span className="text-[0.72rem] font-semibold text-[rgba(240,248,244,0.55)]">{EVENTS.length} events this month</span>
+              <span className="text-[0.72rem] font-semibold text-[rgba(240,248,244,0.55)]">{events.length} events this month</span>
             </div>
           </div>
         </div>
@@ -100,15 +252,17 @@ function Events() {
         </div>
       </section>
 
+      {/* Featured event — highlighted with its own image, details, and registration */}
       {featuredEvent && (() => {
         const fd = formatDate(featuredEvent.date)
-        const seatsLeft = featuredEvent.seats ? featuredEvent.seats - featuredEvent.registered : null
-        const pct = featuredEvent.seats ? (featuredEvent.registered / featuredEvent.seats) * 100 : 0
+        const featuredSeatState = getSeatState(featuredEvent, registeredEvents)
+        const seatsLeft = featuredSeatState.seatsLeft
+        const pct = featuredEvent.seats ? (featuredSeatState.effectiveRegistered / featuredEvent.seats) * 100 : 0
 
         return (
           <section className="border-b border-[rgba(0,103,81,0.06)] bg-[linear-gradient(170deg,rgba(0,103,81,0.035)_0%,rgba(200,190,170,0.055)_100%)] px-5 py-16 dark:border-[#333333] dark:bg-[linear-gradient(170deg,rgba(18,18,18,0.94)_0%,rgba(31,31,31,0.9)_100%)]">
             <div className="mx-auto grid max-w-[var(--container-max)] gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
-              <div className="lg:sticky lg:top-8 lg:self-start">
+              <div className="lg:sticky lg:top-24 lg:self-start">
                 <div className="relative overflow-hidden rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.10),0_1px_3px_rgba(0,0,0,0.06)]">
                   <img src={featuredEvent.image} alt={featuredEvent.title} className="h-full w-full object-cover" />
                   <div className="absolute left-4 top-4 flex w-14 flex-col items-center rounded-[10px] border border-white/12 bg-[rgba(6,26,18,0.78)] py-2 shadow-[0_4px_16px_rgba(0,0,0,0.28)] backdrop-blur-[10px]">
@@ -141,13 +295,32 @@ function Events() {
                 </div>
                 {featuredEvent.seats && (
                   <div className="mb-7 flex items-center gap-3">
-                    <div className="h-[5px] w-[140px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${pct}%` }} /></div>
+                    <div
+                      className="h-[5px] w-[140px] overflow-hidden rounded bg-[#d0ddd8] dark:bg-[#333333]"
+                      role="progressbar"
+                      aria-label={`Registration progress for ${featuredEvent.title}`}
+                      aria-valuemin={0}
+                      aria-valuemax={featuredEvent.seats}
+                      aria-valuenow={featuredEvent.registered}
+                    >
+                      <div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${pct}%` }} />
+                    </div>
                     <span className="text-[0.72rem] font-semibold text-[#006751]/70 dark:text-[#5ecba1]/80">{seatsLeft} of {featuredEvent.seats} seats remaining</span>
                   </div>
                 )}
-                <div className="flex flex-wrap gap-3">
-                  <button type="button" className="rounded-lg bg-[#1a6644] px-6 py-2.5 text-[0.82rem] font-semibold text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] transition hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]">Reserve a Spot</button>
-                  <button type="button" className="rounded-lg border border-[#d0ddd8] px-6 py-2.5 text-[0.82rem] font-semibold text-[#1C2B24] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#333333] dark:text-[#f5f7f6] dark:hover:border-[#5ecba1] dark:hover:bg-[#1f1f1f]">Learn More</button>
+                <div className="flex flex-wrap items-center gap-3">
+                  {featuredEvent.seats && (
+                    <button
+                      type="button"
+                      onClick={() => handleRegister(featuredEvent)}
+                      disabled={featuredSeatState.isFull && !featuredSeatState.isRegistered}
+                      aria-label={`${featuredSeatState.isRegistered ? 'Cancel registration for' : featuredSeatState.isFull ? 'Seats are full for' : 'Reserve a spot for'} ${featuredEvent.title}`}
+                      className={`rounded-lg px-6 py-2.5 text-[0.82rem] font-semibold transition ${featuredSeatState.isRegistered ? 'bg-[#cfcfcf] text-[#4f4f4f] hover:bg-[#bdbdbd] dark:bg-[#4a4a4a] dark:text-[#f1f1f1] dark:hover:bg-[#5a5a5a]' : 'bg-[#1a6644] text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]'} disabled:cursor-not-allowed disabled:bg-[#b9b9b9] disabled:text-[#666] dark:disabled:bg-[#355246] dark:disabled:text-[#d7e4de]`}
+                    >
+                      {featuredSeatState.isRegistered ? 'Cancel Registration' : featuredSeatState.isFull ? 'Seats Full' : 'Reserve a Spot'}
+                    </button>
+                  )}
+                  <Link to={`/events/${featuredEvent.id}`} className="rounded-lg border border-[#d0ddd8] px-6 py-2.5 text-center text-[0.82rem] font-semibold text-[#1C2B24] transition hover:border-[#006751] hover:bg-[#006751]/5 dark:border-[#333333] dark:text-[#f5f7f6] dark:hover:border-[#5ecba1] dark:hover:bg-[#1f1f1f]">Learn More</Link>
                 </div>
               </div>
             </div>
@@ -155,6 +328,7 @@ function Events() {
         )
       })()}
 
+      {/* Upcoming events — filterable grid with search, category pills, and dropdowns */}
       <section id="upcoming" className="relative overflow-hidden border-b border-[rgba(0,103,81,0.05)] bg-[rgba(200,190,170,0.05)] px-5 py-16 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.88)]">
         <div className="mx-auto max-w-[var(--container-max)]">
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
@@ -162,7 +336,18 @@ function Events() {
               <h2 className="mb-2 text-[clamp(1.3rem,2.6vw,1.75rem)] font-extrabold tracking-[-0.028em] before:mb-[1.15rem] before:block before:h-[3px] before:w-10 before:rounded-full before:bg-gradient-to-r before:from-[#006751] before:to-[rgba(0,103,81,0.35)] dark:before:from-[#5ecba1] dark:before:to-[rgba(94,203,161,0.25)]">Upcoming Events</h2>
               <p className="max-w-[48ch] text-[0.86rem] leading-[1.72] text-[#595959] dark:text-[#8c9691]">Browse what&apos;s coming up, or narrow things down by topic, month, or format.</p>
             </div>
-            {activeFilterCount > 0 && <button type="button" className="inline-flex items-center gap-2 rounded-full border border-[#d0ddd8] px-3 py-1.5 text-[0.72rem] font-semibold text-[#5a6b62] transition hover:border-[#1a6644] hover:bg-[#1a6644]/5 hover:text-[#1a6644] dark:border-[#333333] dark:text-[#8c9691] dark:hover:border-[#1a6644] dark:hover:text-[#1a6644]" onClick={clearAll}>Clear all <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1a6644] text-[0.58rem] font-bold text-white dark:bg-[#1a6644] dark:text-white">{activeFilterCount}</span></button>}
+            <div className="flex flex-wrap items-center gap-2">
+              {admin && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/events/add')}
+                  className="rounded-md bg-[#1a6644] px-4 py-2 text-[0.78rem] font-semibold text-white transition hover:bg-[#14533a]"
+                >
+                  + Add Event
+                </button>
+              )}
+              {activeFilterCount > 0 && <button type="button" className="inline-flex items-center gap-2 rounded-full border border-[#d0ddd8] px-3 py-1.5 text-[0.72rem] font-semibold text-[#5a6b62] transition hover:border-[#1a6644] hover:bg-[#1a6644]/5 hover:text-[#1a6644] dark:border-[#333333] dark:text-[#8c9691] dark:hover:border-[#1a6644] dark:hover:text-[#1a6644]" onClick={clearAll}>Clear all <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1a6644] text-[0.58rem] font-bold text-white dark:bg-[#1a6644] dark:text-white">{activeFilterCount}</span></button>}
+            </div>
           </div>
 
           <div className="mb-6 max-w-[560px]">
@@ -199,7 +384,17 @@ function Events() {
 
           <div className="mb-5 text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]"><span className="font-bold text-[#1C2B24] dark:text-[#f5f7f6]">{filtered.length}</span> event{filtered.length !== 1 ? 's' : ''} found</div>
 
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center gap-3 rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#333333] dark:bg-[#1f1f1f]">
+              <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
+              <p className="text-[0.82rem] text-[#5a6b62] dark:text-[#8c9691]">Loading events...</p>
+            </div>
+          ) : loadError ? (
+            <div className="flex flex-col items-center gap-2 rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#333333] dark:bg-[#1f1f1f]">
+              <p className="text-[0.94rem] font-bold text-[#b5392b] dark:text-[#ff9388]">Couldn&apos;t load events</p>
+              <p className="max-w-[36ch] text-[0.8rem] leading-[1.7] text-[#5a6b62] dark:text-[#8c9691]">{loadError}</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center rounded-[14px] border border-[#d0ddd8] bg-white px-6 py-16 text-center dark:border-[#333333] dark:bg-[#1f1f1f]">
               <svg className="mb-3 h-8 w-8 text-[#5a6b62]/40 dark:text-[#8c9691]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.5" />
@@ -214,7 +409,8 @@ function Events() {
             <div className="grid grid-cols-2 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
               {filtered.map((event, idx) => {
                 const { month, day, weekday } = formatDate(event.date)
-                const seatsLeft = event.seats ? event.seats - event.registered : null
+                const seatState = getSeatState(event, registeredEvents)
+                const seatsLeft = seatState.seatsLeft
                 return (
                   <article key={event.id} className={`overflow-hidden rounded-[14px] border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(28,43,36,0.10)] dark:border-[#333333] dark:bg-[#1f1f1f] ${idx === 0 ? 'border-[#d0ddd8] bg-[linear-gradient(150deg,rgba(253,250,244,1)_0%,rgba(247,242,232,1)_100%)] xl:col-span-2 dark:bg-[#1f1f1f] dark:[background-image:none]' : 'border-[#d0ddd8]'}`}>
                     <div className="relative aspect-[1.35] overflow-hidden bg-[#EDF3F0] sm:aspect-video dark:bg-[#242424]">
@@ -236,11 +432,50 @@ function Events() {
                       <div className="flex flex-col gap-2 border-t border-[rgba(0,103,81,0.06)] pt-3 dark:border-[#333333] sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-4">
                         {seatsLeft !== null ? (
                           <div className="flex items-center gap-1.5 sm:gap-2">
-                            <div className="h-[4px] w-full max-w-[72px] overflow-hidden rounded bg-[#d0ddd8] sm:h-[5px] sm:w-[110px] dark:bg-[#333333]"><div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(event.registered / event.seats) * 100}%` }} /></div>
+                            <div
+                              className="h-[4px] w-full max-w-[72px] overflow-hidden rounded bg-[#d0ddd8] sm:h-[5px] sm:w-[110px] dark:bg-[#333333]"
+                              role="progressbar"
+                              aria-label={`Registration progress for ${event.title}`}
+                              aria-valuemin={0}
+                              aria-valuemax={event.seats}
+                              aria-valuenow={seatState.effectiveRegistered}
+                            >
+                              <div className="h-full rounded bg-[#006751] dark:bg-[#5ecba1]" style={{ width: `${(seatState.effectiveRegistered / event.seats) * 100}%` }} />
+                            </div>
                             <span className="text-[0.62rem] font-semibold text-[#006751]/75 sm:text-[0.66rem] dark:text-[#5ecba1]/80">{seatsLeft} left</span>
                           </div>
                         ) : <span className="text-[0.62rem] text-[#5a6b62]/70 sm:text-[0.66rem] dark:text-[#8c9691]">Open attendance</span>}
-                        <button type="button" className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-[0.68rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">{seatsLeft !== null ? 'Register' : 'Learn More'}</button>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {seatsLeft !== null && (
+                            <button
+                              type="button"
+                              onClick={() => handleRegister(event)}
+                              disabled={seatState.isFull && !seatState.isRegistered}
+                              aria-label={`${seatState.isRegistered ? 'Cancel registration for' : seatState.isFull ? 'Seats are full for' : 'Reserve a spot for'} ${event.title}`}
+                              className={`rounded-md px-3 py-1.5 text-[0.68rem] font-semibold transition sm:px-4 sm:py-2 sm:text-[0.72rem] ${seatState.isRegistered ? 'bg-[#cfcfcf] text-[#4f4f4f] hover:bg-[#bdbdbd] dark:bg-[#4a4a4a] dark:text-[#f1f1f1] dark:hover:bg-[#5a5a5a]' : 'bg-[#1a6644] text-white hover:bg-[#14533a] dark:bg-[#1a6644] dark:hover:bg-[#14533a]'} disabled:cursor-not-allowed disabled:bg-[#b9b9b9] disabled:text-[#666] dark:disabled:bg-[#355246] dark:disabled:text-[#d7e4de]`}
+                            >
+                              {seatState.isRegistered ? 'Cancel Registration' : seatState.isFull ? 'Seats Full' : 'Reserve a Spot'}
+                            </button>
+                          )}
+                          <Link to={`/events/${event.id}`} className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-center text-[0.68rem] font-semibold text-[#006751] transition hover:border-[#006751] hover:bg-[#006751]/5 sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#5ecba1] dark:hover:border-[#5ecba1] dark:hover:bg-[#121212]">Learn More</Link>
+                          {admin && (
+                            <>
+                              <Link
+                                to={`/events/edit/${event.id}`}
+                                className="rounded-md border border-[#d0ddd8] px-3 py-1.5 text-center text-[0.68rem] font-semibold text-[#5a6b62] transition hover:border-[#1a6644] hover:text-[#1a6644] sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#333333] dark:text-[#8c9691] dark:hover:border-[#5ecba1] dark:hover:text-[#5ecba1]"
+                              >
+                                Edit
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteEvent(event.id, event.title)}
+                                className="rounded-md border border-[#e6c5c0] bg-[#fff5f3] px-3 py-1.5 text-center text-[0.68rem] font-semibold text-[#b5392b] transition hover:bg-[#fbecea] sm:px-4 sm:py-2 sm:text-[0.72rem] dark:border-[#5b3631] dark:bg-[#3a1f1c] dark:text-[#ff9388] dark:hover:bg-[#4a2a25]"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </article>
@@ -251,6 +486,7 @@ function Events() {
         </div>
       </section>
 
+      {/* Student testimonials */}
       <section className="border-t border-[rgba(0,103,81,0.05)] bg-[rgba(0,103,81,0.03)] px-4 py-8 sm:px-5 sm:py-14 dark:border-[#333333] dark:bg-[rgba(18,18,18,0.94)]">
         <div className="mx-auto grid max-w-[var(--container-max)] gap-4 sm:gap-6 md:grid-cols-2">
           {[
@@ -260,15 +496,16 @@ function Events() {
             <blockquote key={author} className="relative rounded-[14px] border border-[#d0ddd8] bg-[linear-gradient(160deg,rgba(253,250,244,1)_0%,#fff_100%)] p-4 pl-5 shadow-sm sm:p-6 sm:pl-7 dark:border-[#333333] dark:bg-[#1f1f1f] dark:[background-image:none]">
               <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-[14px] bg-gradient-to-b from-[#006751] to-[rgba(0,103,81,0.15)] dark:from-[#5ecba1] dark:to-[rgba(94,203,161,0.15)]" />
               <p className="mb-3 text-[0.78rem] italic leading-[1.62] text-[#1C2B24] sm:mb-4 sm:text-[0.86rem] sm:leading-[1.75] dark:text-[#f5f7f6]">{quote}</p>
-              <footer className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <span className="text-[0.7rem] font-bold sm:text-[0.74rem]">{author}</span>
                 <span className="text-[0.64rem] text-[#5a6b62]/70 sm:text-[0.68rem] dark:text-[#8c9691]">{role}</span>
-              </footer>
+              </div>
             </blockquote>
           ))}
         </div>
       </section>
 
+      {/* Newsletter signup + "Host with us" CTA */}
       <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-5 py-16 dark:border-t dark:border-[#333333]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_60%_at_25%_50%,rgba(0,171,142,0.06)_0%,transparent_70%),radial-gradient(ellipse_40%_50%_at_75%_60%,rgba(196,112,95,0.04)_0%,transparent_70%)]" />
         <div className="relative mx-auto grid max-w-[var(--container-max)] gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -314,7 +551,67 @@ function Events() {
           </div>
         </div>
       </section>
-    </div>
+
+      {/* Registration confirmation modal */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 dark:bg-[rgba(0,0,0,0.7)]"
+          onClick={handleCloseModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={dialogTitleId}
+          aria-describedby={dialogDescriptionId}
+        >
+          <div
+            className="flex w-full max-w-[400px] flex-col items-center gap-4 rounded-2xl bg-white p-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.2)] sm:p-8 dark:bg-[#242424]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {confirmed ? (
+              <>
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2d7a4f] text-2xl text-white">
+                  ✓
+                </div>
+                <h2 id={dialogTitleId} className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
+                  Registered Successfully!
+                </h2>
+                <p id={dialogDescriptionId} className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  You have registered for <strong>{selectedEvent?.title}</strong>.
+                </p>
+                <button
+                  className="mt-2 rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
+                  onClick={handleCloseModal}
+                >
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 id={dialogTitleId} className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
+                  Confirm Registration
+                </h2>
+                <p id={dialogDescriptionId} className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  Do you want to register for <strong>{selectedEvent?.title}</strong>?
+                </p>
+                <div className="mt-2 flex w-full gap-3">
+                  <button
+                    className="flex-1 rounded-lg border border-[#ccc] bg-white px-4 py-[0.75rem] text-[0.9rem] font-semibold text-[#555] hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
+                    onClick={handleCloseModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
+                    onClick={handleConfirmRegistration}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </main>
   )
 }
 

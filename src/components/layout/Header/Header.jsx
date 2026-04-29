@@ -7,9 +7,13 @@ function useIsLoggedIn() {
 
   useEffect(() => {
     const check = () => setLoggedIn(getStatus())
+    // `storage` only fires in OTHER tabs, so Login/Register/Logout dispatch
+    // a same-tab `auth-change` event that we listen for here.
+    window.addEventListener('auth-change', check)
     window.addEventListener('storage', check)
     window.addEventListener('focus', check)
     return () => {
+      window.removeEventListener('auth-change', check)
       window.removeEventListener('storage', check)
       window.removeEventListener('focus', check)
     }
@@ -136,7 +140,7 @@ function Header() {
           <div className="flex flex-col gap-[0.26rem] border-l-[1.5px] border-[rgba(0,103,81,0.18)] pl-[0.9rem] dark:border-[#333]">
             <span className="text-[1.18rem] font-extrabold uppercase leading-none tracking-[0.12em] text-[#006751] sm:text-[1.32rem] dark:text-[#5ecba1]">LAU</span>
             <span className="whitespace-nowrap text-[0.58rem] font-semibold uppercase leading-none tracking-[0.11em] text-[rgba(0,103,81,0.50)] sm:text-[0.62rem] dark:text-[#888]">
-              Riyad Nassar Library
+              Libraries
             </span>
           </div>
         </NavLink>

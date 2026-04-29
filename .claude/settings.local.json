@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/apply-schema.js)",
+      "Bash(npm run *)"
+    ]
+  }
+}

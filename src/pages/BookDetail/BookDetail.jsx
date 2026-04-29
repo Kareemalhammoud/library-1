@@ -1,44 +1,282 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
 import { useState, useEffect, useMemo } from 'react'
-import { getCampus, getCopies } from '@/utils/bookUtils'
-import { useBooks } from '@/context/BooksContext'
-import { borrowBook, fetchBookById, isBackendConfigured, reserveBook } from '@/services/libraryApi'
+import {
+  getBook,
+  getBooks,
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+  createLoan,
+  getReviewsForBook,
+  submitReview,
+  deleteReview as deleteReviewApi,
+} from '@/utils/api'
+import { getStoredUser, isAdminUser, isLoggedInUser } from '@/utils'
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
+
+const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#f5f2ed"/>
+  <rect x="16" y="16" width="268" height="418" rx="18" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="150" y="180" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="150" y="235" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="150" y="290" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
+
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_COVER
+  if (url.startsWith('blob:')) return PLACEHOLDER_COVER
+  return url
+}
+
+function normalizeBook(data) {
+  return {
+    id: data.id,
+    title: data.title || 'Untitled',
+    author: data.author || 'Unknown Author',
+    genre: data.genre || data.category || 'General',
+    description: data.description || 'No description available for this book yet.',
+    cover: sanitizeImage(data.cover || data.image),
+    availableCopies: Number(data.available_copies ?? data.availableCopies ?? data.copies ?? 0),
+    totalCopies: Number(data.totalCopies ?? data.total_copies ?? data.available_copies ?? data.availableCopies ?? data.copies ?? 0),
+    year: data.year || 'N/A',
+    pages: data.pages || 'N/A',
+    publisher: data.publisher || 'Library Collection',
+    isbn: data.isbn || 'N/A',
+    language: data.language || 'EN',
+    rating: data.rating || 'N/A',
+    campus: data.campus || 'Beirut',
+    authorBiography: data.authorBiography || '',
+  }
+}
 
 export default function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { books, loading: booksLoading, error: booksContextError, loadBooks } = useBooks()
+  const admin = isAdminUser()
 
-  const fallbackBook = useMemo(
-    () => books.find((b) => String(b.id) === String(id)) || BOOKS.find((b) => String(b.id) === String(id)),
-    [books, id]
-  )
+  const [book, setBook] = useState(null)
+  const [books, setBooks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [notFound, setNotFound] = useState(false)
 
-  const [book, setBook] = useState(fallbackBook || null)
-  const [bookLoading, setBookLoading] = useState(true)
-  const [bookError, setBookError] = useState('')
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError('')
+    setNotFound(false)
+    setBook(null)
+
+    Promise.all([getBook(id), getBooks()])
+      .then(([oneBook, allBooks]) => {
+        if (cancelled) return
+        setBook(normalizeBook(oneBook))
+        setBooks(allBooks)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        if (error.status === 404) {
+          setNotFound(true)
+        } else {
+          setLoadError(error.message || 'Failed to load book')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
-  const [actionType, setActionType] = useState('borrow')
-  const [actionLoading, setActionLoading] = useState(false)
-  const [actionError, setActionError] = useState('')
-  const [actionNotice, setActionNotice] = useState('')
   const [progress, setProgress] = useState(0)
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [favoriteBusy, setFavoriteBusy] = useState(false)
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewHover, setReviewHover] = useState(0)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const currentUser = getStoredUser()
 
-  function getUserPrefix() {
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken')
+  // Whenever a book loads (or the user navigates to a different book), check
+  // whether it's in this user's favorites. Skip the API call for guests.
+  useEffect(() => {
+    if (!book || !isLoggedInUser()) {
+      setIsFavorite(false)
+      return
+    }
+    let cancelled = false
+    getFavorites()
+      .then((favs) => {
+        if (cancelled) return
+        setIsFavorite(favs.some((fav) => fav.id === book.id))
+      })
+      .catch(() => {
+        /* non-critical — leave as unfavorited */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [book])
 
+  // Load reviews whenever the book changes. If the current user already has
+  // one, pre-fill the form so they can edit rather than add a duplicate.
+  useEffect(() => {
+    if (!book) return
+    let cancelled = false
+    setReviewsLoading(true)
+    getReviewsForBook(book.id)
+      .then((data) => {
+        if (cancelled) return
+        setReviews(data)
+        const mine = currentUser ? data.find((r) => r.userId === currentUser.id) : null
+        if (mine) {
+          setReviewRating(mine.rating)
+          setReviewComment(mine.comment || '')
+        } else {
+          setReviewRating(0)
+          setReviewComment('')
+        }
+      })
+      .catch(() => {
+        /* non-critical — reviews just won't show */
+      })
+      .finally(() => {
+        if (!cancelled) setReviewsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [book])
+
+  const reviewStats = useMemo(() => {
+    if (reviews.length === 0) return { average: 0, count: 0 }
+    const total = reviews.reduce((sum, r) => sum + r.rating, 0)
+    return { average: total / reviews.length, count: reviews.length }
+  }, [reviews])
+
+  const myReview = currentUser ? reviews.find((r) => r.userId === currentUser.id) : null
+
+  async function handleSubmitReview(e) {
+    e.preventDefault()
+    if (!book) return
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
+      return
+    }
+    if (reviewRating < 1) {
+      setReviewError('Pick a star rating before submitting.')
+      return
+    }
+
+    setReviewError('')
+    setReviewSubmitting(true)
     try {
-      const u = JSON.parse(localStorage.getItem('user'))
-      const key = u?.email || token
-      return key ? `${key}:` : ''
-    } catch {
-      return token ? `${token}:` : ''
+      const saved = await submitReview(book.id, { rating: reviewRating, comment: reviewComment })
+      setReviews((prev) => {
+        const without = prev.filter((r) => r.id !== saved.id)
+        return [saved, ...without]
+      })
+    } catch (error) {
+      setReviewError(error.message || 'Failed to submit review')
+    } finally {
+      setReviewSubmitting(false)
     }
   }
+
+  async function handleDeleteReview(reviewId) {
+    try {
+      await deleteReviewApi(reviewId)
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId))
+      setReviewRating(0)
+      setReviewComment('')
+    } catch (error) {
+      setReviewError(error.message || 'Failed to delete review')
+    }
+  }
+
+  async function handleToggleFavorite() {
+    if (!book) return
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
+      return
+    }
+
+    const next = !isFavorite
+    setFavoriteBusy(true)
+    // Optimistic update — flip immediately, revert on failure so the heart
+    // feels responsive even on a slow connection.
+    setIsFavorite(next)
+    try {
+      if (next) {
+        await addFavorite(book.id)
+      } else {
+        await removeFavorite(book.id)
+      }
+    } catch {
+      setIsFavorite(!next)
+    } finally {
+      setFavoriteBusy(false)
+    }
+  }
+
+  function getUserPrefix() {
+    const user = getStoredUser?.()
+    return user?.email ? `${user.email}:` : ''
+  }
+
+  const prefix = getUserPrefix()
+  const safeBookId = book?.id ?? 0
+  const borrowKey = `${prefix}borrowed-${safeBookId}`
+  const loanKey = `${prefix}loan-${safeBookId}`
+  const storageKey = `${prefix}reading-progress-${safeBookId}`
+
+  useEffect(() => {
+    if (!book) return
+    const savedLoan = localStorage.getItem(loanKey)
+    setBorrowed(Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
+  }, [book, borrowKey, loanKey])
+
+  useEffect(() => {
+    if (!book) return
+    setProgress(Number(localStorage.getItem(storageKey) ?? 0))
+  }, [book, storageKey])
+
+  const isAvailable = Number(book?.availableCopies ?? 0) > 0
+  const bookCampus = book?.campus === 'both' ? 'Beirut / Byblos' : book?.campus || 'Beirut'
+  const authorBiography =
+    book?.authorBiography || 'No biography available for this author yet.'
+
+  const { relatedBooks, relatedTitle } = useMemo(() => {
+    if (!book || books.length === 0) {
+      return { relatedBooks: [], relatedTitle: 'You might also enjoy' }
+    }
+
+    const sameGenre = books.filter((b) => b.genre === book.genre && b.id !== book.id)
+    const nextRelatedBooks =
+      sameGenre.length >= 2
+        ? sameGenre.slice(0, 4)
+        : books.filter((b) => b.id !== book.id)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 4)
+
+    const nextRelatedTitle =
+      sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
+
+    return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
+  }, [book, books])
 
   function handleShare() {
     navigator.clipboard?.writeText(window.location.href)
@@ -46,115 +284,16 @@ export default function BookDetail() {
     setTimeout(() => setShareCopied(false), 2000)
   }
 
-  const prefix = getUserPrefix()
-  const hasLoggedInUser = localStorage.getItem('isLoggedIn') === 'true' && Boolean(prefix)
-  const bookStorageId = book?.id === undefined || book?.id === null ? '' : String(book.id)
-  const borrowKey = bookStorageId ? `${prefix}borrowed-${bookStorageId}` : ''
-  const reserveKey = bookStorageId ? `${prefix}reserved-${bookStorageId}` : ''
-  const loanKey = bookStorageId ? `${prefix}loan-${bookStorageId}` : ''
-  const storageKey = bookStorageId ? `${prefix}reading-progress-${bookStorageId}` : ''
-  const backendUserState = isBackendConfigured()
-    ? book?.userLoan
-      ? 'borrowed'
-      : book?.userReservation
-        ? 'reserved'
-        : ''
-    : ''
-  const actionButtonState = backendUserState || (borrowed ? actionType : '')
-
-  useEffect(() => {
-    let alive = true
-
-    if (!isBackendConfigured()) {
-      setBook(fallbackBook || null)
-      setBookError('')
-      setBookLoading(false)
-      return () => {
-        alive = false
-      }
-    }
-
-    setBookLoading(true)
-    setBookError('')
-
-    fetchBookById(id)
-      .then((nextBook) => {
-        if (alive) setBook(nextBook || fallbackBook || null)
-      })
-      .catch((err) => {
-        if (!alive) return
-        setBook(fallbackBook || null)
-        setBookError(err.message || 'Could not load book details from the server.')
-      })
-      .finally(() => {
-        if (alive) setBookLoading(false)
-      })
-
-    return () => {
-      alive = false
-    }
-  }, [fallbackBook, id])
-
-  const copyData = useMemo(() => {
-    if (!book) return { total: 0, available: 0 }
-
-    const numericId = Number(book.id)
-    const fallbackCopies = Number.isFinite(numericId) ? getCopies(numericId) : { total: 1, available: 1 }
-    const total =
-      typeof book.copies === 'number' && Number.isFinite(book.copies)
-        ? book.copies
-        : typeof book.totalCopies === 'number' && Number.isFinite(book.totalCopies)
-          ? book.totalCopies
-          : fallbackCopies.total
-    const available =
-      typeof book.availableCopies === 'number' && Number.isFinite(book.availableCopies)
-        ? book.availableCopies
-        : typeof book.available === 'boolean'
-          ? book.available ? total : 0
-          : fallbackCopies.available
-
-    return { total, available }
-  }, [book])
-
-  const totalCopies = copyData.total
-  const availableCopies = copyData.available
-  const isAvailable = availableCopies > 0
-  const bookCampus = book?.campus || getCampus(Number(book?.id) || 0)
-
-  useEffect(() => {
-    setBorrowed(false)
-
-    if (!bookStorageId || !hasLoggedInUser) {
-      return
-    }
-
-    if (isBackendConfigured()) {
-      const nextState = book?.userLoan ? 'borrow' : book?.userReservation ? 'reserve' : 'borrow'
-      setActionType(nextState)
-      setBorrowed(Boolean(book?.userLoan || book?.userReservation))
-      return
-    }
-
-    const savedLoan = localStorage.getItem(loanKey)
-    const savedReservation = localStorage.getItem(reserveKey)
-    const hasReservation = savedReservation !== null
-    setBorrowed(
-      localStorage.getItem(borrowKey) !== null ||
-      savedLoan !== null ||
-      hasReservation
-    )
-    setActionType(hasReservation ? 'reserve' : 'borrow')
-  }, [book?.userLoan, book?.userReservation, bookStorageId, borrowKey, hasLoggedInUser, loanKey, reserveKey])
-
   function handleBorrowClick() {
-    if (!hasLoggedInUser) {
-      navigate('/login', { state: { from: `/books/${book?.id}` } })
+    if (!book) return
+
+    const token = localStorage.getItem('token')
+
+    if (!token) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
       return
     }
 
-    setActionType(isAvailable ? 'borrow' : 'reserve')
-    setActionError('')
-    setActionNotice('')
     setConfirmed(false)
     setModalOpen(true)
   }
@@ -162,121 +301,111 @@ export default function BookDetail() {
   async function handleConfirm() {
     if (!book) return
 
-    setActionLoading(true)
-    setActionError('')
+    // Persist to the DB first. Without this, the dashboard can't show the
+    // loan — it reads from the `loans` table, not localStorage.
+    try {
+      await createLoan(book.id)
+      // Reflect the decremented available count on this page without a full refetch.
+      // total_copies stays the same — only the available count drops.
+      setBook((prev) => (prev ? {
+        ...prev,
+        copies: Math.max(0, (prev.copies ?? 0) - 1),
+        availableCopies: Math.max(0, (prev.availableCopies ?? 0) - 1),
+      } : prev))
+    } catch (error) {
+      // Already-borrowed (409) is effectively success from the UI's POV; any
+      // other error aborts so the user knows something went wrong.
+      if (error.status !== 409) {
+        alert(error.message || 'Failed to borrow this book')
+        return
+      }
+    }
+
     const borrowedAt = new Date()
     const dueAt = new Date(borrowedAt)
     dueAt.setDate(dueAt.getDate() + 14)
-    let actionResult = null
 
-    try {
-      if (isBackendConfigured()) {
-        if (actionType === 'borrow') {
-          actionResult = await borrowBook(book.id, {
-            borrowedAt: borrowedAt.toISOString(),
-            dueAt: dueAt.toISOString(),
-          })
-        } else {
-          actionResult = await reserveBook(book.id, {
-            reservedAt: borrowedAt.toISOString(),
-          })
-        }
-      }
-      setActionNotice('')
-    } catch (err) {
-      setActionError(err.message || 'Could not complete this request.')
-      setActionLoading(false)
-      return
+    const borrowedBookEntry = {
+      id: book.id,
+      title: book.title,
+      borrowedAt: borrowedAt.toISOString(),
+      dueDate: dueAt.toISOString(),
+      renewCount: 0,
+      isReserved: false,
     }
 
-    if (actionResult?.book) {
-      setBook(actionResult.book)
+    const borrowedBooksKey = `${prefix}borrowedBooks`
+    let currentBorrowedBooks = []
+
+    try {
+      currentBorrowedBooks =
+        JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
+    } catch {
+      currentBorrowedBooks = []
     }
 
     setBorrowed(true)
     setConfirmed(true)
-    if (actionType === 'borrow' && borrowKey) {
-      localStorage.setItem(borrowKey, borrowedAt.toISOString())
-    }
-    if (actionType === 'reserve' && reserveKey) {
-      localStorage.setItem(reserveKey, borrowedAt.toISOString())
-    }
 
-    if (actionType === 'borrow' && loanKey) {
+    localStorage.setItem(borrowKey, borrowedAt.toISOString())
+    localStorage.setItem(
+      loanKey,
+      JSON.stringify({
+        bookId: book.id,
+        borrowedAt: borrowedAt.toISOString(),
+        dueAt: dueAt.toISOString(),
+      })
+    )
+
+    const alreadyTracked = currentBorrowedBooks.some(
+      (entry) => entry.id === book.id
+    )
+
+    if (!alreadyTracked) {
       localStorage.setItem(
-        loanKey,
-        JSON.stringify({
-          bookId: book.id,
-          borrowedAt: borrowedAt.toISOString(),
-          dueAt: dueAt.toISOString(),
-        })
+        borrowedBooksKey,
+        JSON.stringify([...currentBorrowedBooks, borrowedBookEntry])
       )
     }
-
-    // Update the borrowedBooks list so the Dashboard shows this book
-    const borrowedBooksKey = `${prefix}borrowedBooks`
-    let currentBooks = []
-    try {
-      currentBooks = JSON.parse(localStorage.getItem(borrowedBooksKey)) || []
-    } catch { /* ignore */ }
-
-    const alreadyExists = currentBooks.some((b) => b.id === book.id)
-    if (!alreadyExists) {
-      currentBooks.push({
-        id: book.id,
-        title: book.title,
-        borrowedAt: actionType === 'borrow' ? borrowedAt.toISOString() : null,
-        dueDate: actionType === 'borrow' ? dueAt.toISOString() : null,
-        renewCount: 0,
-        isReserved: actionType === 'reserve',
-      })
-      localStorage.setItem(borrowedBooksKey, JSON.stringify(currentBooks))
-    }
-
-    loadBooks?.()
-    setActionLoading(false)
   }
 
   function handleClose() {
     setModalOpen(false)
   }
 
-  const { relatedBooks, relatedTitle } = useMemo(() => {
-    if (!book) return { relatedBooks: [], relatedTitle: '' }
-
-    const sourceBooks = books.length ? books : BOOKS
-    const sameGenre = sourceBooks.filter((b) => b.genre === book.genre && String(b.id) !== String(book.id))
-    const nextRelatedBooks =
-      sameGenre.length >= 2
-        ? sameGenre.slice(0, 4)
-        : sourceBooks.filter((b) => String(b.id) !== String(book.id)).slice(0, 4)
-    const nextRelatedTitle = sameGenre.length >= 2 ? `More in ${book.genre}` : 'You might also enjoy'
-
-    return { relatedBooks: nextRelatedBooks, relatedTitle: nextRelatedTitle }
-  }, [book, books])
-
-  useEffect(() => {
-    setProgress(Number(localStorage.getItem(storageKey) ?? 0))
-  }, [storageKey])
-
   const handleProgress = (val) => {
     setProgress(val)
     localStorage.setItem(storageKey, val)
   }
 
-  if (bookLoading || booksLoading) {
+  if (loading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#f8f7f4] dark:bg-[#121212]">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#e5e2dc] border-t-[#1a4a3a] dark:border-[#333] dark:border-t-[#5ecba1]" aria-hidden="true" />
-        <p className="text-[#555] dark:text-[#888]">Loading book details...</p>
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#d0ddd8] border-t-[#1a6644] dark:border-[#333333] dark:border-t-[#5ecba1]" />
+        <p className="text-[0.85rem] text-[#5a6b62] dark:text-[#8c9691]">Loading book...</p>
       </main>
     )
   }
 
-  if (!book) {
+  if (loadError) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+        <p className="text-[1rem] font-bold text-[#b5392b] dark:text-[#ff9388]">Couldn&apos;t load this book</p>
+        <p className="max-w-[44ch] text-[0.85rem] leading-[1.6] text-[#555] dark:text-[#888]">{loadError}</p>
+        <button
+          className="cursor-pointer rounded-lg border border-[#ccc] px-4 py-2 text-[0.85rem] hover:bg-[#eee]"
+          onClick={() => navigate(-1)}
+        >
+          Go back
+        </button>
+      </main>
+    )
+  }
+
+  if (notFound || !book) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <p className="text-[#555]">{bookError || booksContextError || 'Book not found.'}</p>
+        <p className="text-[#555]">Book not found.</p>
         <button
           className="cursor-pointer rounded-lg border border-[#ccc] px-4 py-2 text-[0.85rem] hover:bg-[#eee]"
           onClick={() => navigate(-1)}
@@ -289,8 +418,6 @@ export default function BookDetail() {
 
   return (
     <div key={id} className="min-h-screen bg-[#f8f7f4] pb-16 dark:bg-[#121212]">
-
-      {/* ── Breadcrumb ── */}
       <nav
         className="flex items-center gap-4 border-b border-[#e5e2dc] bg-[#f8f7f4] px-4 py-4 sm:px-6 md:px-8 dark:border-[#2a2a2a] dark:bg-[#121212]"
         aria-label="Breadcrumb"
@@ -306,42 +433,35 @@ export default function BookDetail() {
         </span>
       </nav>
 
-      {/* ── Main article ──
-          Mobile:  single column, cover on top, content below
-          Desktop: two columns, cover sidebar sticky on left, content on right */}
       <article className="mx-auto mt-8 grid max-w-[1000px] grid-cols-1 items-start gap-8 px-4 sm:px-6 md:mt-12 md:gap-12 md:px-8 md:[grid-template-columns:260px_1fr]">
-        {(bookError || booksContextError) && (
-          <div className="rounded-lg border border-[#f0d6d3] bg-[#fff5f3] px-4 py-3 text-[0.85rem] text-[#9c3b31] dark:border-[#3b1c1a] dark:bg-[#241413] dark:text-[#ff9388] md:col-span-2" role="alert">
-            {bookError || booksContextError} Showing the local catalog record while the backend is unavailable.
-          </div>
-        )}
-
-        {/* ── Sidebar: cover + availability + action buttons ──
-            Only sticky on md+ — on mobile it flows naturally above the content */}
         <aside className="md:sticky md:top-[4.5rem] md:self-start">
           <img
             src={book.cover}
             alt={`Cover of ${book.title}`}
             className="w-full rounded-md shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
+            onError={(e) => {
+              e.currentTarget.onerror = null
+              e.currentTarget.src = PLACEHOLDER_COVER
+            }}
           />
 
           <div className="mt-4 rounded-lg border border-[#e5e2dc] bg-[#e5e2dc] p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]">
             <p className={`m-0 text-[0.9rem] font-semibold ${isAvailable ? 'text-[#2d7a4f]' : 'text-[#c0392b]'}`}>
-              {isAvailable ? '● Available' : '● No copies available'}
+              {isAvailable ? '● Available' : '● Fully Borrowed'}
             </p>
             <p className="m-0 mt-1 text-[0.8rem] text-[#999] dark:text-[#888]">
-              {availableCopies} of {totalCopies} copies available
+              {book.availableCopies} of {book.totalCopies} copies available
             </p>
           </div>
 
           <div className="mt-4 flex flex-col gap-3">
             <button
               className="w-full cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:enabled:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:bg-[#ccc] disabled:text-[#888]"
-              disabled={Boolean(actionButtonState) || actionLoading}
+              disabled={!isAvailable || borrowed}
               onClick={handleBorrowClick}
               aria-label={`Borrow ${book.title}`}
             >
-              {actionButtonState ? (actionButtonState === 'reserved' || actionButtonState === 'reserve' ? 'Reserved' : 'Borrowed') : isAvailable ? 'Borrow this Book' : 'Reserve this Book'}
+              {borrowed ? '✓ Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
             </button>
 
             <button
@@ -352,11 +472,25 @@ export default function BookDetail() {
               {shareCopied ? '✓ Copied!' : 'Share'}
             </button>
 
-            {(() => { try { const u = JSON.parse(localStorage.getItem('user')); return u?.email === 'admin@lau.edu' } catch { return false } })() && (
+            <button
+              className={`w-full cursor-pointer rounded-lg py-[0.85rem] text-[0.9rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                isFavorite
+                  ? 'border border-[#c0392b] bg-[#fdecea] text-[#b5392b] hover:bg-[#fbdcd8] dark:border-[#7a2b20] dark:bg-[#3b1c1a] dark:text-[#ff9388] dark:hover:bg-[#4a211e]'
+                  : 'border border-[#ccc] bg-white text-[#555] hover:bg-[#f0f0f0] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#242424]'
+              }`}
+              onClick={handleToggleFavorite}
+              disabled={favoriteBusy}
+              aria-pressed={isFavorite}
+              aria-label={isFavorite ? `Remove ${book.title} from favorites` : `Add ${book.title} to favorites`}
+            >
+              {isFavorite ? '♥ Favorited' : '♡ Add to Favorites'}
+            </button>
+
+            {admin && (
               <button
                 className="w-full cursor-pointer rounded-lg border-[1.5px] border-[#1a4a3a] bg-transparent py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-all hover:bg-[#1a4a3a] hover:text-white"
                 aria-label={`Edit ${book.title}`}
-                onClick={() => navigate(`/books/${book.id}/edit`)}
+                onClick={() => navigate(`/books/edit/${book.id}`)}
               >
                 Edit Book
               </button>
@@ -364,25 +498,36 @@ export default function BookDetail() {
           </div>
         </aside>
 
-        {/* ── Main content: title, description, metadata, reading progress ── */}
         <section className="flex flex-col gap-3 self-stretch">
           <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#888] dark:text-[#888]">
             {book.genre}
           </span>
 
-          {/* Title scales down slightly on mobile */}
           <h1 className="m-0 text-[1.8rem] font-bold leading-[1.2] text-[#1a1a1a] sm:text-[2.2rem] dark:text-white">
             {book.title}
           </h1>
-          <p className="m-0 text-base text-[#666] dark:text-[#888]">by {book.author}</p>
 
-          <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
-            {book.description.split('\n\n').map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+          <div className="group relative w-fit">
+            <p className="m-0 cursor-help text-base text-[#666] underline decoration-dotted underline-offset-4 dark:text-[#888]">
+              by {book.author}
+            </p>
+
+            <div className="pointer-events-none absolute left-0 top-full z-20 mt-3 w-80 rounded-xl border border-[#e5e2dc] bg-white p-4 text-sm leading-6 text-[#555] opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.14)] transition-all duration-200 group-hover:opacity-100 dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#bbb]">
+              <p className="m-0 mb-2 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-[#999] dark:text-[#888]">
+                Author Biography
+              </p>
+              <p className="m-0">{authorBiography}</p>
+            </div>
           </div>
 
-          {/* Metadata grid — 2 cols at all sizes, readable on mobile */}
+          <div className="my-2 text-[0.95rem] leading-[1.7] text-[#555] dark:text-[#888]">
+            {String(book.description)
+              .split('\n\n')
+              .map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+          </div>
+
           <ul
             className="mt-2 grid list-none grid-cols-2 gap-x-4 gap-y-[0.6rem] border-t border-[#e5e2dc] p-0 pt-4 sm:gap-x-6 dark:border-[#333]"
             aria-label="Book details"
@@ -393,7 +538,12 @@ export default function BookDetail() {
               ['Publisher', book.publisher],
               ['ISBN', book.isbn],
               ['Language', book.language === 'FR' ? 'French' : 'English'],
-              ['Rating', `⭐ ${book.rating}`],
+              [
+                'Rating',
+                reviewStats.count > 0
+                  ? `⭐ ${reviewStats.average.toFixed(1)} (${reviewStats.count} ${reviewStats.count === 1 ? 'review' : 'reviews'})`
+                  : 'Not yet rated',
+              ],
               ['Campus', bookCampus === 'both' ? 'Beirut / Byblos' : bookCampus],
             ].map(([label, value]) => (
               <li key={label} className="flex flex-col text-[0.8rem] text-[#999] dark:text-[#888]">
@@ -403,12 +553,10 @@ export default function BookDetail() {
             ))}
           </ul>
 
-          {/* Reading progress tracker */}
           <section
             className="mt-6 flex flex-col gap-3 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
             aria-label="Reading progress tracker"
           >
-            {/* Label + percentage */}
             <div className="flex items-baseline justify-between">
               <label
                 htmlFor={`progress-${book.id}`}
@@ -424,9 +572,7 @@ export default function BookDetail() {
               </span>
             </div>
 
-            {/* Single unified control: visual bar + draggable input overlaid on top */}
             <div className="relative h-5 w-full">
-              {/* Visual track + filled bar */}
               <div
                 className="pointer-events-none absolute top-1/2 h-2 w-full -translate-y-1/2 overflow-hidden rounded-full bg-[#f0ede8] dark:bg-[#2a2a2a]"
                 role="progressbar"
@@ -441,7 +587,6 @@ export default function BookDetail() {
                 />
               </div>
 
-              {/* Range input — sits over the bar, transparent track, only thumb is visible */}
               <input
                 id={`progress-${book.id}`}
                 type="range"
@@ -486,8 +631,138 @@ export default function BookDetail() {
         </section>
       </article>
 
-      {/* ── Related books ──
-          2 columns on mobile, 4 on sm+ */}
+      <section
+        className="mx-auto mt-10 max-w-[1000px] border-t border-[#e5e2dc] px-4 pt-8 sm:px-6 md:mt-12 md:px-8 dark:border-[#333]"
+        aria-labelledby="reviews-heading"
+      >
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 id="reviews-heading" className="text-[1.3rem] font-bold text-[#1a1a1a] dark:text-white">
+              Reader Reviews
+            </h2>
+            {reviewStats.count > 0 ? (
+              <p className="mt-1 text-[0.85rem] text-[#666] dark:text-[#888]">
+                <span className="font-semibold text-[#1a1a1a] dark:text-white">
+                  {reviewStats.average.toFixed(1)}
+                </span>{' '}
+                <span aria-hidden="true">{'★'.repeat(Math.round(reviewStats.average)).padEnd(5, '☆')}</span>{' '}
+                from {reviewStats.count} {reviewStats.count === 1 ? 'review' : 'reviews'}
+              </p>
+            ) : (
+              <p className="mt-1 text-[0.85rem] text-[#888] dark:text-[#888]">No reviews yet.</p>
+            )}
+          </div>
+        </div>
+
+        <form
+          onSubmit={handleSubmitReview}
+          className="mb-8 rounded-xl border border-[#e5e2dc] bg-white p-5 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
+        >
+          <p className="mb-3 text-[0.75rem] font-bold uppercase tracking-[0.1em] text-[#aaa] dark:text-[#888]">
+            {myReview ? 'Your review' : isLoggedInUser() ? 'Leave a review' : 'Sign in to leave a review'}
+          </p>
+
+          <div className="mb-3 flex items-center gap-1" role="radiogroup" aria-label="Star rating">
+            {[1, 2, 3, 4, 5].map((value) => {
+              const filled = (reviewHover || reviewRating) >= value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={reviewRating === value}
+                  aria-label={`${value} star${value === 1 ? '' : 's'}`}
+                  onClick={() => setReviewRating(value)}
+                  onMouseEnter={() => setReviewHover(value)}
+                  onMouseLeave={() => setReviewHover(0)}
+                  className={`text-2xl leading-none transition ${
+                    filled ? 'text-[#e4b028]' : 'text-[#d8d4cd] dark:text-[#3a3a3a]'
+                  } hover:scale-110`}
+                >
+                  {filled ? '★' : '☆'}
+                </button>
+              )
+            })}
+            {reviewRating > 0 && (
+              <span className="ml-2 text-[0.8rem] text-[#666] dark:text-[#888]">
+                {reviewRating}/5
+              </span>
+            )}
+          </div>
+
+          <textarea
+            value={reviewComment}
+            onChange={(e) => setReviewComment(e.target.value)}
+            placeholder="Share your thoughts (optional)"
+            rows={3}
+            className="w-full resize-y rounded-md border border-[#e5e2dc] bg-[#fafaf8] p-3 text-[0.9rem] text-[#333] outline-none transition focus:border-[#1a6644] focus:bg-white dark:border-[#2a2a2a] dark:bg-[#121212] dark:text-[#ddd] dark:focus:border-[#5ecba1]"
+          />
+
+          {reviewError && (
+            <p className="mt-2 text-[0.8rem] text-[#b5392b] dark:text-[#ff9388]" role="alert">
+              {reviewError}
+            </p>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={reviewSubmitting}
+              className="cursor-pointer rounded-lg bg-[#1a4a3a] px-5 py-[0.65rem] text-[0.85rem] font-semibold text-white transition hover:enabled:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {reviewSubmitting ? 'Saving...' : myReview ? 'Update review' : 'Submit review'}
+            </button>
+            {myReview && (
+              <button
+                type="button"
+                onClick={() => handleDeleteReview(myReview.id)}
+                className="text-[0.8rem] font-semibold text-[#b5392b] transition hover:text-[#8a2c20] dark:text-[#ff9388] dark:hover:text-[#ffb5ad]"
+              >
+                Delete my review
+              </button>
+            )}
+          </div>
+        </form>
+
+        {reviewsLoading ? (
+          <p className="text-[0.85rem] text-[#888] dark:text-[#888]">Loading reviews...</p>
+        ) : reviews.length === 0 ? (
+          <p className="text-[0.85rem] text-[#888] dark:text-[#888]">
+            Be the first to share your thoughts on this book.
+          </p>
+        ) : (
+          <ul className="space-y-4">
+            {reviews.map((r) => {
+              const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''
+              return (
+                <li
+                  key={r.id}
+                  className="rounded-lg border border-[#e5e2dc] bg-white p-4 dark:border-[#2a2a2a] dark:bg-[#1a1a1a]"
+                >
+                  <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[0.9rem] font-semibold text-[#1a1a1a] dark:text-white">
+                        {r.reviewer_name || 'Anonymous'}
+                      </span>
+                      <span className="text-[0.95rem] text-[#e4b028]" aria-label={`${r.rating} out of 5 stars`}>
+                        {'★'.repeat(r.rating)}
+                        <span className="text-[#d8d4cd] dark:text-[#3a3a3a]">{'☆'.repeat(5 - r.rating)}</span>
+                      </span>
+                    </div>
+                    {date && (
+                      <span className="text-[0.72rem] text-[#aaa] dark:text-[#777]">{date}</span>
+                    )}
+                  </div>
+                  {r.comment && (
+                    <p className="text-[0.88rem] leading-[1.6] text-[#555] dark:text-[#bbb]">{r.comment}</p>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
       {relatedBooks.length > 0 && (
         <section
           className="mx-auto mt-10 max-w-[1000px] border-t border-[#e5e2dc] px-4 pt-8 sm:px-6 md:mt-12 md:px-8 dark:border-[#333]"
@@ -506,6 +781,10 @@ export default function BookDetail() {
                     src={related.cover}
                     alt={`Cover of ${related.title}`}
                     className="aspect-[2/3] w-full rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-transform duration-200 group-hover:-translate-y-1"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null
+                      e.currentTarget.src = PLACEHOLDER_COVER
+                    }}
                   />
                   <p className="mb-[0.2rem] mt-[0.6rem] text-[0.85rem] font-semibold text-[#1a1a1a] dark:text-white">
                     {related.title}
@@ -518,7 +797,6 @@ export default function BookDetail() {
         </section>
       )}
 
-      {/* ── Borrow modal ── */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 dark:bg-[rgba(0,0,0,0.7)]"
@@ -537,21 +815,13 @@ export default function BookDetail() {
                   ✓
                 </div>
                 <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
-                  {actionType === 'borrow' ? 'Borrowed Successfully!' : 'Reservation Saved!'}
+                  Borrowed Successfully!
                 </h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
-                  <strong>{book.title}</strong>{' '}
-                  {actionType === 'borrow'
-                    ? 'has been added to your loans. Please pick it up from the library desk within 48 hours.'
-                    : 'has been added to your reservations. A librarian will notify you when it becomes available.'}
+                <p className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  You have borrowed <strong>{book.title}</strong>.
                 </p>
-                {actionNotice && (
-                  <p className="m-0 rounded-lg bg-[#fff5d8] px-3 py-2 text-[0.78rem] leading-[1.5] text-[#7c5b00] dark:bg-[#332800] dark:text-[#f1d57a]">
-                    {actionNotice}
-                  </p>
-                )}
                 <button
-                  className="w-full flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                  className="mt-2 rounded-lg border-0 bg-[#1a4a3a] px-5 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
                   onClick={handleClose}
                 >
                   Done
@@ -559,35 +829,24 @@ export default function BookDetail() {
               </>
             ) : (
               <>
-                <img
-                  src={book.cover}
-                  alt={`Cover of ${book.title}`}
-                  className="aspect-[2/3] w-[100px] rounded-md object-cover shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
-                />
                 <h2 className="m-0 text-[1.2rem] font-bold text-[#1a1a1a] dark:text-white">
-                  {actionType === 'borrow' ? 'Borrow this book?' : 'Reserve this book?'}
+                  Confirm Borrow
                 </h2>
-                <p className="m-0 text-[0.9rem] leading-[1.6] text-[#555] dark:text-[#888]">
-                  <strong>{book.title}</strong> by {book.author}
-                  <br />
-                  <span className="mt-1 block text-[0.8rem] text-[#aaa] dark:text-[#888]">
-                    {actionType === 'borrow' ? 'Loan period: 14 days' : 'We will hold the next available copy for you'}
-                  </span>
+                <p className="m-0 text-[0.95rem] leading-[1.6] text-[#555] dark:text-[#888]">
+                  Do you want to borrow <strong>{book.title}</strong>?
                 </p>
-                {actionError && <p className="m-0 text-[0.82rem] text-[#c0392b]">{actionError}</p>}
                 <div className="mt-2 flex w-full gap-3">
                   <button
-                    className="flex-1 cursor-pointer rounded-lg border border-[#e0ddd8] bg-white py-3 text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f5f3ef] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888] dark:hover:bg-[#333]"
+                    className="flex-1 rounded-lg border border-[#ccc] bg-white px-4 py-[0.75rem] text-[0.9rem] font-semibold text-[#555] hover:bg-[#f0f0f0] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#2e2e2e]"
                     onClick={handleClose}
                   >
                     Cancel
                   </button>
                   <button
-                    className="flex-1 cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-3 text-[0.9rem] font-semibold text-white transition-colors hover:bg-[#2d7a4f]"
+                    className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
                     onClick={handleConfirm}
-                    disabled={actionLoading}
                   >
-                    {actionLoading ? 'Saving...' : actionType === 'borrow' ? 'Confirm Borrow' : 'Confirm Reserve'}
+                    Confirm
                   </button>
                 </div>
               </>

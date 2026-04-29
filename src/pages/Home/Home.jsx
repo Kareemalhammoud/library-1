@@ -1,17 +1,20 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BOOKS } from '@/data/bookData'
-import { EVENTS } from '@/data/eventsData'
+import { getBooks, getEvents } from '@/utils/api'
 import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
+
+// Images that rotate in the hero banner at the top of the page
 const HERO_SLIDES = [
   { src: slideCampusGarden, alt: 'LAU Beirut campus historic stone buildings and gardens' },
   { src: slideCampusBench, alt: 'Students under the old banyan tree on LAU Beirut campus' },
   { src: slideCampusFountain, alt: 'LAU Beirut campus fountain and palm trees' },
 ]
 
+// The four action cards shown below the hero (catalog, events, study spaces, visit)
 const QUICK_ACTIONS = [
   {
     eyebrow: 'Collections & Archives',
@@ -89,10 +92,19 @@ const QUICK_ACTIONS = [
   },
 ]
 
+// Settings for the infinite scrolling book carousel ("Staff Picks")
 const GAP_PX = 32
-const N = BOOKS.length
-const TRACK = [...BOOKS, ...BOOKS]
 const PX_PER_SEC = 55
+
+const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#f5f2ed"/>
+  <rect x="16" y="16" width="268" height="418" rx="18" fill="none" stroke="#d9d3cb" stroke-width="2"/>
+  <text x="150" y="180" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">NO</text>
+  <text x="150" y="235" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">COVER</text>
+  <text x="150" y="290" font-family="Arial, sans-serif" font-size="34" font-weight="700" text-anchor="middle" fill="#2f2f2f">PAGE</text>
+</svg>
+`)}`
 
 function getCardWidth(viewportWidth) {
   if (viewportWidth < 480) return 112
@@ -100,34 +112,96 @@ function getCardWidth(viewportWidth) {
   return 158
 }
 
+function sanitizeImage(url) {
+  if (!url || typeof url !== 'string') return PLACEHOLDER_COVER
+  if (url.startsWith('blob:')) return PLACEHOLDER_COVER
+  return url
+}
+
+function getGenreColor(genre) {
+  const map = {
+    Classic: '#987432',
+    Fantasy: '#5ecba1',
+    Fiction: '#c4705f',
+    History: '#5ecba1',
+    Programming: '#6aa6ff',
+    'Computer Science': '#6aa6ff',
+    Philosophy: '#c4705f',
+    Productivity: '#5ecba1',
+    'Self-help': '#5ecba1',
+    Business: '#987432',
+    Finance: '#987432',
+    Psychology: '#c4705f',
+    Science: '#6aa6ff',
+    Dystopian: '#c4705f',
+  }
+
+  return map[genre] || '#5ecba1'
+}
+
+function normalizeBook(book) {
+  return {
+    id: book.id,
+    title: book.title || 'Untitled',
+    author: book.author || 'Unknown Author',
+    genre: book.category || 'General',
+    genreColor: getGenreColor(book.category || 'General'),
+    cover: sanitizeImage(book.image),
+    badge: Number(book.available_copies ?? book.copies ?? 0) > 0 ? 'Available' : '',
+  }
+}
+
 function Home() {
   const viewportRef = useRef(null)
   const trackRef = useRef(null)
   const animRef = useRef(null)
   const navigate = useNavigate()
+
+  const [books, setBooks] = useState([])
+  const [booksLoading, setBooksLoading] = useState(true)
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [events, setEvents] = useState([])
 
   useEffect(() => {
     const id = setInterval(() => setCurrentSlide((c) => (c + 1) % HERO_SLIDES.length), 7000)
     return () => clearInterval(id)
   }, [])
 
+  // Load books and events from the backend in parallel on first render.
+  // Failures fall back to empty lists so the page still renders.
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([getBooks().catch(() => []), getEvents().catch(() => [])]).then(([b, e]) => {
+      if (cancelled) return
+      setBooks(b)
+      setEvents(e)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Duplicate the book list so the carousel loops seamlessly.
+  const track = useMemo(() => [...books, ...books], [books])
+
+  // Set up the book carousel animation — pauses on hover, recalculates on resize.
+  // Re-runs when books load so the distance calculation matches the real list length.
   useLayoutEffect(() => {
     const viewport = viewportRef.current
-    const track = trackRef.current
-    if (!viewport || !track) return
+    const trackEl = trackRef.current
+    if (!viewport || !trackEl || books.length === 0) return
 
     const start = () => {
       const cw = getCardWidth(viewport.offsetWidth)
-      const dist = N * (cw + GAP_PX)
+      const dist = books.length * (cw + GAP_PX)
       const dur = (dist / PX_PER_SEC) * 1000
 
-      Array.from(track.children).forEach((card) => {
+      Array.from(trackEl.children).forEach((card) => {
         card.style.flexBasis = `${cw}px`
       })
 
       animRef.current?.cancel()
-      animRef.current = track.animate([{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }], {
+      animRef.current = trackEl.animate([{ transform: 'translateX(0)' }, { transform: `translateX(-${dist}px)` }], {
         duration: dur,
         iterations: Infinity,
         easing: 'linear',
@@ -148,10 +222,10 @@ function Home() {
       viewport.removeEventListener('mouseleave', resume)
       window.removeEventListener('resize', start)
     }
-  }, [])
+  }, [books.length])
 
   const today = new Date().toISOString().slice(0, 10)
-  const nextEvent = EVENTS.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
+  const nextEvent = events.filter((event) => event.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
 
   return (
     <div className="w-full bg-[#F2F5F3] text-[#1C2B24] dark:bg-[#121212] dark:text-[#f5f7f6]">
@@ -173,9 +247,13 @@ function Home() {
             const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][eventDate.getMonth()]
 
             return (
-              <aside
+              <a
+                href="/events"
                 className="absolute right-[5%] top-1/2 z-10 hidden w-[min(240px,36%)] -translate-y-1/2 cursor-pointer flex-col rounded-xl border border-white/10 bg-[rgba(6,26,18,0.72)] p-5 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_8px_24px_rgba(0,0,0,0.32),0_2px_6px_rgba(0,0,0,0.18)] backdrop-blur-[14px] xl:flex"
-                onClick={() => navigate('/events')}
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigate('/events')
+                }}
               >
                 <div className="mb-3 flex items-center gap-2">
                   <svg className="h-[13px] w-[13px] text-[#5ecba1]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -188,12 +266,12 @@ function Home() {
                 <p className="mb-2 text-[0.88rem] font-bold leading-[1.3] tracking-[-0.015em] text-[rgba(240,248,244,0.95)]">{nextEvent.title}</p>
                 <p className="text-[0.72rem] font-medium tracking-[0.01em] text-[rgba(240,248,244,0.55)]">{weekday}, {monthName} {eventDate.getDate()} - {nextEvent.time}</p>
                 <p className="text-[0.67rem] tracking-[0.01em] text-[rgba(240,248,244,0.35)]">{nextEvent.location}</p>
-              </aside>
+              </a>
             )
           })()}
 
           <div className="absolute bottom-8 left-1/2 z-10 flex w-[calc(100%-2rem)] max-w-[370px] -translate-x-1/2 flex-col rounded-2xl border border-[rgba(0,103,81,0.28)] border-t-white/70 bg-[linear-gradient(160deg,rgba(240,248,244,0.96)_0%,rgba(225,240,235,0.92)_100%)] p-6 shadow-[0_1px_0_rgba(255,255,255,0.65)_inset,0_8px_32px_rgba(10,20,15,0.20),0_2px_8px_rgba(10,20,15,0.12),0_40px_80px_rgba(5,10,8,0.18)] backdrop-blur-[12px] sm:left-[12%] sm:top-1/2 sm:bottom-auto sm:w-[min(370px,88%)] sm:-translate-x-0 sm:-translate-y-1/2 sm:px-9 sm:py-8 dark:border-[#333333] dark:bg-[linear-gradient(160deg,rgba(18,18,18,0.92)_0%,rgba(20,60,47,0.86)_100%)]">
-            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Riyad Nassar Library</p>
+            <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#006751] dark:text-[#5ecba1]">Libraries</p>
             <h1 className="mb-4 text-[clamp(1.6rem,3.2vw,2.15rem)] font-extrabold leading-[1.12] tracking-[-0.03em]">Your Next Discovery Starts Here!</h1>
             <p className="mb-6 text-[0.875rem] leading-[1.7] text-[#4e4e4e] dark:text-[#8c9691]">Spend time with a great book, join events, and share ideas with your community.</p>
             <form role="search" className="relative mb-4">
@@ -268,8 +346,17 @@ function Home() {
             </div>
             <div ref={viewportRef} className="overflow-hidden">
               <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
-                {TRACK.map((book, i) => (
-                  <article key={`${book.id}-${i}`} className="group shrink-0 cursor-pointer" onClick={() => navigate(`/books/${book.id}`)} aria-label={`View details for ${book.title} by ${book.author}`}>
+                {track.map((book, i) => (
+                  <a
+                    key={`${book.id}-${i}`}
+                    href={`/books/${book.id}`}
+                    className="group block shrink-0 cursor-pointer text-inherit no-underline"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      navigate(`/books/${book.id}`)
+                    }}
+                    aria-label={`View details for ${book.title} by ${book.author}`}
+                  >
                     <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-[3px_7px_7px_3px] shadow-[-3px_0_5px_rgba(0,0,0,0.20),0_2px_0_rgba(0,0,0,0.10),0_5px_16px_rgba(28,43,36,0.18)] transition group-hover:-translate-y-1 group-hover:shadow-[-6px_0_14px_rgba(0,0,0,0.32),0_2px_0_rgba(0,0,0,0.16),0_22px_52px_rgba(28,43,36,0.32)]">
                       <img src={book.cover} alt={book.title} className="absolute inset-0 h-full w-full object-cover object-top" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                       <span className="absolute left-0 top-0 h-full w-[9px] bg-gradient-to-r from-black/30 to-black/10" />
@@ -280,7 +367,7 @@ function Home() {
                       <h3 className="text-[0.78rem] font-bold leading-[1.25] tracking-[-0.015em] text-[#1C2B24] dark:text-[#f5f7f6]">{book.title}</h3>
                       <p className="text-[0.66rem] italic text-[#8a8a8a] dark:text-[#8c9691]">{book.author}</p>
                     </div>
-                  </article>
+                  </a>
                 ))}
               </div>
             </div>

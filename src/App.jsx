@@ -2,6 +2,7 @@ import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Header, Footer } from '@components/layout'
 import { Home, Login, Register, Dashboard } from '@pages'
+import ProtectedRoute from '@/components/ProtectedRoute'
 
 import BookDetail from '@/pages/BookDetail/BookDetail'
 import ListView from '@/pages/ListView/ListView'
@@ -9,6 +10,8 @@ import Catalog from '@/pages/Catalog/Catalog'
 import AddEditBook from '@/pages/AddEditBook/AddEditBook'
 import Visit from '@/pages/Visit/Visit'
 import Events from '@/pages/Events/Events'
+import EventDetails from '@/pages/EventDetails/EventDetails'
+import AddEditEvent from '@/pages/AddEditEvent/AddEditEvent'
 import ServicesPage from '@/pages/Services/Services'
 import CirculationPage from '@/pages/Services/Circulation'
 import StudyRoomsPage from '@/pages/Services/StudyRooms'
@@ -40,16 +43,54 @@ function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/visit" element={<Visit />} />
           <Route path="/events" element={<Events />} />
+          <Route
+            path="/events/add"
+            element={
+              <ProtectedRoute>
+                <AddEditEvent />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/events/:id" element={<EventDetails />} />
+          <Route
+            path="/events/edit/:id"
+            element={
+              <ProtectedRoute>
+                <AddEditEvent />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/books" element={<ListView />} />
-          <Route path="/books/add" element={<AddEditBook />} />
+          <Route
+            path="/books/add"
+            element={
+              <ProtectedRoute>
+                <AddEditBook />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/books/:id" element={<BookDetail />} />
-          <Route path="/books/:id/edit" element={<AddEditBook />} />
+          <Route
+            path="/books/edit/:id"
+            element={
+              <ProtectedRoute>
+                <AddEditBook />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/circulation" element={<CirculationPage />} />

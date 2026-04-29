@@ -18,7 +18,7 @@ function Footer() {
           </NavLink>
           <div className="max-w-[18rem]">
             <p className="m-0 text-[0.78rem] leading-[1.55] text-[rgba(246,241,231,0.38)] sm:text-[0.84rem] sm:leading-[1.8] dark:text-[#888]">
-              Riyad Nassar Library
+              Our Libraries
               <br />
               Lebanese American University
             </p>
@@ -67,7 +67,7 @@ function Footer() {
               <span className="text-[0.9rem] font-extrabold uppercase leading-none tracking-[0.16em] text-[rgba(246,241,231,0.92)] dark:text-white">LAU</span>
             </NavLink>
             <p className="m-0 text-[0.84rem] leading-[1.8] text-[rgba(246,241,231,0.38)] dark:text-[#888]">
-              Riyad Nassar Library
+              Our Libraries
               <br />
               Lebanese American University
             </p>
