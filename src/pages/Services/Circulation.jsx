@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 
 
 // ─── Accent colour for this page: deep forest (dark card) ────────────────────
@@ -50,6 +51,10 @@ const BackButton = ({ onClick }) => (
   </button>
 );
 
+BackButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+};
+
 
 // ─── Info card ────────────────────────────────────────────────────────────────
 
@@ -66,6 +71,12 @@ const InfoCard = ({ title, children, accent = false }) => (
     {children}
   </div>
 );
+
+InfoCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+  accent: PropTypes.bool,
+};
 
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -85,7 +96,7 @@ const CirculationPage = () => {
       {/* Hero — deep forest accent */}
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-white/5 pointer-events-none" />
-        <BackButton onClick={() => navigate("/Services")} />
+        <BackButton onClick={() => navigate("/services")} />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Services · Circulation
         </p>

@@ -7,13 +7,12 @@ import {
   addFavorite,
   removeFavorite,
   createLoan,
+  createReservation,
   getReviewsForBook,
   submitReview,
   deleteReview as deleteReviewApi,
 } from '@/utils/api'
 import { getStoredUser, isAdminUser, isLoggedInUser } from '@/utils'
-
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
 
 const PLACEHOLDER_COVER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
@@ -49,6 +48,8 @@ function normalizeBook(data) {
     rating: data.rating || 'N/A',
     campus: data.campus || 'Beirut',
     authorBiography: data.authorBiography || '',
+    userLoan: data.userLoan || null,
+    userReservation: data.userReservation || null,
   }
 }
 
@@ -95,6 +96,10 @@ export default function BookDetail() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
+  const [reserved, setReserved] = useState(false)
+  const [actionSubmitting, setActionSubmitting] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const [actionSuccess, setActionSuccess] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -240,14 +245,18 @@ export default function BookDetail() {
   const prefix = getUserPrefix()
   const safeBookId = book?.id ?? 0
   const borrowKey = `${prefix}borrowed-${safeBookId}`
+  const reservationKey = `${prefix}reserved-${safeBookId}`
   const loanKey = `${prefix}loan-${safeBookId}`
   const storageKey = `${prefix}reading-progress-${safeBookId}`
 
   useEffect(() => {
     if (!book) return
     const savedLoan = localStorage.getItem(loanKey)
-    setBorrowed(Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
-  }, [book, borrowKey, loanKey])
+    setBorrowed(Boolean(book.userLoan) || Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
+    setReserved(Boolean(book.userReservation) || Boolean(localStorage.getItem(reservationKey)))
+    setActionError('')
+    setActionSuccess('')
+  }, [book, borrowKey, loanKey, reservationKey])
 
   useEffect(() => {
     if (!book) return
@@ -295,11 +304,15 @@ export default function BookDetail() {
     }
 
     setConfirmed(false)
+    setActionError('')
+    setActionSuccess('')
     setModalOpen(true)
   }
 
   async function handleConfirm() {
     if (!book) return
+    setActionSubmitting(true)
+    setActionError('')
 
     // Persist to the DB first. Without this, the dashboard can't show the
     // loan — it reads from the `loans` table, not localStorage.
@@ -316,7 +329,8 @@ export default function BookDetail() {
       // Already-borrowed (409) is effectively success from the UI's POV; any
       // other error aborts so the user knows something went wrong.
       if (error.status !== 409) {
-        alert(error.message || 'Failed to borrow this book')
+        setActionError(error.message || 'Failed to borrow this book')
+        setActionSubmitting(false)
         return
       }
     }
@@ -346,6 +360,8 @@ export default function BookDetail() {
 
     setBorrowed(true)
     setConfirmed(true)
+    setActionSuccess(`You borrowed ${book.title}.`)
+    setActionSubmitting(false)
 
     localStorage.setItem(borrowKey, borrowedAt.toISOString())
     localStorage.setItem(
@@ -366,6 +382,36 @@ export default function BookDetail() {
         borrowedBooksKey,
         JSON.stringify([...currentBorrowedBooks, borrowedBookEntry])
       )
+    }
+  }
+
+  async function handleReserveClick() {
+    if (!book) return
+
+    if (!isLoggedInUser()) {
+      navigate('/login', { state: { from: `/books/${book.id}` } })
+      return
+    }
+
+    setActionSubmitting(true)
+    setActionError('')
+    setActionSuccess('')
+
+    try {
+      await createReservation(book.id)
+      setReserved(true)
+      setActionSuccess(`You reserved ${book.title}. We will notify you when a copy is available.`)
+      localStorage.setItem(reservationKey, new Date().toISOString())
+    } catch (error) {
+      if (error.status === 409) {
+        setReserved(true)
+        setActionSuccess(error.message || 'This book is already reserved for your account.')
+        localStorage.setItem(reservationKey, new Date().toISOString())
+      } else {
+        setActionError(error.message || 'Failed to reserve this book')
+      }
+    } finally {
+      setActionSubmitting(false)
     }
   }
 
@@ -457,12 +503,35 @@ export default function BookDetail() {
           <div className="mt-4 flex flex-col gap-3">
             <button
               className="w-full cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:enabled:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:bg-[#ccc] disabled:text-[#888]"
-              disabled={!isAvailable || borrowed}
+              disabled={!isAvailable || borrowed || actionSubmitting}
               onClick={handleBorrowClick}
               aria-label={`Borrow ${book.title}`}
             >
-              {borrowed ? '✓ Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
+              {actionSubmitting && isAvailable ? 'Working...' : borrowed ? 'Borrowed' : isAvailable ? 'Borrow this Book' : 'Unavailable'}
             </button>
+
+            {!isAvailable && (
+              <button
+                className="w-full cursor-pointer rounded-lg border border-[#1a4a3a] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#1a4a3a] transition-colors hover:enabled:bg-[#eef7f2] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#5ecba1] dark:bg-[#1a1a1a] dark:text-[#5ecba1] dark:hover:enabled:bg-[#20352c]"
+                disabled={reserved || actionSubmitting}
+                onClick={handleReserveClick}
+                aria-label={`Reserve ${book.title}`}
+              >
+                {actionSubmitting ? 'Working...' : reserved ? 'Reserved' : 'Reserve this Book'}
+              </button>
+            )}
+
+            {actionError && (
+              <p className="m-0 rounded-lg bg-[#fdecea] px-3 py-2 text-[0.78rem] leading-relaxed text-[#b5392b] dark:bg-[#3b1c1a] dark:text-[#ff9388]" role="alert">
+                {actionError}
+              </p>
+            )}
+
+            {actionSuccess && !modalOpen && (
+              <p className="m-0 rounded-lg bg-[#eaf5ee] px-3 py-2 text-[0.78rem] leading-relaxed text-[#1a6644] dark:bg-[#1f352b] dark:text-[#5ecba1]" role="status">
+                {actionSuccess}
+              </p>
+            )}
 
             <button
               className="w-full cursor-pointer rounded-lg border border-[#ccc] bg-white py-[0.85rem] text-[0.9rem] font-semibold text-[#555] transition-colors hover:bg-[#f0f0f0] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#888] dark:hover:bg-[#242424]"
@@ -843,12 +912,18 @@ export default function BookDetail() {
                     Cancel
                   </button>
                   <button
-                    className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
+                    className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:enabled:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:opacity-60"
                     onClick={handleConfirm}
+                    disabled={actionSubmitting}
                   >
-                    Confirm
+                    {actionSubmitting ? 'Borrowing...' : 'Confirm'}
                   </button>
                 </div>
+                {actionError && (
+                  <p className="m-0 mt-3 text-[0.8rem] text-[#b5392b] dark:text-[#ff9388]" role="alert">
+                    {actionError}
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -857,3 +932,4 @@ export default function BookDetail() {
     </div>
   )
 }
+

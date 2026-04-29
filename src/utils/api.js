@@ -3,7 +3,15 @@
 // with a single try/catch. Used by the books and events pages to replace
 // the old static imports from src/data/*.
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const RAW_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_BASE ||
+  'http://localhost:5000/api'
+
+const BASE_URL = RAW_BASE_URL.replace(/\/$/, '').endsWith('/api')
+  ? RAW_BASE_URL.replace(/\/$/, '')
+  : `${RAW_BASE_URL.replace(/\/$/, '')}/api`
 
 async function request(path, { method = 'GET', body, auth = false } = {}) {
   const headers = {}
@@ -115,7 +123,11 @@ export function getActiveLoans() {
 }
 
 export function createLoan(bookId) {
-  return request('/loans', { method: 'POST', body: { bookId }, auth: true })
+  return request(`/books/${bookId}/borrow`, { method: 'POST', body: { bookId }, auth: true })
+}
+
+export function createReservation(bookId) {
+  return request(`/books/${bookId}/reserve`, { method: 'POST', body: { bookId }, auth: true })
 }
 
 export function returnLoan(loanId) {

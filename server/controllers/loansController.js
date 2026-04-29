@@ -36,7 +36,7 @@ const getActiveLoans = async (req, res) => {
 
 const createLoan = async (req, res) => {
   try {
-    const bookId = Number.parseInt(req.body.bookId, 10);
+    const bookId = Number.parseInt(req.body.bookId ?? req.params.bookId ?? req.params.id, 10);
     if (!Number.isInteger(bookId)) {
       return res.status(400).json({ message: "Invalid book id" });
     }
@@ -101,6 +101,58 @@ const createLoan = async (req, res) => {
   }
 };
 
+const createReservation = async (req, res) => {
+  try {
+    const bookId = Number.parseInt(req.body.bookId ?? req.params.bookId ?? req.params.id, 10);
+    if (!Number.isInteger(bookId)) {
+      return res.status(400).json({ message: "Invalid book id" });
+    }
+
+    const [books] = await pool.query("SELECT id FROM books WHERE id = ?", [bookId]);
+    if (books.length === 0) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    const [activeLoans] = await pool.query(
+      `SELECT id FROM loans
+       WHERE user_id = ? AND book_id = ? AND return_date IS NULL`,
+      [req.user.id, bookId]
+    );
+    if (activeLoans.length > 0) {
+      return res.status(409).json({ message: "You already have this book on loan" });
+    }
+
+    const [existing] = await pool.query(
+      `SELECT id FROM reservations
+       WHERE user_id = ? AND book_id = ? AND status = 'active'`,
+      [req.user.id, bookId]
+    );
+    if (existing.length > 0) {
+      return res.status(409).json({ message: "You already reserved this book" });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO reservations (user_id, book_id, status)
+       VALUES (?, ?, 'active')`,
+      [req.user.id, bookId]
+    );
+
+    const [rows] = await pool.query(
+      `SELECT reservations.id, books.id AS book_id, books.title, books.author,
+              reservations.reserved_at, reservations.fulfilled_at, reservations.status
+       FROM reservations
+       JOIN books ON reservations.book_id = books.id
+       WHERE reservations.id = ?`,
+      [result.insertId]
+    );
+
+    res.status(201).json(rows[0]);
+  } catch (error) {
+    console.error("Create reservation error:", error);
+    res.status(500).json({ message: "Failed to reserve book" });
+  }
+};
+
 const returnLoan = async (req, res) => {
   try {
     const loanId = Number.parseInt(req.params.id, 10);
@@ -143,5 +195,6 @@ const returnLoan = async (req, res) => {
 module.exports = {
   getActiveLoans,
   createLoan,
+  createReservation,
   returnLoan
 };

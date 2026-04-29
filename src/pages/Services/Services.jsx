@@ -24,7 +24,7 @@ const SERVICES = [
     link: "Book a room",
     variant: "sage",
     icon: "calendar",
-    route: "/services/StudyRooms",
+    route: "/services/studyrooms",
   },
   {
     id: "printing",
@@ -626,13 +626,14 @@ const ServicesPage = () => {
 
       <div className="px-8 md:px-16 py-10">
 
-        <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
-          What we offer
-        </p>
-        <h2 className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Our Services</h2>
-        <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
-          Core services available to all LAU students and faculty at our libraries.
-        </p>
+        <section aria-labelledby="services-heading">
+          <p className="text-[#1a6644] dark:text-[#5ecba1] text-[10px] font-semibold tracking-widest uppercase mb-1">
+            What we offer
+          </p>
+          <h2 id="services-heading" className="text-[#162a1f] dark:text-white text-2xl font-bold mb-1">Our Services</h2>
+          <p className="text-[#5e7a68] dark:text-[#888] text-sm mb-6 leading-relaxed">
+            Core services available to all LAU students and faculty at our libraries.
+          </p>
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-10 list-none p-0">
             {SERVICES.map((s) => (

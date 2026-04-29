@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 
 
 // ─── Accent colour for this page: pale mint (mint card) ──────────────────────
@@ -81,6 +82,10 @@ const WIcon = ({ name }) => {
   );
 };
 
+WIcon.propTypes = {
+  name: PropTypes.oneOf(["person", "group", "door", "pen", "mic", "ai"]).isRequired,
+};
+
 
 // ─── Shared back button ───────────────────────────────────────────────────────
 
@@ -97,6 +102,10 @@ const BackButton = ({ onClick }) => (
     Back to Services
   </button>
 );
+
+BackButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+};
 
 
 // ─── Main Writing Center Page Component ──────────────────────────────────────
@@ -118,7 +127,7 @@ const WritingCenterPage = () => {
       {/* Hero section with page title and call-to-action */}
       <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
         <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#1a6644]/8 pointer-events-none" />
-        <BackButton onClick={() => navigate("/Services")} />
+        <BackButton onClick={() => navigate("/services")} />
         <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
           Services · Writing Center
         </p>
@@ -146,7 +155,7 @@ const WritingCenterPage = () => {
         {/* Introductory quote section */}
         <blockquote className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
           <p className="text-[#3d6650] dark:text-[#888] text-[14px] leading-relaxed italic">
-            "Whether you are brainstorming, drafting, revising, or finalizing your work, our team works with you at every stage of the process to better provide guidance on content, structure, language, delivery and the responsible use of AI."
+            &ldquo;Whether you are brainstorming, drafting, revising, or finalizing your work, our team works with you at every stage of the process to better provide guidance on content, structure, language, delivery and the responsible use of AI.&rdquo;
           </p>
         </blockquote>
 

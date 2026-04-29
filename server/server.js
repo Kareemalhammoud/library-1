@@ -2,8 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const swaggerUi = require("swagger-ui-express");
+const path = require("path");
 
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const pool = require("./config/db");
 const swaggerSpec = require("./swaggerSpec");
@@ -15,6 +16,7 @@ const eventsRoutes = require("./routes/eventsRoutes");
 const favoritesRoutes = require("./routes/favoritesRoutes");
 const loansRoutes = require("./routes/loansRoutes");
 const reviewsRoutes = require("./routes/reviewsRoutes");
+const servicesRoutes = require("./routes/servicesRoutes");
 
 const app = express();
 
@@ -32,6 +34,7 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/loans", loansRoutes);
 app.use("/api/reviews", reviewsRoutes);
+app.use("/api", servicesRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req, res) => {

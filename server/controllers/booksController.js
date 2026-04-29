@@ -167,13 +167,15 @@ function buildCreatedBookFallback(id, payload) {
 
 const getAllBooks = async (req, res) => {
   try {
-    const { search, genre, language, limit } = req.query;
+    const { search, genre, language, campus, availability, sort, limit } = req.query;
     const columns = await getBookColumns();
 
     const conditions = [];
     const params = [];
     const genreColumn = columns.has("genre") ? "genre" : columns.has("category") ? "category" : null;
     const languageColumn = columns.has("language") ? "language" : null;
+    const campusColumn = columns.has("campus") ? "campus" : null;
+    const availableCopiesColumn = columns.has("available_copies") ? "available_copies" : columns.has("copies") ? "copies" : null;
     const publisherColumn = columns.has("publisher") ? "publisher" : null;
     const isbnColumn = columns.has("isbn") ? "isbn" : null;
 
@@ -203,14 +205,47 @@ const getAllBooks = async (req, res) => {
       params.push(genre);
     }
 
-    if (language && languageColumn) {
+    if (language && !String(language).startsWith("All") && languageColumn) {
       conditions.push(`${languageColumn} = ?`);
-      params.push(language);
+      params.push(language === "French" ? "FR" : language === "English" ? "EN" : language);
+    }
+
+    if (campus && !String(campus).startsWith("All") && campusColumn) {
+      conditions.push(`(${campusColumn} = ? OR ${campusColumn} = 'both')`);
+      params.push(campus);
+    }
+
+    if (availability === "Available" && availableCopiesColumn) {
+      conditions.push(`${availableCopiesColumn} > 0`);
+    }
+
+    if (availability === "Unavailable" && availableCopiesColumn) {
+      conditions.push(`${availableCopiesColumn} <= 0`);
     }
 
     let sql = `SELECT ${bookSelectSql(columns)} FROM books`;
     if (conditions.length > 0) sql += ` WHERE ${conditions.join(" AND ")}`;
-    sql += " ORDER BY id ASC";
+
+    switch (sort) {
+      case "title-asc":
+        sql += " ORDER BY title ASC";
+        break;
+      case "title-desc":
+        sql += " ORDER BY title DESC";
+        break;
+      case "year-desc":
+        sql += columns.has("year") ? " ORDER BY year DESC, id ASC" : " ORDER BY id ASC";
+        break;
+      case "year-asc":
+        sql += columns.has("year") ? " ORDER BY year ASC, id ASC" : " ORDER BY id ASC";
+        break;
+      case "rating":
+        sql += columns.has("rating") ? " ORDER BY rating DESC, id ASC" : " ORDER BY id ASC";
+        break;
+      default:
+        sql += " ORDER BY id ASC";
+        break;
+    }
 
     // Cap with LIMIT only when a valid positive integer is provided.
     const parsedLimit = Number.parseInt(limit, 10);

@@ -99,3 +99,47 @@ CREATE TABLE IF NOT EXISTS loans (
   CONSTRAINT fk_loans_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_loans_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS reservations (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  user_id      INT NOT NULL,
+  book_id      INT NOT NULL,
+  reserved_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fulfilled_at DATETIME,
+  status       VARCHAR(40) DEFAULT 'active',
+  created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_reservations_user (user_id),
+  INDEX idx_reservations_book (book_id),
+  CONSTRAINT fk_reservations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_reservations_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS study_room_bookings (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  campus         VARCHAR(40) NOT NULL,
+  room           VARCHAR(80) NOT NULL,
+  booking_date   DATE NOT NULL,
+  start_time     VARCHAR(40) NOT NULL,
+  duration       VARCHAR(40) NOT NULL,
+  people         INT NOT NULL,
+  student_id     VARCHAR(80) NOT NULL,
+  requested_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  status         VARCHAR(40) DEFAULT 'confirmed',
+  notes          TEXT,
+  created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_study_room_bookings_slot (room, booking_date, start_time),
+  INDEX idx_study_room_bookings_student (student_id),
+  CONSTRAINT chk_study_room_people CHECK (people BETWEEN 1 AND 20)
+);
+
+CREATE TABLE IF NOT EXISTS help_requests (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  name           VARCHAR(120),
+  email          VARCHAR(190),
+  message        TEXT NOT NULL,
+  requested_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+  status         VARCHAR(40) DEFAULT 'open',
+  created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_help_requests_status (status),
+  INDEX idx_help_requests_created (created_at)
+);
