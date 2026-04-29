@@ -36,6 +36,13 @@ Branch: `BackendPerla`
 - Added backend list filtering support for `search`, `genre`, `language`, `campus`, `availability`, and `sort`.
 - Reused the existing `loansController.createLoan` rules for both `/api/loans` and `/api/books/:id/borrow`.
 - Added authenticated reservation persistence with the `reservations` table.
+- Tightened backend logic after live smoke review:
+  - private study-room/help request read/update routes now require admin auth
+  - study-room bookings validate room, campus, duration, time, date format, and group size
+  - reservation is rejected while copies are available
+  - borrowing fulfills an existing active reservation for the same user/book
+  - returning a loan cannot increase `available_copies` above `total_copies`
+  - API date fields are formatted as `YYYY-MM-DD` to avoid timezone display drift
 - Pointed root `npm run dev:api` to `server/server.js`, the MySQL-backed Express API.
 - Made `server/server.js` load `server/.env` consistently even when started from the repo root.
 - Updated `src/services/libraryApi.js` so Services calls a backend by default, matching the rest of the app.
@@ -60,3 +67,7 @@ Branch: `BackendPerla`
 - Passed: focused ESLint for `src/pages/Services`, `src/pages/ListView`, `src/pages/BookDetail`, `src/utils/api.js`, and `src/services/libraryApi.js`.
 - Backend dependencies installed in `server/` with `npm.cmd install`.
 - Attempted `node scripts/apply-schema.js` from `server/`, but schema application needs real DB credentials in `server/.env`; current env loaded zero DB variables and MySQL rejected an empty user.
+- Applied schema successfully to Railway after adding local `server/.env` credentials.
+- Added live DB `total_copies` column with `node scripts/migrate-add-total-copies.js`.
+- Added live DB unique study-room slot/status index `uniq_study_room_booking_status`.
+- Passed live DB smoke checks for borrowing, duplicate borrow rejection, unavailable-book reservation, own-loan reservation rejection, return inventory restore, available-book reservation rejection, study-room booking creation, conflict rejection, and campus mismatch rejection.

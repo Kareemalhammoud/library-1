@@ -6,7 +6,9 @@ const LOAN_PERIOD_DAYS = 14;
 // the two endpoints are interchangeable from the frontend's point of view.
 const LOAN_COLUMNS = `
   loans.id, books.id AS book_id, books.title, books.author,
-  loans.borrow_date, loans.due_date, loans.return_date,
+  DATE_FORMAT(loans.borrow_date, '%Y-%m-%d') AS borrow_date,
+  DATE_FORMAT(loans.due_date, '%Y-%m-%d') AS due_date,
+  DATE_FORMAT(loans.return_date, '%Y-%m-%d') AS return_date,
   loans.renew_count, loans.status
 `;
 
@@ -94,6 +96,13 @@ const createLoan = async (req, res) => {
       [result.insertId]
     );
 
+    await pool.query(
+      `UPDATE reservations
+       SET status = 'fulfilled', fulfilled_at = NOW()
+       WHERE user_id = ? AND book_id = ? AND status = 'active'`,
+      [req.user.id, bookId]
+    );
+
     res.status(201).json(rows[0]);
   } catch (error) {
     console.error("Create loan error:", error);
@@ -108,9 +117,12 @@ const createReservation = async (req, res) => {
       return res.status(400).json({ message: "Invalid book id" });
     }
 
-    const [books] = await pool.query("SELECT id FROM books WHERE id = ?", [bookId]);
+    const [books] = await pool.query("SELECT id, available_copies FROM books WHERE id = ?", [bookId]);
     if (books.length === 0) {
       return res.status(404).json({ message: "Book not found" });
+    }
+    if (books[0].available_copies > 0) {
+      return res.status(409).json({ message: "Copies are available right now. Borrow this book instead." });
     }
 
     const [activeLoans] = await pool.query(
@@ -181,7 +193,9 @@ const returnLoan = async (req, res) => {
       [toDateString(new Date()), loanId]
     );
     await pool.query(
-      `UPDATE books SET available_copies = available_copies + 1 WHERE id = ?`,
+      `UPDATE books
+       SET available_copies = LEAST(available_copies + 1, COALESCE(total_copies, available_copies + 1))
+       WHERE id = ?`,
       [loan.book_id]
     );
 

@@ -3,6 +3,29 @@ const pool = require("../config/db");
 const VALID_CAMPUSES = new Set(["Beirut", "Byblos"]);
 const STUDY_ROOM_STATUSES = new Set(["pending", "confirmed", "cancelled"]);
 const HELP_STATUSES = new Set(["open", "in_progress", "resolved"]);
+const ROOM_CAMPUS = new Map([
+  ["RNL-805", "Beirut"],
+  ["RNL-806A", "Beirut"],
+  ["RNL-806B", "Beirut"],
+  ["RNL-807A", "Beirut"],
+  ["RNL-807B", "Beirut"],
+  ["JGJL-204", "Byblos"],
+  ["JGJL-302", "Byblos"],
+  ["JGJL-401", "Byblos"],
+  ["JGJL-402", "Byblos"],
+  ["JGJL-403", "Byblos"],
+  ["JGJL-404", "Byblos"],
+  ["JGJL-406", "Byblos"],
+  ["JGJL-407", "Byblos"],
+  ["JGJL-408", "Byblos"],
+  ["JGJL-501", "Byblos"],
+  ["JGJL-506", "Byblos"],
+  ["HSL-3103", "Byblos"],
+  ["HSL-3105", "Byblos"],
+  ["HSL-3106", "Byblos"],
+]);
+const VALID_DURATIONS = new Set(["30 minutes", "1 hour", "2 hours"]);
+const VALID_TIMES = new Set(["08:00", "10:00", "12:00", "14:00", "16:00"]);
 
 const normalizeString = (value) => (typeof value === "string" ? value.trim() : "");
 
@@ -13,10 +36,16 @@ const parsePositiveInt = (value) => {
 
 const isValidDateString = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 
+const isRealDateString = (value) => {
+  if (!isValidDateString(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+
 const getStudyRoomBookings = async (req, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT id, campus, room, booking_date AS date, start_time AS time,
+      `SELECT id, campus, room, DATE_FORMAT(booking_date, '%Y-%m-%d') AS date, start_time AS time,
               duration, people, student_id AS studentId, requested_at AS requestedAt,
               status, notes, created_at AS createdAt
        FROM study_room_bookings
@@ -49,12 +78,28 @@ const createStudyRoomBooking = async (req, res) => {
       return res.status(400).json({ message: "Room, date, duration, time, and student ID are required" });
     }
 
-    if (!isValidDateString(date)) {
+    if (!isRealDateString(date)) {
       return res.status(400).json({ message: "Date must use YYYY-MM-DD format" });
     }
 
     if (!people || people > 20) {
       return res.status(400).json({ message: "Group size must be between 1 and 20 people" });
+    }
+
+    if (!ROOM_CAMPUS.has(room)) {
+      return res.status(400).json({ message: "Unknown study room" });
+    }
+
+    if (ROOM_CAMPUS.get(room) !== campus) {
+      return res.status(400).json({ message: "Selected room does not belong to the selected campus" });
+    }
+
+    if (!VALID_DURATIONS.has(duration)) {
+      return res.status(400).json({ message: "Invalid booking duration" });
+    }
+
+    if (!VALID_TIMES.has(time)) {
+      return res.status(400).json({ message: "Invalid time slot" });
     }
 
     const [conflicts] = await pool.query(
@@ -87,7 +132,7 @@ const createStudyRoomBooking = async (req, res) => {
     );
 
     const [rows] = await pool.query(
-      `SELECT id, campus, room, booking_date AS date, start_time AS time,
+      `SELECT id, campus, room, DATE_FORMAT(booking_date, '%Y-%m-%d') AS date, start_time AS time,
               duration, people, student_id AS studentId, requested_at AS requestedAt,
               status, notes, created_at AS createdAt
        FROM study_room_bookings

@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS study_room_bookings (
   created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_study_room_bookings_slot (room, booking_date, start_time),
   INDEX idx_study_room_bookings_student (student_id),
+  UNIQUE KEY uniq_study_room_booking_status (room, booking_date, start_time, status),
   CONSTRAINT chk_study_room_people CHECK (people BETWEEN 1 AND 20)
 );
 
