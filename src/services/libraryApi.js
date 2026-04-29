@@ -7,12 +7,25 @@ export function isBackendConfigured() {
 function getAuthHeaders() {
   const headers = { 'Content-Type': 'application/json' }
   const token = localStorage.getItem('token') || localStorage.getItem('authToken')
+  const user = getStoredUser()
 
   if (token) {
     headers.Authorization = `Bearer ${token}`
   }
 
+  if (user?.email) {
+    headers['X-User-Id'] = user.email
+  }
+
   return headers
+}
+
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null')
+  } catch {
+    return null
+  }
 }
 
 async function request(path, options = {}) {
@@ -46,6 +59,7 @@ async function request(path, options = {}) {
     const message = data?.message || data?.error || `Request failed with status ${response.status}`
     const error = new Error(message)
     error.status = response.status
+    error.data = data
     throw error
   }
 
@@ -135,6 +149,8 @@ export function normalizeBook(rawBook) {
     copies: copies ?? rawBook.copies,
     available: availableBoolean ?? (availableCopies === undefined ? rawBook.available : availableCopies > 0),
     availableCopies: availableCopies ?? rawBook.availableCopies,
+    userLoan: rawBook.userLoan || rawBook.currentUserLoan || null,
+    userReservation: rawBook.userReservation || rawBook.currentUserReservation || null,
   }
 }
 

@@ -8,7 +8,7 @@ import { borrowBook, fetchBookById, isBackendConfigured, reserveBook } from '@/s
 export default function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { books, loading: booksLoading, error: booksContextError } = useBooks()
+  const { books, loading: booksLoading, error: booksContextError, loadBooks } = useBooks()
 
   const fallbackBook = useMemo(
     () => books.find((b) => String(b.id) === String(id)) || BOOKS.find((b) => String(b.id) === String(id)),
@@ -29,11 +29,14 @@ export default function BookDetail() {
   const [progress, setProgress] = useState(0)
 
   function getUserPrefix() {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken')
+
     try {
       const u = JSON.parse(localStorage.getItem('user'))
-      return u?.email ? `${u.email}:` : ''
+      const key = u?.email || token
+      return key ? `${key}:` : ''
     } catch {
-      return ''
+      return token ? `${token}:` : ''
     }
   }
 
@@ -50,6 +53,14 @@ export default function BookDetail() {
   const reserveKey = bookStorageId ? `${prefix}reserved-${bookStorageId}` : ''
   const loanKey = bookStorageId ? `${prefix}loan-${bookStorageId}` : ''
   const storageKey = bookStorageId ? `${prefix}reading-progress-${bookStorageId}` : ''
+  const backendUserState = isBackendConfigured()
+    ? book?.userLoan
+      ? 'borrowed'
+      : book?.userReservation
+        ? 'reserved'
+        : ''
+    : ''
+  const actionButtonState = backendUserState || (borrowed ? actionType : '')
 
   useEffect(() => {
     let alive = true
@@ -117,14 +128,23 @@ export default function BookDetail() {
       return
     }
 
+    if (isBackendConfigured()) {
+      const nextState = book?.userLoan ? 'borrow' : book?.userReservation ? 'reserve' : 'borrow'
+      setActionType(nextState)
+      setBorrowed(Boolean(book?.userLoan || book?.userReservation))
+      return
+    }
+
     const savedLoan = localStorage.getItem(loanKey)
     const savedReservation = localStorage.getItem(reserveKey)
+    const hasReservation = savedReservation !== null
     setBorrowed(
       localStorage.getItem(borrowKey) !== null ||
       savedLoan !== null ||
-      savedReservation !== null
+      hasReservation
     )
-  }, [bookStorageId, borrowKey, hasLoggedInUser, loanKey, reserveKey])
+    setActionType(hasReservation ? 'reserve' : 'borrow')
+  }, [book?.userLoan, book?.userReservation, bookStorageId, borrowKey, hasLoggedInUser, loanKey, reserveKey])
 
   function handleBorrowClick() {
     if (!hasLoggedInUser) {
@@ -213,6 +233,7 @@ export default function BookDetail() {
       localStorage.setItem(borrowedBooksKey, JSON.stringify(currentBooks))
     }
 
+    loadBooks?.()
     setActionLoading(false)
   }
 
@@ -316,11 +337,11 @@ export default function BookDetail() {
           <div className="mt-4 flex flex-col gap-3">
             <button
               className="w-full cursor-pointer rounded-lg border-0 bg-[#1a4a3a] py-[0.85rem] text-[0.9rem] font-semibold text-white transition-colors hover:enabled:bg-[#2d7a4f] disabled:cursor-not-allowed disabled:bg-[#ccc] disabled:text-[#888]"
-              disabled={borrowed || actionLoading}
+              disabled={Boolean(actionButtonState) || actionLoading}
               onClick={handleBorrowClick}
               aria-label={`Borrow ${book.title}`}
             >
-              {borrowed ? (actionType === 'reserve' ? 'Reserved' : 'Borrowed') : isAvailable ? 'Borrow this Book' : 'Reserve this Book'}
+              {actionButtonState ? (actionButtonState === 'reserved' || actionButtonState === 'reserve' ? 'Reserved' : 'Borrowed') : isAvailable ? 'Borrow this Book' : 'Reserve this Book'}
             </button>
 
             <button

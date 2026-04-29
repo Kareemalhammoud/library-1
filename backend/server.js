@@ -41,7 +41,7 @@ async function saveState() {
 
 function getUserId(req) {
   const explicitUser = req.headers['x-user-id']
-  if (explicitUser) return String(explicitUser)
+  if (explicitUser) return String(explicitUser).trim().toLowerCase()
 
   const auth = req.headers.authorization || ''
   if (auth.startsWith('Bearer ')) return auth.slice(7)
@@ -51,6 +51,20 @@ function getUserId(req) {
 
 function getBookById(id) {
   return BOOKS.find((book) => String(book.id) === String(id))
+}
+
+function getActiveLoan(bookId, userId) {
+  return state.loans.find(
+    (loan) => String(loan.bookId) === String(bookId) && loan.userId === userId && loan.status === 'active'
+  ) || null
+}
+
+function getActiveReservation(bookId, userId) {
+  return state.reservations.find(
+    (reservation) => String(reservation.bookId) === String(bookId) &&
+      reservation.userId === userId &&
+      reservation.status === 'active'
+  ) || null
 }
 
 function getBookInventory(book) {
@@ -65,11 +79,13 @@ function getBookInventory(book) {
   }
 }
 
-function toApiBook(book) {
+function toApiBook(book, userId = null) {
   return {
     ...book,
     campus: book.campus || getCampus(Number(book.id) || 0),
     ...getBookInventory(book),
+    userLoan: userId ? getActiveLoan(book.id, userId) : null,
+    userReservation: userId ? getActiveReservation(book.id, userId) : null,
   }
 }
 
@@ -97,7 +113,7 @@ async function readJson(req) {
   return JSON.parse(body)
 }
 
-function filterBooks(books, params) {
+function filterBooks(books, params, userId) {
   const search = params.get('search')?.trim().toLowerCase()
   const genre = params.get('genre')
   const language = params.get('language')
@@ -106,7 +122,7 @@ function filterBooks(books, params) {
   const sort = params.get('sort')
 
   const filtered = books.filter((book) => {
-    const apiBook = toApiBook(book)
+    const apiBook = toApiBook(book, userId)
     const bookLanguage = apiBook.language === 'FR' ? 'French' : 'English'
     const matchesSearch =
       !search ||
@@ -143,7 +159,7 @@ function filterBooks(books, params) {
       break
   }
 
-  return filtered.map(toApiBook)
+  return filtered.map((book) => toApiBook(book, userId))
 }
 
 async function handleBorrow(req, res, bookId) {
@@ -153,20 +169,22 @@ async function handleBorrow(req, res, bookId) {
     return
   }
 
-  const apiBook = toApiBook(book)
+  const userId = getUserId(req)
+  const apiBook = toApiBook(book, userId)
   if (apiBook.availableCopies < 1) {
     sendJson(res, 409, { message: 'No copies are currently available. Reserve this book instead.' })
     return
   }
 
   const payload = await readJson(req)
-  const userId = getUserId(req)
-  const existingLoan = state.loans.find(
-    (loan) => String(loan.bookId) === String(book.id) && loan.userId === userId && loan.status === 'active'
-  )
+  const existingLoan = getActiveLoan(book.id, userId)
 
   if (existingLoan) {
-    sendJson(res, 409, { message: 'This user already has an active loan for this book.', loan: existingLoan })
+    sendJson(res, 409, {
+      message: 'This user already has an active loan for this book.',
+      loan: existingLoan,
+      book: toApiBook(book, userId),
+    })
     return
   }
 
@@ -182,12 +200,20 @@ async function handleBorrow(req, res, bookId) {
   }
 
   state.loans.push(loan)
+
+  state.reservations.forEach((reservation) => {
+    if (String(reservation.bookId) === String(book.id) && reservation.userId === userId && reservation.status === 'active') {
+      reservation.status = 'fulfilled'
+      reservation.fulfilledAt = borrowedAt
+    }
+  })
+
   await saveState()
 
   sendJson(res, 201, {
     message: 'Book borrowed successfully.',
     loan,
-    book: toApiBook(book),
+    book: toApiBook(book, userId),
   })
 }
 
@@ -200,16 +226,23 @@ async function handleReserve(req, res, bookId) {
 
   const payload = await readJson(req)
   const userId = getUserId(req)
-  const existingReservation = state.reservations.find(
-    (reservation) => String(reservation.bookId) === String(book.id) &&
-      reservation.userId === userId &&
-      reservation.status === 'active'
-  )
+  const existingLoan = getActiveLoan(book.id, userId)
+  const existingReservation = getActiveReservation(book.id, userId)
+
+  if (existingLoan) {
+    sendJson(res, 409, {
+      message: 'This user already has an active loan for this book.',
+      loan: existingLoan,
+      book: toApiBook(book, userId),
+    })
+    return
+  }
 
   if (existingReservation) {
     sendJson(res, 409, {
       message: 'This user already has an active reservation for this book.',
       reservation: existingReservation,
+      book: toApiBook(book, userId),
     })
     return
   }
@@ -228,7 +261,7 @@ async function handleReserve(req, res, bookId) {
   sendJson(res, 201, {
     message: 'Book reserved successfully.',
     reservation,
-    book: toApiBook(book),
+    book: toApiBook(book, userId),
   })
 }
 
@@ -247,7 +280,7 @@ async function handleRequest(req, res) {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/books') {
-    sendJson(res, 200, { books: filterBooks(BOOKS, url.searchParams) })
+    sendJson(res, 200, { books: filterBooks(BOOKS, url.searchParams, getUserId(req)) })
     return
   }
 
@@ -261,7 +294,7 @@ async function handleRequest(req, res) {
         return
       }
 
-      sendJson(res, 200, { book: toApiBook(book) })
+      sendJson(res, 200, { book: toApiBook(book, getUserId(req)) })
       return
     }
 
