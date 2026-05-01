@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getStudyRoomBookings,
+  getStudyRoomAvailability,
   createStudyRoomBooking,
   updateStudyRoomBookingStatus,
   getHelpRequests,
@@ -12,10 +13,12 @@ const adminOnly = require("../middleware/adminOnly");
 
 const router = express.Router();
 
+router.get("/study-room-bookings/availability", getStudyRoomAvailability);
 router.get("/study-room-bookings", authMiddleware, adminOnly, getStudyRoomBookings);
 router.post("/study-room-bookings", createStudyRoomBooking);
 router.patch("/study-room-bookings/:id/status", authMiddleware, adminOnly, updateStudyRoomBookingStatus);
 
+router.get("/services/study-rooms/availability", getStudyRoomAvailability);
 router.get("/services/study-rooms", authMiddleware, adminOnly, getStudyRoomBookings);
 router.post("/services/study-rooms", createStudyRoomBooking);
 router.patch("/services/study-rooms/:id/status", authMiddleware, adminOnly, updateStudyRoomBookingStatus);

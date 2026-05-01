@@ -8,6 +8,9 @@ import {
   removeFavorite,
   createLoan,
   createReservation,
+  getActiveLoans,
+  getReadingProgress,
+  updateReadingProgress,
   getReviewsForBook,
   submitReview,
   deleteReview as deleteReviewApi,
@@ -103,6 +106,7 @@ export default function BookDetail() {
   const [confirmed, setConfirmed] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [progressSaving, setProgressSaving] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
   const [favoriteBusy, setFavoriteBusy] = useState(false)
   const [reviews, setReviews] = useState([])
@@ -246,21 +250,57 @@ export default function BookDetail() {
   const safeBookId = book?.id ?? 0
   const borrowKey = `${prefix}borrowed-${safeBookId}`
   const reservationKey = `${prefix}reserved-${safeBookId}`
-  const loanKey = `${prefix}loan-${safeBookId}`
   const storageKey = `${prefix}reading-progress-${safeBookId}`
 
   useEffect(() => {
     if (!book) return
-    const savedLoan = localStorage.getItem(loanKey)
-    setBorrowed(Boolean(book.userLoan) || Boolean(savedLoan) || Boolean(localStorage.getItem(borrowKey)))
-    setReserved(Boolean(book.userReservation) || Boolean(localStorage.getItem(reservationKey)))
     setActionError('')
     setActionSuccess('')
-  }, [book, borrowKey, loanKey, reservationKey])
+    setBorrowed(false)
+
+    if (!isLoggedInUser()) {
+      setReserved(false)
+      return
+    }
+
+    let cancelled = false
+    getActiveLoans()
+      .then((loans) => {
+        if (cancelled) return
+        setBorrowed(loans.some((loan) => Number(loan.book_id) === Number(book.id)))
+      })
+      .catch(() => {
+        if (!cancelled) setBorrowed(Boolean(book.userLoan))
+      })
+
+    setReserved(Boolean(book.userReservation) || Boolean(localStorage.getItem(reservationKey)))
+
+    return () => {
+      cancelled = true
+    }
+  }, [book, reservationKey])
 
   useEffect(() => {
     if (!book) return
-    setProgress(Number(localStorage.getItem(storageKey) ?? 0))
+    let cancelled = false
+
+    if (!isLoggedInUser()) {
+      setProgress(Number(localStorage.getItem(storageKey) ?? 0))
+      return
+    }
+
+    getReadingProgress(book.id)
+      .then((data) => {
+        if (cancelled) return
+        setProgress(Number(data.progress ?? 0))
+      })
+      .catch(() => {
+        if (!cancelled) setProgress(Number(localStorage.getItem(storageKey) ?? 0))
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [book, storageKey])
 
   const isAvailable = Number(book?.availableCopies ?? 0) > 0
@@ -317,7 +357,7 @@ export default function BookDetail() {
     // Persist to the DB first. Without this, the dashboard can't show the
     // loan — it reads from the `loans` table, not localStorage.
     try {
-      await createLoan(book.id)
+      const loan = await createLoan(book.id)
       // Reflect the decremented available count on this page without a full refetch.
       // total_copies stays the same — only the available count drops.
       setBook((prev) => (prev ? {
@@ -325,14 +365,11 @@ export default function BookDetail() {
         copies: Math.max(0, (prev.copies ?? 0) - 1),
         availableCopies: Math.max(0, (prev.availableCopies ?? 0) - 1),
       } : prev))
+      setBorrowed(Boolean(loan))
     } catch (error) {
-      // Already-borrowed (409) is effectively success from the UI's POV; any
-      // other error aborts so the user knows something went wrong.
-      if (error.status !== 409) {
-        setActionError(error.message || 'Failed to borrow this book')
-        setActionSubmitting(false)
-        return
-      }
+      setActionError(error.message || 'Failed to borrow this book')
+      setActionSubmitting(false)
+      return
     }
 
     const borrowedAt = new Date()
@@ -363,25 +400,12 @@ export default function BookDetail() {
     setActionSuccess(`You borrowed ${book.title}.`)
     setActionSubmitting(false)
 
-    localStorage.setItem(borrowKey, borrowedAt.toISOString())
-    localStorage.setItem(
-      loanKey,
-      JSON.stringify({
-        bookId: book.id,
-        borrowedAt: borrowedAt.toISOString(),
-        dueAt: dueAt.toISOString(),
-      })
-    )
+    localStorage.removeItem(borrowKey)
 
-    const alreadyTracked = currentBorrowedBooks.some(
-      (entry) => entry.id === book.id
-    )
+    const alreadyTracked = currentBorrowedBooks.some((entry) => entry.id === book.id)
 
     if (!alreadyTracked) {
-      localStorage.setItem(
-        borrowedBooksKey,
-        JSON.stringify([...currentBorrowedBooks, borrowedBookEntry])
-      )
+      localStorage.setItem(borrowedBooksKey, JSON.stringify([...currentBorrowedBooks, borrowedBookEntry]))
     }
   }
 
@@ -422,6 +446,14 @@ export default function BookDetail() {
   const handleProgress = (val) => {
     setProgress(val)
     localStorage.setItem(storageKey, val)
+    if (!book || !isLoggedInUser()) return
+
+    setProgressSaving(true)
+    updateReadingProgress(book.id, val)
+      .catch(() => {
+        /* localStorage remains as a fallback if the network save fails */
+      })
+      .finally(() => setProgressSaving(false))
   }
 
   if (loading) {
@@ -692,9 +724,10 @@ export default function BookDetail() {
             </div>
 
             <p className="m-0 text-[0.78rem] italic text-[#bbb] dark:text-[#888]" aria-live="polite">
-              {progress === 0 && 'Not started yet'}
-              {progress > 0 && progress < 100 && `${100 - progress}% left to go`}
-              {progress === 100 && '✓ Finished!'}
+              {progressSaving && 'Saving progress...'}
+              {!progressSaving && progress === 0 && 'Not started yet'}
+              {!progressSaving && progress > 0 && progress < 100 && `${100 - progress}% left to go`}
+              {!progressSaving && progress === 100 && '✓ Finished!'}
             </p>
           </section>
         </section>

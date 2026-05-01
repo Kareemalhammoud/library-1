@@ -17,6 +17,8 @@ const favoritesRoutes = require("./routes/favoritesRoutes");
 const loansRoutes = require("./routes/loansRoutes");
 const reviewsRoutes = require("./routes/reviewsRoutes");
 const servicesRoutes = require("./routes/servicesRoutes");
+const readingProgressRoutes = require("./routes/readingProgressRoutes");
+const { getStudyRoomAvailability } = require("./controllers/servicesController");
 
 const app = express();
 
@@ -34,6 +36,9 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/loans", loansRoutes);
 app.use("/api/reviews", reviewsRoutes);
+app.use("/api/reading-progress", readingProgressRoutes);
+app.get("/api/study-room-bookings/availability", getStudyRoomAvailability);
+app.get("/api/services/study-rooms/availability", getStudyRoomAvailability);
 app.use("/api", servicesRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

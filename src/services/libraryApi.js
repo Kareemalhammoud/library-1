@@ -209,6 +209,18 @@ export async function createStudyRoomBooking(payload) {
   )
 }
 
+export async function fetchStudyRoomAvailability(params = {}) {
+  const query = toQuery(params)
+  return requestFirst(
+    [
+      `/api/study-room-bookings/availability${query}`,
+      `/api/services/study-rooms/availability${query}`,
+      `/study-room-bookings/availability${query}`,
+    ],
+    { method: 'GET' }
+  )
+}
+
 export async function createHelpRequest(payload) {
   return requestFirst(
     ['/api/help-requests', '/api/services/help-requests', '/help-requests'],

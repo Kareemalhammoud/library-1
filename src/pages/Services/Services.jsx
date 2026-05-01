@@ -87,6 +87,10 @@ function getStoredList(key) {
   }
 }
 
+function isValidLauId(value) {
+  return /^\d{8,9}$/.test(value.trim());
+}
+
 const Icon = ({ name, className = "" }) => {
   const icons = {
     book: (
@@ -259,6 +263,7 @@ const RoomBookingForm = () => {
     if (!form.time)             e.time      = "Please choose a time slot.";
     if (!form.people)           e.people    = "Please specify group size.";
     if (!form.studentId.trim()) e.studentId = "Student ID is required.";
+    else if (!isValidLauId(form.studentId)) e.studentId = "LAU ID must be 8 or 9 digits.";
     return e;
   };
 
@@ -412,8 +417,9 @@ const RoomBookingForm = () => {
             aria-describedby={errors.duration ? "duration-error" : undefined}
           >
             <option value="">Select</option>
-            <option value="1hr">1 hour</option>
-            <option value="2hr">2 hours</option>
+            <option value="30 minutes">30 minutes</option>
+            <option value="1 hour">1 hour</option>
+            <option value="2 hours">2 hours</option>
           </select>
           {errors.duration && <p id="duration-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.duration}</p>}
         </div>
@@ -432,10 +438,14 @@ const RoomBookingForm = () => {
             aria-describedby={errors.time ? "time-error" : undefined}
           >
             <option value="">Select</option>
-            {["8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM",
-              "1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM",
-              "6:00 PM","7:00 PM","8:00 PM"].map((t) => (
-              <option key={t} value={t}>{t}</option>
+            {[
+              ["08:00", "8:00 AM"],
+              ["10:00", "10:00 AM"],
+              ["12:00", "12:00 PM"],
+              ["14:00", "2:00 PM"],
+              ["16:00", "4:00 PM"],
+            ].map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
             ))}
           </select>
           {errors.time && <p id="time-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.time}</p>}
@@ -465,14 +475,17 @@ const RoomBookingForm = () => {
         <input
           id="student-id-input"
           type="text"
+          inputMode="numeric"
+          maxLength={9}
           placeholder="e.g. 202100001"
           value={form.studentId}
           onChange={(e) => update("studentId", e.target.value)}
           className={inputCls}
           aria-required="true"
           aria-invalid={!!errors.studentId}
-          aria-describedby={errors.studentId ? "studentId-error" : undefined}
+          aria-describedby={errors.studentId ? "studentId-error studentId-hint" : "studentId-hint"}
         />
+        <p id="studentId-hint" className="mt-1 text-[11px] text-[#5e7a68] dark:text-[#888]">Use 8 or 9 digits, no spaces or dashes.</p>
         {errors.studentId && <p id="studentId-error" role="alert" className="text-red-500 text-[11px] mt-1">{errors.studentId}</p>}
       </div>
 

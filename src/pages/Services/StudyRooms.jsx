@@ -1,24 +1,14 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
+import { createStudyRoomBooking, fetchStudyRoomAvailability } from "@/services/libraryApi";
 
-
-// ─── Accent colour for this page: sage green (sage card) ─────────────────────
-// bg-[#d6ede0]  accent-[#1a6644]
-
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-
-// Campus-specific room data including library names, equipment, and room lists
-// Each campus object contains library information and available study rooms
 const CAMPUS_ROOMS = {
   Beirut: {
-    library: "Our Libraries (RNL)",
+    library: "Riyad Nassar Library (RNL)",
     equipment: "Whiteboards and flipcharts",
-    cctv: true,
     rooms: [
-      { id: "RNL-805", name: "RNL 805 – Jawdat R. Haydar" },
+      { id: "RNL-805", name: "RNL 805 - Jawdat R. Haydar" },
       { id: "RNL-806A", name: "RNL 806 A" },
       { id: "RNL-806B", name: "RNL 806 B" },
       { id: "RNL-807A", name: "RNL 807 A" },
@@ -26,9 +16,8 @@ const CAMPUS_ROOMS = {
     ],
   },
   Byblos: {
-    library: "Joseph G. Jabbra Library (JGJL) & HSL",
-    equipment: "TV screen for projection (JGJL) · Whiteboards and flipcharts (HSL)",
-    cctv: true,
+    library: "Joseph G. Jabbra Library (JGJL) and HSL",
+    equipment: "TV screens, whiteboards, and flipcharts",
     rooms: [
       { id: "JGJL-204", name: "JGJL 204" },
       { id: "JGJL-302", name: "JGJL 302" },
@@ -48,32 +37,39 @@ const CAMPUS_ROOMS = {
   },
 };
 
+const DURATIONS = ["30 minutes", "1 hour", "2 hours"];
+const DEFAULT_SLOTS = ["08:00", "10:00", "12:00", "14:00", "16:00"];
 
-// Array of rules and guidelines for using Group Study Rooms (GSRs)
-// These are the terms and conditions that users must follow
 const RULES = [
-  "GSRs can be booked for a maximum of 2 hours at any one time, renewable upon availability.",
-  "When vacant, rooms are available on a first-come, first-served basis.",
+  "Bookings are limited to 2 hours per session.",
   "Rooms are intended for groups of 2 or more users.",
-  "If a room is unattended for over 15 minutes, the booking may be released.",
   "A valid LAU ID card is required to reserve a room.",
-  "Users must vacate rooms no less than 10 minutes before library closing time.",
-  "Keep noise to a minimum — rooms are not soundproof.",
-  "Leave the room in good condition. The library is not responsible for unattended items.",
-  "Reservation schedule is updated every Friday.",
+  "If a room is unattended for over 15 minutes, the booking may be released.",
+  "Keep noise to a minimum and leave the room ready for the next group.",
 ];
 
+function formatTime(time) {
+  const [hour, minute] = time.split(":").map(Number);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
 
-// ─── Shared back button ───────────────────────────────────────────────────────
+function todayString() {
+  return new Date().toISOString().slice(0, 10);
+}
 
+function isValidLauId(value) {
+  return /^\d{8,9}$/.test(value.trim());
+}
 
-// Reusable navigation button component for returning to services page
 const BackButton = ({ onClick }) => (
   <button
+    type="button"
     onClick={onClick}
     className="mb-6 flex items-center gap-1.5 text-[13px] font-medium text-[#5ecba1] transition-opacity hover:opacity-80"
   >
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
       <path d="M19 12H5M12 5l-7 7 7 7" />
     </svg>
     Back to Services
@@ -84,154 +80,338 @@ BackButton.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-
-// ─── Main Study Rooms Page Component ──────────────────────────────────────────
-// This component renders the Group Study Rooms booking page with campus selection,
-// room listings, and usage rules. Users can switch between Beirut and Byblos campuses.
-
-
-const StudyRoomsPage = () => {
+export default function StudyRoomsPage() {
   const navigate = useNavigate();
-  // State to track which campus is currently selected (Beirut or Byblos)
   const [campus, setCampus] = useState("Beirut");
-  // Get the data for the currently selected campus
-  const data = CAMPUS_ROOMS[campus];
+  const [form, setForm] = useState({
+    room: CAMPUS_ROOMS.Beirut.rooms[0].id,
+    date: todayString(),
+    time: "",
+    duration: "1 hour",
+    people: "2",
+    studentId: "",
+    notes: "",
+  });
+  const [slots, setSlots] = useState(DEFAULT_SLOTS.map((time) => ({ time, available: true })));
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
+  const data = CAMPUS_ROOMS[campus];
+  const selectedRoom = useMemo(
+    () => data.rooms.find((room) => room.id === form.room) || data.rooms[0],
+    [data.rooms, form.room]
+  );
+
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      room: CAMPUS_ROOMS[campus].rooms[0].id,
+      time: "",
+    }));
+    setConfirmedBooking(null);
+  }, [campus]);
+
+  useEffect(() => {
+    if (!form.room || !form.date) return;
+
+    let cancelled = false;
+    setAvailabilityLoading(true);
+    setAvailabilityError("");
+
+    fetchStudyRoomAvailability({ campus, room: form.room, date: form.date })
+      .then((data) => {
+        if (cancelled) return;
+        setSlots(Array.isArray(data.slots) ? data.slots : DEFAULT_SLOTS.map((time) => ({ time, available: true })));
+        if (data.slots?.some((slot) => slot.time === form.time && !slot.available)) {
+          setForm((prev) => ({ ...prev, time: "" }));
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setAvailabilityError(error.message || "Unable to load time slots.");
+        setSlots(DEFAULT_SLOTS.map((time) => ({ time, available: true })));
+      })
+      .finally(() => {
+        if (!cancelled) setAvailabilityLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [campus, form.room, form.date, form.time]);
+
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setSubmitError("");
+    setConfirmedBooking(null);
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setSubmitError("");
+
+    if (!form.room || !form.date || !form.time || !form.duration || !form.studentId.trim()) {
+      setSubmitError("Choose a room, date, time, duration, and enter your LAU ID.");
+      return;
+    }
+
+    if (!isValidLauId(form.studentId)) {
+      setSubmitError("LAU ID must be 8 or 9 digits.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await createStudyRoomBooking({
+        campus,
+        room: form.room,
+        date: form.date,
+        time: form.time,
+        duration: form.duration,
+        people: form.people,
+        studentId: form.studentId.trim(),
+        notes: form.notes.trim(),
+        requestedAt: new Date().toISOString(),
+      });
+
+      setConfirmedBooking(result.booking);
+      setForm((prev) => ({ ...prev, time: "", notes: "" }));
+      const availability = await fetchStudyRoomAvailability({ campus, room: form.room, date: form.date });
+      setSlots(Array.isArray(availability.slots) ? availability.slots : slots);
+    } catch (error) {
+      setSubmitError(error.message || "Unable to reserve this study room.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
-    // Main semantic container for the page content
     <main className="min-h-screen bg-[#f2f6f3] dark:bg-[#1a1a1a]">
-
-
-      {/* Hero section with page title and description */}
-      <section className="bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 md:px-16 py-12 relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-20 w-72 h-72 rounded-full bg-[#1a6644]/8 pointer-events-none" />
+      <section className="relative overflow-hidden bg-[linear-gradient(165deg,#0A2E22_0%,#061C14_100%)] px-8 py-12 md:px-16">
+        <div className="pointer-events-none absolute -bottom-20 -right-10 h-72 w-72 rounded-full bg-[#1a6644]/8" />
         <BackButton onClick={() => navigate("/services")} />
-        <p className="text-[#5ecba1] text-[10px] font-semibold tracking-[0.14em] uppercase mb-2">
-          Services · Study Rooms
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5ecba1]">
+          Services / Study Rooms
         </p>
-        <h1 className="text-white text-4xl font-bold leading-tight mb-2">
+        <h1 className="mb-2 text-4xl font-bold leading-tight text-white">
           Group Study Rooms
         </h1>
-        <p className="text-white/65 text-sm max-w-lg leading-relaxed">
-          Book private study rooms at Beirut or Byblos campus for collaborative sessions. Valid LAU ID required.
+        <p className="max-w-lg text-sm leading-relaxed text-white/65">
+          Reserve a room directly through the library system. Pick a campus, room, date, and open time slot.
         </p>
       </section>
 
-
-      <div className="px-8 md:px-16 py-10 max-w-4xl">
-
-
-        {/* Quick statistics overview section */}
-        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+      <div className="max-w-6xl px-8 py-10 md:px-16">
+        <section className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "Max booking",   value: "2 hrs" },
+            { label: "Max booking", value: "2 hrs" },
             { label: "Min group size", value: "2 people" },
-            { label: "Beirut rooms",   value: "5" },
-            { label: "Byblos rooms",   value: "14" },
-          ].map((s) => (
-            <article key={s.label} className="bg-white dark:bg-[#242424] rounded-xl border border-[#cfe2d6] dark:border-[#333] p-4">
-              <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mb-1">{s.label}</p>
-              <p className="text-[#162a1f] dark:text-white text-xl font-bold">{s.value}</p>
+            { label: "Beirut rooms", value: "5" },
+            { label: "Byblos rooms", value: "14" },
+          ].map((stat) => (
+            <article key={stat.label} className="rounded-xl border border-[#cfe2d6] bg-white p-4 dark:border-[#333] dark:bg-[#242424]">
+              <p className="mb-1 text-[11px] text-[#5e7a68] dark:text-[#888]">{stat.label}</p>
+              <p className="text-xl font-bold text-[#162a1f] dark:text-white">{stat.value}</p>
             </article>
           ))}
         </section>
 
+        <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
+          <section className="rounded-2xl border border-[#cfe2d6] bg-white p-6 dark:border-[#333] dark:bg-[#242424]">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="mb-1 text-[17px] font-bold text-[#162a1f] dark:text-white">Rooms and Availability</h2>
+                <p className="text-[12px] text-[#5e7a68] dark:text-[#888]">{data.library} - {data.equipment}</p>
+              </div>
+              <div className="flex gap-2">
+                {["Beirut", "Byblos"].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setCampus(item)}
+                    className={`h-9 rounded-xl border px-4 text-[13px] font-semibold transition-colors ${
+                      campus === item
+                        ? "border-[#1a6644] bg-[#1a6644] text-white"
+                        : "border-[#c5ddd0] bg-[#f7fbf8] text-[#3d6650] hover:border-[#1a6644] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-[#888]"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Room selection and booking section */}
-        <section className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6 mb-4">
-          <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-4">Available rooms</h3>
+            <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {data.rooms.map((room) => (
+                <button
+                  key={room.id}
+                  type="button"
+                  onClick={() => update("room", room.id)}
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    form.room === room.id
+                      ? "border-[#1a6644] bg-[#eaf5ee] shadow-[inset_0_0_0_1px_rgba(26,102,68,0.28)] dark:bg-[#20352c]"
+                      : "border-[#cfe2d6] bg-[#f7fbf8] hover:border-[#1a6644] dark:border-[#333] dark:bg-[#2e2e2e]"
+                  }`}
+                >
+                  <span className="block text-[13px] font-semibold text-[#162a1f] dark:text-white">{room.name}</span>
+                  <span className="mt-0.5 block text-[11px] text-[#5e7a68] dark:text-[#888]">{campus} campus</span>
+                </button>
+              ))}
+            </div>
 
+            <div className="rounded-xl border border-[#cfe2d6] bg-[#f7fbf8] p-4 dark:border-[#333] dark:bg-[#1f1f1f]">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#1a6644] dark:text-[#5ecba1]">
+                    {selectedRoom.name}
+                  </p>
+                  <p className="text-[12px] text-[#5e7a68] dark:text-[#888]">
+                    {form.date || "Select a date"} availability
+                  </p>
+                </div>
+                {availabilityLoading && <span className="text-[12px] text-[#5e7a68] dark:text-[#888]">Checking slots...</span>}
+              </div>
 
-          {/* Campus selection navigation */}
-          <nav className="flex gap-2 mb-5">
-            {["Beirut", "Byblos"].map((c) => (
+              {availabilityError && (
+                <p className="mb-3 rounded-lg bg-[#fff5d8] px-3 py-2 text-[12px] text-[#7c5b00] dark:bg-[#332800] dark:text-[#f1d57a]">
+                  {availabilityError}
+                </p>
+              )}
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                {slots.map((slot) => (
+                  <button
+                    key={slot.time}
+                    type="button"
+                    disabled={!slot.available}
+                    onClick={() => update("time", slot.time)}
+                    className={`h-10 rounded-lg border text-[12px] font-semibold transition disabled:cursor-not-allowed ${
+                      form.time === slot.time
+                        ? "border-[#1a6644] bg-[#1a6644] text-white"
+                        : slot.available
+                          ? "border-[#c5ddd0] bg-white text-[#1a6644] hover:border-[#1a6644] dark:border-[#333] dark:bg-[#242424] dark:text-[#5ecba1]"
+                          : "border-[#e2d6d2] bg-[#f1e9e6] text-[#9a8c86] line-through dark:border-[#3a2a26] dark:bg-[#2a211f] dark:text-[#806f68]"
+                    }`}
+                  >
+                    {formatTime(slot.time)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <aside className="rounded-2xl border border-[#cfe2d6] bg-white p-6 dark:border-[#333] dark:bg-[#242424]">
+            <h2 className="mb-1 text-[17px] font-bold text-[#162a1f] dark:text-white">Complete Booking</h2>
+            <p className="mb-5 text-[12px] leading-relaxed text-[#5e7a68] dark:text-[#888]">
+              The reservation is stored in our database and checked against existing bookings for the selected room and time.
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold text-[#2a4535] dark:text-[#888]">Date</span>
+                <input
+                  type="date"
+                  min={todayString()}
+                  value={form.date}
+                  onChange={(event) => update("date", event.target.value)}
+                  className="h-10 w-full rounded-lg border border-[#c5ddd0] bg-[#f7fbf8] px-3 text-[13px] text-[#162a1f] outline-none focus:border-[#1a6644] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold text-[#2a4535] dark:text-[#888]">Duration</span>
+                <select
+                  value={form.duration}
+                  onChange={(event) => update("duration", event.target.value)}
+                  className="h-10 w-full rounded-lg border border-[#c5ddd0] bg-[#f7fbf8] px-3 text-[13px] text-[#162a1f] outline-none focus:border-[#1a6644] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white"
+                >
+                  {DURATIONS.map((duration) => (
+                    <option key={duration} value={duration}>{duration}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold text-[#2a4535] dark:text-[#888]">Group size</span>
+                <select
+                  value={form.people}
+                  onChange={(event) => update("people", event.target.value)}
+                  className="h-10 w-full rounded-lg border border-[#c5ddd0] bg-[#f7fbf8] px-3 text-[13px] text-[#162a1f] outline-none focus:border-[#1a6644] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white"
+                >
+                  {[2, 3, 4, 5, 6, 7, 8].map((people) => (
+                    <option key={people} value={people}>{people} people</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold text-[#2a4535] dark:text-[#888]">LAU ID</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={9}
+                  value={form.studentId}
+                  onChange={(event) => update("studentId", event.target.value)}
+                  placeholder="e.g. 202100001"
+                  aria-describedby="lau-id-hint"
+                  className="h-10 w-full rounded-lg border border-[#c5ddd0] bg-[#f7fbf8] px-3 text-[13px] text-[#162a1f] outline-none placeholder:text-[#8aaa95] focus:border-[#1a6644] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white"
+                />
+                <span id="lau-id-hint" className="mt-1 block text-[11px] text-[#5e7a68] dark:text-[#888]">Use 8 or 9 digits, no spaces or dashes.</span>
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold text-[#2a4535] dark:text-[#888]">Notes</span>
+                <textarea
+                  value={form.notes}
+                  onChange={(event) => update("notes", event.target.value)}
+                  rows={3}
+                  placeholder="Optional"
+                  className="w-full resize-y rounded-lg border border-[#c5ddd0] bg-[#f7fbf8] px-3 py-2 text-[13px] text-[#162a1f] outline-none placeholder:text-[#8aaa95] focus:border-[#1a6644] dark:border-[#333] dark:bg-[#2e2e2e] dark:text-white"
+                />
+              </label>
+
+              {submitError && (
+                <p className="rounded-lg bg-[#fdecea] px-3 py-2 text-[12px] leading-relaxed text-[#b5392b] dark:bg-[#3b1c1a] dark:text-[#ff9388]" role="alert">
+                  {submitError}
+                </p>
+              )}
+
+              {confirmedBooking && (
+                <p className="rounded-lg bg-[#eaf5ee] px-3 py-2 text-[12px] leading-relaxed text-[#1a6644] dark:bg-[#20352c] dark:text-[#5ecba1]" role="status">
+                  Confirmed: {confirmedBooking.room} on {confirmedBooking.date} at {formatTime(confirmedBooking.time)}.
+                </p>
+              )}
+
               <button
-                key={c}
-                onClick={() => setCampus(c)}
-                className={`flex-1 h-9 rounded-xl text-[13px] font-semibold transition-colors duration-150 border ${
-                  campus === c
-                    ? "bg-[#1a6644] text-white border-[#1a6644]"
-                    : "bg-[#f7fbf8] dark:bg-[#2e2e2e] text-[#3d6650] dark:text-[#888] border-[#c5ddd0] dark:border-[#333] hover:border-[#1a6644]"
-                }`}
+                type="submit"
+                disabled={submitting || availabilityLoading}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#1a6644] text-[13px] font-semibold text-white transition-colors hover:enabled:bg-[#14533a] disabled:cursor-not-allowed disabled:opacity-65"
               >
-                {c === "Beirut" ? "🏙 Beirut (RNL)" : "🌿 Byblos (JGJL / HSL)"}
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M3 10h18M8 2v4M16 2v4" />
+                </svg>
+                {submitting ? "Confirming..." : "Confirm reservation"}
               </button>
-            ))}
-          </nav>
+            </form>
+          </aside>
+        </div>
 
-
-          {/* Library information and equipment details */}
-          <p className="text-[#5e7a68] dark:text-[#888] text-[12px] mb-1">{data.library}</p>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#1a6644] dark:text-[#5ecba1] text-[11px] font-medium px-3 py-1 rounded-full">
-              {data.equipment}
-            </span>
-            {data.cctv && (
-              <span className="bg-[#eaf5ee] dark:bg-[#2e2e2e] text-[#1a6644] dark:text-[#5ecba1] text-[11px] font-medium px-3 py-1 rounded-full">
-                CCTV monitored
-              </span>
-            )}
-          </div>
-
-
-          {/* Grid of available rooms for the selected campus */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {data.rooms.map((room) => (
-              <article
-                key={room.id}
-                className="bg-[#f7fbf8] dark:bg-[#2e2e2e] border border-[#cfe2d6] dark:border-[#333] rounded-xl px-4 py-3"
-              >
-                <p className="text-[#162a1f] dark:text-white text-[13px] font-semibold">{room.name}</p>
-                <p className="text-[#5e7a68] dark:text-[#888] text-[11px] mt-0.5">{campus} campus</p>
-              </article>
-            ))}
-          </div>
-
-
-          {/* Call-to-action button for booking */}
-          <a
-            href={
-              campus === "Beirut"
-                ? "http://lau.libcal.com/rooms.php?i=1566"
-                : "https://lau.libcal.com/rooms.php?i=16531"
-            }
-            target="_blank"
-            rel="noreferrer"
-            className="mt-5 flex items-center justify-center gap-2 w-full h-10 bg-[#1a6644] hover:bg-[#14533a] text-white rounded-xl text-[13px] font-semibold transition-colors duration-150"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-            </svg>
-            Book a room at {campus} campus
-          </a>
-        </section>
-
-
-        {/* Usage rules and guidelines section */}
-        <section className="bg-white dark:bg-[#242424] rounded-2xl border border-[#cfe2d6] dark:border-[#333] p-6">
-          <h3 className="text-[#162a1f] dark:text-white text-[15px] font-bold mb-3">Rules for using GSRs</h3>
+        <section className="mt-5 rounded-2xl border border-[#cfe2d6] bg-white p-6 dark:border-[#333] dark:bg-[#242424]">
+          <h2 className="mb-3 text-[15px] font-bold text-[#162a1f] dark:text-white">Rules for using GSRs</h2>
           <ul className="space-y-2">
-            {RULES.map((r) => (
-              <li key={r} className="flex items-start gap-2.5 text-[13px] text-[#5e7a68] dark:text-[#888]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1a6644] dark:bg-[#5ecba1] mt-1.5 flex-shrink-0" />
-                {r}
+            {RULES.map((rule) => (
+              <li key={rule} className="flex items-start gap-2.5 text-[13px] text-[#5e7a68] dark:text-[#888]">
+                <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#1a6644] dark:bg-[#5ecba1]" />
+                {rule}
               </li>
             ))}
           </ul>
         </section>
-
-
       </div>
     </main>
   );
-};
-
-
-export default StudyRoomsPage;
-
-
-
+}

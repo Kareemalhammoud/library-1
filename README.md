@@ -46,83 +46,12 @@ The four primary entities and their relationships:
   `books.id`), `borrow_date`, `due_date`, `return_date`, `renew_count`,
   `status`. One row per borrow event.
 
-Two supporting entities — `reviews` (per-book ratings and comments) and
-`favorites` (user-saved books) — are also modeled as MySQL tables with
-foreign keys to `users` and `books`.
-
----
-
-## Perla Imad - Phase 2 Full-Stack Ownership
-
-Perla's Phase 1 ownership covered the Book List view, Book Detail page,
-Services pages, and responsive behavior. In Phase 2, those surfaces were
-connected to the live backend and expanded with persistent data flows.
-
-### Frontend pages owned
-
-- **List View (`/books`)** - fetches the collection from the backend and
-  sends search/filter/sort parameters to `GET /api/books`.
-- **Book Detail (`/books/:id`)** - fetches a single book from
-  `GET /api/books/:id`, then integrates reviews, favorites, borrowing,
-  and reservation actions.
-- **Services (`/services`)** - persists study-room bookings and
-  librarian/help requests instead of leaving them only in local state.
-- **Responsive Design QA** - preserved mobile/desktop behavior after
-  replacing mock/static data with asynchronous API calls.
-
-### Backend and database work owned
-
-- Added persistent **study room bookings** with the
-  `study_room_bookings` table.
-- Added persistent **librarian/help requests** with the `help_requests`
-  table.
-- Added persistent **book reservations** with the `reservations` table.
-- Extended borrowing behavior so `POST /api/books/:id/borrow` uses the
-  same loan rules as `POST /api/loans`.
-- Added `POST /api/books/:id/reserve` for unavailable books.
-- Hardened study-room validation:
-  - campus must be `Beirut` or `Byblos`
-  - room must exist
-  - room must belong to the selected campus
-  - duration and time slot must be valid
-  - group size must be between 1 and 20
-  - duplicate active bookings for the same room/date/time are rejected
-- Hardened borrowing and reservation logic:
-  - a user cannot borrow a missing book
-  - a user cannot borrow when no copies are available
-  - a user cannot hold duplicate active loans for the same book
-  - a user cannot reserve a book they already borrowed
-  - available books cannot be reserved; users are told to borrow instead
-  - returning a book restores inventory without exceeding `total_copies`
-
-### Frontend states handled
-
-- Loading states while books and detail data are fetched.
-- Error states for failed book loads, failed borrow/reserve actions, and
-  failed review submission.
-- Success messages for borrow, reserve, study-room booking, help request,
-  favorite toggle, and review flows.
-- Defensive fallbacks for cover images and legacy API field names.
-
-### Live verification performed
-
-The deployed Render API was smoke-tested against the Railway MySQL
-database. The tested paths included:
-
-- `GET /api/books`
-- `GET /api/books/:id`
-- `GET /api/books?search=...&availability=Available&sort=title-asc`
-- `POST /api/auth/register`
-- `POST /api/books/:id/borrow`
-- duplicate borrow rejection (`409`)
-- `POST /api/books/:id/reserve`
-- available-book reservation rejection (`409`)
-- `POST /api/loans/:id/return`
-- `POST /api/study-room-bookings`
-- duplicate study-room slot rejection (`409`)
-- room/campus mismatch rejection (`400`)
-- `POST /api/help-requests`
-- unauthenticated private service reads rejected with `401`
+Supporting entities are also modeled as MySQL tables with foreign keys:
+`reviews` (per-book ratings and comments), `favorites` (user-saved
+books), `reservations` (holds for unavailable books),
+`study_room_bookings` (group study-room reservations), `help_requests`
+(Ask a Librarian messages), and `reading_progress` (per-user book
+progress).
 
 ---
 
@@ -262,10 +191,10 @@ Response shape for both endpoints:
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/books` | public | List all books. Optional query params: `search`, `genre`, `language`, `campus`, `availability`, `sort`, `limit`. |
-| GET | `/api/books/:id` | public | Single book by id. 404 if not found. |
-| POST | `/api/books/:id/borrow` | auth | Borrow a book through Book Detail. Uses the same loan rules as `/api/loans`. |
-| POST | `/api/books/:id/reserve` | auth | Reserve an unavailable book. 409 if copies are available or the user already borrowed/reserved it. |
+| GET | `/api/books` | — | List all books. Optional query params: `search`, `genre`, `language`, `limit`. |
+| GET | `/api/books/:id` | — | Single book by id. 404 if not found. |
+| POST | `/api/books/:id/borrow` | ✅ | Borrow through Book Detail. Uses the same loan rules as `/api/loans`. |
+| POST | `/api/books/:id/reserve` | ✅ | Reserve an unavailable book. 409 if copies are available or the user already has an active loan/reservation. |
 | POST | `/api/books` | 🛡️ admin | Create a book. Required body: `title`, `author`. Optional: `genre`, `language`, `year`, `pages`, `rating`, `publisher`, `isbn`, `description`, `cover`, `availableCopies`. |
 | PUT | `/api/books/:id` | 🛡️ admin | Update a book. Same body shape as `POST`. |
 | DELETE | `/api/books/:id` | 🛡️ admin | Delete a book. |
@@ -324,9 +253,9 @@ Event response shape:
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/loans` | ✅ | Active (un-returned) loans for the current user. |
-| POST | `/api/loans` | auth | Borrow a book. Body: `{ "bookId": 0 }`. Issues a 14-day loan. 404 if the book does not exist; 409 if you already have an active loan or no copies are available. |
-| POST | `/api/loans/:id/return` | auth | Return one of your active loans and restore one available copy without exceeding `total_copies`. |
-| POST | `/api/loans/reservations` | auth | Reserve an unavailable book. Body: `{ "bookId": 0 }`. |
+| POST | `/api/loans` | ✅ | Borrow a book. Body: `{ "bookId": 0 }`. Issues a 14-day loan. 404 if the book doesn't exist; **409** if you already have an active loan or no copies are available. |
+| POST | `/api/loans/:id/return` | ✅ | Return one of your active loans and restore one available copy without exceeding `total_copies`. |
+| POST | `/api/loans/reservations` | ✅ | Reserve an unavailable book. Body: `{ "bookId": 0 }`. |
 
 Loan response shape:
 
@@ -366,16 +295,31 @@ Loan response shape:
 |---|---|---|---|
 | GET | `/api/dashboard` | ✅ | Aggregated view for the logged-in user — active loans, history, overdue, and renewals — in a single payload. |
 
+### Reading Progress
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/reading-progress/:bookId` | ✅ | Return the current user's saved progress for one book. Defaults to `0` if no row exists. |
+| PUT | `/api/reading-progress/:bookId` | ✅ | Save progress for one book. Body: `{ "progress": 0-100 }`. Values are rounded and clamped server-side. |
+
 ### Services
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| POST | `/api/study-room-bookings` | public | Create a study-room booking. Body: `{ campus, room, date, duration, time, people, studentId }`. Validates room/campus matching and rejects duplicate active slots with 409. |
-| GET | `/api/study-room-bookings` | admin | List study-room bookings for admin review. |
-| PATCH | `/api/study-room-bookings/:id/status` | admin | Update booking status to `pending`, `confirmed`, or `cancelled`. |
-| POST | `/api/help-requests` | public | Create a librarian/help request. Body: `{ message, name?, email? }`. |
-| GET | `/api/help-requests` | admin | List help requests for admin review. |
-| PATCH | `/api/help-requests/:id/status` | admin | Update help request status to `open`, `in_progress`, or `resolved`. |
+| GET | `/api/study-room-bookings/availability` | — | Public time-slot availability for a room/date. Query: `campus`, `room`, `date`. Returns five slots (`08:00`, `10:00`, `12:00`, `14:00`, `16:00`) with `available` flags. |
+| POST | `/api/study-room-bookings` | — | Create a study-room booking. Body: `{ campus, room, date, duration, time, people, studentId, notes? }`. Validates room/campus matching, duration, slot, group size, LAU ID, and rejects duplicate active slots with `409`. |
+| GET | `/api/study-room-bookings` | 🛡️ admin | List study-room bookings for admin review. |
+| PATCH | `/api/study-room-bookings/:id/status` | 🛡️ admin | Update booking status to `pending`, `confirmed`, or `cancelled`. |
+| POST | `/api/help-requests` | — | Create a librarian/help request. Body: `{ message, name?, email? }`. |
+| GET | `/api/help-requests` | 🛡️ admin | List help requests for admin review. |
+| PATCH | `/api/help-requests/:id/status` | 🛡️ admin | Update help request status to `open`, `in_progress`, or `resolved`. |
+
+Study-room bookings are fully custom now: `/services/studyrooms` no
+longer links to LAU LibCal. The page uses the app's own room selector,
+date picker, live slot availability, booking form, and MySQL-backed
+conflict checks. LAU IDs must be 8 or 9 digits, with no spaces or
+dashes. Compatibility aliases are also available under
+`/api/services/study-rooms`.
 
 ### Authorization Model
 
@@ -473,6 +417,33 @@ borrowed" because `book.copies ?? 0` was always `0`. We added
 name, and ran an idempotent migration to backfill the live database
 without re-seeding.
 
+### Borrowed state stuck on Book Detail
+
+Book Detail also had a localStorage fallback from the prototype era.
+That made stale browser keys look like real active loans, so books could
+appear as "Borrowed" even when `/api/loans` had no matching row. The
+borrowed button state now comes from the authenticated user's active
+loans, and `POST /api/books/:id/borrow` remains the source of truth for
+creating the loan and decrementing inventory.
+
+### Custom study-room booking instead of external LibCal
+
+The original Study Rooms page linked to LAU's external LibCal pages. We
+replaced that with an in-app booking flow backed by
+`study_room_bookings`: users select campus, room, date, visible time
+slot, duration, group size, and LAU ID. The backend exposes an
+availability endpoint so already-booked slots are disabled before
+submit, and the create endpoint still enforces the same conflict rule
+with a `409`.
+
+### Reading progress persistence
+
+Reading progress started as a purely local slider. We added the
+`reading_progress` table plus `GET`/`PUT /api/reading-progress/:bookId`
+so signed-in users can keep progress per book across sessions and
+devices. The frontend still keeps a local fallback if the network save
+fails.
+
 ### Frontend pages reading the wrong field names
 
 A subtler version of the same bug: `BookDetail`, `ListView`, and
@@ -505,4 +476,3 @@ Safari has spotty SVG-favicon support, so the tab icon was blank in
 Safari. We generated a 64×64 PNG (entirely with Python `struct` +
 `zlib`, no image libraries) and declared it in `index.html` before
 the SVG so Safari picks the PNG and other browsers still get the SVG.
-

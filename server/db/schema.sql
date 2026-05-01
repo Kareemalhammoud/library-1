@@ -114,6 +114,17 @@ CREATE TABLE IF NOT EXISTS reservations (
   CONSTRAINT fk_reservations_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS reading_progress (
+  user_id      INT NOT NULL,
+  book_id      INT NOT NULL,
+  progress     TINYINT NOT NULL DEFAULT 0,
+  updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, book_id),
+  CONSTRAINT fk_reading_progress_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_reading_progress_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+  CONSTRAINT chk_reading_progress_value CHECK (progress BETWEEN 0 AND 100)
+);
+
 CREATE TABLE IF NOT EXISTS study_room_bookings (
   id             INT AUTO_INCREMENT PRIMARY KEY,
   campus         VARCHAR(40) NOT NULL,

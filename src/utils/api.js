@@ -44,6 +44,12 @@ async function request(path, { method = 'GET', body, auth = false } = {}) {
   return data
 }
 
+function collectionFromResponse(data, key) {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.[key])) return data[key]
+  return []
+}
+
 // --- Books ---
 
 export function getBooks(params = {}) {
@@ -54,7 +60,7 @@ export function getBooks(params = {}) {
     }
   })
   const suffix = query.toString() ? `?${query.toString()}` : ''
-  return request(`/books${suffix}`)
+  return request(`/books${suffix}`).then((data) => collectionFromResponse(data, 'books'))
 }
 
 export function getBook(id) {
@@ -83,7 +89,7 @@ export function getEvents(params = {}) {
     }
   })
   const suffix = query.toString() ? `?${query.toString()}` : ''
-  return request(`/events${suffix}`)
+  return request(`/events${suffix}`).then((data) => collectionFromResponse(data, 'events'))
 }
 
 export function getEvent(id) {
@@ -132,6 +138,20 @@ export function createReservation(bookId) {
 
 export function returnLoan(loanId) {
   return request(`/loans/${loanId}/return`, { method: 'POST', auth: true })
+}
+
+// --- Reading progress ---
+
+export function getReadingProgress(bookId) {
+  return request(`/reading-progress/${bookId}`, { auth: true })
+}
+
+export function updateReadingProgress(bookId, progress) {
+  return request(`/reading-progress/${bookId}`, {
+    method: 'PUT',
+    body: { progress },
+    auth: true,
+  })
 }
 
 // --- Reviews ---

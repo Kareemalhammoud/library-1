@@ -5,8 +5,6 @@ import slideCampusGarden from '@/assets/0.jpg'
 import slideCampusBench from '@/assets/487281962_1086257190198525_229767219208838718_n.jpg'
 import slideCampusFountain from '@/assets/lebanese-american-university-lau_1153.jpg'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000'
-
 // Images that rotate in the hero banner at the top of the page
 const HERO_SLIDES = [
   { src: slideCampusGarden, alt: 'LAU Beirut campus historic stone buildings and gardens' },
@@ -140,14 +138,17 @@ function getGenreColor(genre) {
 }
 
 function normalizeBook(book) {
+  const genre = book.genre || book.category || 'General'
+  const availableCopies = Number(book.available_copies ?? book.availableCopies ?? book.copies ?? 0)
+
   return {
     id: book.id,
     title: book.title || 'Untitled',
     author: book.author || 'Unknown Author',
-    genre: book.category || 'General',
-    genreColor: getGenreColor(book.category || 'General'),
-    cover: sanitizeImage(book.image),
-    badge: Number(book.available_copies ?? book.copies ?? 0) > 0 ? 'Available' : '',
+    genre,
+    genreColor: book.genreColor || getGenreColor(genre),
+    cover: sanitizeImage(book.cover || book.image || book.coverImage),
+    badge: book.badge || (availableCopies > 0 ? 'Available' : ''),
   }
 }
 
@@ -171,10 +172,13 @@ function Home() {
   // Failures fall back to empty lists so the page still renders.
   useEffect(() => {
     let cancelled = false
+    setBooksLoading(true)
     Promise.all([getBooks().catch(() => []), getEvents().catch(() => [])]).then(([b, e]) => {
       if (cancelled) return
-      setBooks(b)
-      setEvents(e)
+      setBooks(Array.isArray(b) ? b.map(normalizeBook).filter((book) => book.id !== undefined && book.id !== null) : [])
+      setEvents(Array.isArray(e) ? e : [])
+    }).finally(() => {
+      if (!cancelled) setBooksLoading(false)
     })
     return () => {
       cancelled = true
@@ -345,31 +349,37 @@ function Home() {
               <a href="/books" className="text-[0.775rem] font-semibold text-[#006751] transition hover:opacity-100 dark:text-[#5ecba1]" onClick={(e) => { e.preventDefault(); navigate('/books') }}>View All</a>
             </div>
             <div ref={viewportRef} className="overflow-hidden">
-              <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
-                {track.map((book, i) => (
-                  <a
-                    key={`${book.id}-${i}`}
-                    href={`/books/${book.id}`}
-                    className="group block shrink-0 cursor-pointer text-inherit no-underline"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      navigate(`/books/${book.id}`)
-                    }}
-                    aria-label={`View details for ${book.title} by ${book.author}`}
-                  >
-                    <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-[3px_7px_7px_3px] shadow-[-3px_0_5px_rgba(0,0,0,0.20),0_2px_0_rgba(0,0,0,0.10),0_5px_16px_rgba(28,43,36,0.18)] transition group-hover:-translate-y-1 group-hover:shadow-[-6px_0_14px_rgba(0,0,0,0.32),0_2px_0_rgba(0,0,0,0.16),0_22px_52px_rgba(28,43,36,0.32)]">
-                      <img src={book.cover} alt={book.title} className="absolute inset-0 h-full w-full object-cover object-top" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                      <span className="absolute left-0 top-0 h-full w-[9px] bg-gradient-to-r from-black/30 to-black/10" />
-                      {book.badge && <span className="absolute right-2 top-3 rounded bg-white/15 px-2 py-1 text-[0.5rem] font-bold uppercase tracking-[0.11em] text-white backdrop-blur-sm">{book.badge}</span>}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[0.58rem] font-bold uppercase tracking-[0.13em]" style={{ color: book.genreColor }}>{book.genre}</span>
-                      <h3 className="text-[0.78rem] font-bold leading-[1.25] tracking-[-0.015em] text-[#1C2B24] dark:text-[#f5f7f6]">{book.title}</h3>
-                      <p className="text-[0.66rem] italic text-[#8a8a8a] dark:text-[#8c9691]">{book.author}</p>
-                    </div>
-                  </a>
-                ))}
-              </div>
+              {booksLoading ? (
+                <div className="py-8 text-[0.82rem] text-[#6a6a6a] dark:text-[#8c9691]">Loading staff picks...</div>
+              ) : books.length === 0 ? (
+                <div className="py-8 text-[0.82rem] text-[#6a6a6a] dark:text-[#8c9691]">No staff picks are available right now.</div>
+              ) : (
+                <div ref={trackRef} className="flex w-max gap-8 py-2 will-change-transform">
+                  {track.map((book, i) => (
+                    <a
+                      key={`${book.id}-${i}`}
+                      href={`/books/${book.id}`}
+                      className="group block shrink-0 cursor-pointer text-inherit no-underline"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        navigate(`/books/${book.id}`)
+                      }}
+                      aria-label={`View details for ${book.title} by ${book.author}`}
+                    >
+                      <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-[3px_7px_7px_3px] shadow-[-3px_0_5px_rgba(0,0,0,0.20),0_2px_0_rgba(0,0,0,0.10),0_5px_16px_rgba(28,43,36,0.18)] transition group-hover:-translate-y-1 group-hover:shadow-[-6px_0_14px_rgba(0,0,0,0.32),0_2px_0_rgba(0,0,0,0.16),0_22px_52px_rgba(28,43,36,0.32)]">
+                        <img src={book.cover} alt={book.title} className="absolute inset-0 h-full w-full object-cover object-top" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                        <span className="absolute left-0 top-0 h-full w-[9px] bg-gradient-to-r from-black/30 to-black/10" />
+                        {book.badge && <span className="absolute right-2 top-3 rounded bg-white/15 px-2 py-1 text-[0.5rem] font-bold uppercase tracking-[0.11em] text-white backdrop-blur-sm">{book.badge}</span>}
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[0.58rem] font-bold uppercase tracking-[0.13em]" style={{ color: book.genreColor }}>{book.genre}</span>
+                        <h3 className="text-[0.78rem] font-bold leading-[1.25] tracking-[-0.015em] text-[#1C2B24] dark:text-[#f5f7f6]">{book.title}</h3>
+                        <p className="text-[0.66rem] italic text-[#8a8a8a] dark:text-[#8c9691]">{book.author}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>

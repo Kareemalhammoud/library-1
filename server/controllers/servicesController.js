@@ -26,8 +26,10 @@ const ROOM_CAMPUS = new Map([
 ]);
 const VALID_DURATIONS = new Set(["30 minutes", "1 hour", "2 hours"]);
 const VALID_TIMES = new Set(["08:00", "10:00", "12:00", "14:00", "16:00"]);
+const TIME_SLOTS = Array.from(VALID_TIMES);
 
 const normalizeString = (value) => (typeof value === "string" ? value.trim() : "");
+const isValidLauId = (value) => /^\d{8,9}$/.test(value);
 
 const parsePositiveInt = (value) => {
   const parsed = Number.parseInt(value, 10);
@@ -59,6 +61,49 @@ const getStudyRoomBookings = async (req, res) => {
   }
 };
 
+const getStudyRoomAvailability = async (req, res) => {
+  try {
+    const room = normalizeString(req.query.room);
+    const date = normalizeString(req.query.date);
+    const campus = normalizeString(req.query.campus);
+
+    if (!ROOM_CAMPUS.has(room)) {
+      return res.status(400).json({ message: "Unknown study room" });
+    }
+
+    if (campus && (!VALID_CAMPUSES.has(campus) || ROOM_CAMPUS.get(room) !== campus)) {
+      return res.status(400).json({ message: "Selected room does not belong to the selected campus" });
+    }
+
+    if (!isRealDateString(date)) {
+      return res.status(400).json({ message: "Date must use YYYY-MM-DD format" });
+    }
+
+    const [rows] = await pool.query(
+      `SELECT start_time AS time, status
+       FROM study_room_bookings
+       WHERE room = ? AND booking_date = ?
+         AND status IN ('pending', 'confirmed')`,
+      [room, date]
+    );
+
+    const bookedTimes = new Set(rows.map((row) => row.time));
+
+    res.json({
+      campus: ROOM_CAMPUS.get(room),
+      room,
+      date,
+      slots: TIME_SLOTS.map((time) => ({
+        time,
+        available: !bookedTimes.has(time),
+      })),
+    });
+  } catch (error) {
+    console.error("Get study room availability error:", error);
+    res.status(500).json({ message: "Failed to load study room availability" });
+  }
+};
+
 const createStudyRoomBooking = async (req, res) => {
   try {
     const campus = normalizeString(req.body.campus);
@@ -76,6 +121,10 @@ const createStudyRoomBooking = async (req, res) => {
 
     if (!room || !date || !time || !duration || !studentId) {
       return res.status(400).json({ message: "Room, date, duration, time, and student ID are required" });
+    }
+
+    if (!isValidLauId(studentId)) {
+      return res.status(400).json({ message: "LAU ID must be 8 or 9 digits" });
     }
 
     if (!isRealDateString(date)) {
@@ -265,6 +314,7 @@ const updateHelpRequestStatus = async (req, res) => {
 
 module.exports = {
   getStudyRoomBookings,
+  getStudyRoomAvailability,
   createStudyRoomBooking,
   updateStudyRoomBookingStatus,
   getHelpRequests,
