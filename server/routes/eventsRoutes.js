@@ -2,6 +2,9 @@ const express = require("express");
 const {
   getAllEvents,
   getEventById,
+  getMyEventRegistrations,
+  registerForEvent,
+  cancelEventRegistration,
   createEvent,
   updateEvent,
   deleteEvent
@@ -13,6 +16,9 @@ const router = express.Router();
 
 // Public reads
 router.get("/", getAllEvents);
+router.get("/registrations/me", authMiddleware, getMyEventRegistrations);
+router.post("/:id/register", authMiddleware, registerForEvent);
+router.delete("/:id/register", authMiddleware, cancelEventRegistration);
 router.get("/:id", getEventById);
 
 // Admin-only writes

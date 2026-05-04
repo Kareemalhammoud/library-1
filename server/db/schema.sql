@@ -62,6 +62,16 @@ CREATE TABLE IF NOT EXISTS events (
   CONSTRAINT fk_events_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS event_registrations (
+  user_id       INT NOT NULL,
+  event_id      INT NOT NULL,
+  registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, event_id),
+  INDEX idx_event_registrations_event (event_id),
+  CONSTRAINT fk_event_registrations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_event_registrations_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS reviews (
   id             INT AUTO_INCREMENT PRIMARY KEY,
   book_id        INT NOT NULL,

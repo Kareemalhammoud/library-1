@@ -1,7 +1,8 @@
 // Populates the `books` and `events` tables from the arrays in
 // src/data/bookData.js and src/data/eventsData.js. Safe to re-run: it
-// clears the two tables first (and clears `loans` first because loans
-// foreign-keys into books). Run with: `npm run seed` from /server.
+// clears the two tables first (and clears dependent tables first because
+// loans and registrations foreign-key into books/events). Run with:
+// `npm run seed` from /server.
 
 const path = require("path");
 const { pathToFileURL } = require("url");
@@ -136,6 +137,7 @@ async function main() {
     // Loans + reviews reference books, so they must go before we wipe books.
     await pool.query("DELETE FROM loans");
     await pool.query("DELETE FROM reviews");
+    await pool.query("DELETE FROM event_registrations");
     await seedBooks(books);
     await seedEvents(events);
     await seedReviews();

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { deleteEvent, getEvents } from '@/utils/api'
-import { getStoredUser, isAdminUser } from '@/utils'
+import { cancelEventRegistration, deleteEvent, getEvents, getMyEventRegistrations, registerForEvent } from '@/utils/api'
+import { isAdminUser } from '@/utils'
 
 // Filter options for the upcoming events section
 const CATEGORIES = ['All', 'Workshops', 'Author Talks', 'Exhibitions', 'Book Clubs', 'Film', 'Kids & Families', 'Community']
@@ -35,24 +35,6 @@ function categoryColor(category) {
   return map[category] || 'text-[#006751] dark:text-[#5ecba1]'
 }
 
-// Pull the user's registered events from localStorage
-function getRegisteredEvents() {
-  const storedUser = getStoredUser()
-  const prefix = storedUser?.email ? `${storedUser.email}:` : ''
-  const rawRegisteredEvents =
-    localStorage.getItem(`${prefix}registeredEvents`) ||
-    localStorage.getItem('registeredEvents')
-
-  if (!rawRegisteredEvents) return []
-
-  try {
-    const parsed = JSON.parse(rawRegisteredEvents)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
 // Figures out seat availability and whether the user is already registered
 function getSeatState(eventItem, registeredEvents) {
   if (!eventItem.seats) {
@@ -65,7 +47,7 @@ function getSeatState(eventItem, registeredEvents) {
   }
 
   const isRegistered = registeredEvents.some((item) => item.id === eventItem.id)
-  const effectiveRegistered = Math.min(eventItem.seats, eventItem.registered + (isRegistered ? 1 : 0))
+  const effectiveRegistered = Math.min(eventItem.seats, eventItem.registered || 0)
   const seatsLeft = Math.max(0, eventItem.seats - effectiveRegistered)
 
   return {
@@ -89,6 +71,7 @@ function Events() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [registrationBusyId, setRegistrationBusyId] = useState(null)
   const admin = isAdminUser()
 
   async function handleDeleteEvent(eventId, eventTitle) {
@@ -108,10 +91,6 @@ function Events() {
   const featuredEvent = events.find((e) => Boolean(e.featured))
 
   useEffect(() => {
-    setRegisteredEvents(getRegisteredEvents())
-  }, [])
-
-  useEffect(() => {
     let cancelled = false
     setLoading(true)
     setLoadError('')
@@ -127,6 +106,28 @@ function Events() {
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const token = localStorage.getItem('token')
+
+    if (!token) {
+      setRegisteredEvents([])
+      return undefined
+    }
+
+    getMyEventRegistrations()
+      .then((data) => {
+        if (!cancelled) setRegisteredEvents(Array.isArray(data) ? data : [])
+      })
+      .catch(() => {
+        if (!cancelled) setRegisteredEvents([])
+      })
+
     return () => {
       cancelled = true
     }
@@ -162,24 +163,29 @@ function Events() {
   }
 
   // Handle register/unregister — redirects to login if not signed in
-  function handleRegister(eventItem) {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+  async function handleRegister(eventItem) {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' && localStorage.getItem('token')
 
     if (!isLoggedIn) {
       navigate('/login', { state: { from: '/events' } })
       return
     }
 
-    const storedUser = getStoredUser()
-    const prefix = storedUser?.email ? `${storedUser.email}:` : ''
-    const key = `${prefix}registeredEvents`
-    const currentRegisteredEvents = getRegisteredEvents()
-    const seatState = getSeatState(eventItem, currentRegisteredEvents)
+    const seatState = getSeatState(eventItem, registeredEvents)
 
     if (seatState.isRegistered) {
-      const nextRegisteredEvents = currentRegisteredEvents.filter((item) => item.id !== eventItem.id)
-      localStorage.setItem(key, JSON.stringify(nextRegisteredEvents))
-      setRegisteredEvents(nextRegisteredEvents)
+      setRegistrationBusyId(eventItem.id)
+      try {
+        const data = await cancelEventRegistration(eventItem.id)
+        setRegisteredEvents((prev) => prev.filter((item) => item.id !== eventItem.id))
+        if (data.event) {
+          setEvents((prev) => prev.map((item) => (item.id === eventItem.id ? data.event : item)))
+        }
+      } catch (error) {
+        window.alert(error.message || 'Failed to cancel registration.')
+      } finally {
+        setRegistrationBusyId(null)
+      }
       return
     }
 
@@ -190,25 +196,30 @@ function Events() {
     setModalOpen(true)
   }
 
-  function handleConfirmRegistration() {
+  async function handleConfirmRegistration() {
     if (!selectedEvent) return
 
-    const storedUser = getStoredUser()
-    const prefix = storedUser?.email ? `${storedUser.email}:` : ''
-    const key = `${prefix}registeredEvents`
-    const currentRegisteredEvents = getRegisteredEvents()
-    const seatState = getSeatState(selectedEvent, currentRegisteredEvents)
+    const seatState = getSeatState(selectedEvent, registeredEvents)
 
     if (seatState.isRegistered || seatState.isFull) return
 
-    const nextRegisteredEvents = [
-      ...currentRegisteredEvents,
-      { id: selectedEvent.id, title: selectedEvent.title, date: selectedEvent.date }
-    ]
-
-    localStorage.setItem(key, JSON.stringify(nextRegisteredEvents))
-    setRegisteredEvents(nextRegisteredEvents)
-    setConfirmed(true)
+    setRegistrationBusyId(selectedEvent.id)
+    try {
+      const data = await registerForEvent(selectedEvent.id)
+      const registeredEvent = data.event || selectedEvent
+      setEvents((prev) => prev.map((item) => (item.id === selectedEvent.id ? registeredEvent : item)))
+      setRegisteredEvents((prev) => [
+        ...prev.filter((item) => item.id !== selectedEvent.id),
+        { id: registeredEvent.id, title: registeredEvent.title, date: registeredEvent.date }
+      ])
+      setSelectedEvent(registeredEvent)
+      setConfirmed(true)
+    } catch (error) {
+      window.alert(error.message || 'Failed to register for this event.')
+      setModalOpen(false)
+    } finally {
+      setRegistrationBusyId(null)
+    }
   }
 
   function handleCloseModal() {
@@ -313,7 +324,7 @@ function Events() {
                     <button
                       type="button"
                       onClick={() => handleRegister(featuredEvent)}
-                      disabled={featuredSeatState.isFull && !featuredSeatState.isRegistered}
+                      disabled={registrationBusyId === featuredEvent.id || (featuredSeatState.isFull && !featuredSeatState.isRegistered)}
                       aria-label={`${featuredSeatState.isRegistered ? 'Cancel registration for' : featuredSeatState.isFull ? 'Seats are full for' : 'Reserve a spot for'} ${featuredEvent.title}`}
                       className={`rounded-lg px-6 py-2.5 text-[0.82rem] font-semibold transition ${featuredSeatState.isRegistered ? 'bg-[#cfcfcf] text-[#4f4f4f] hover:bg-[#bdbdbd] dark:bg-[#4a4a4a] dark:text-[#f1f1f1] dark:hover:bg-[#5a5a5a]' : 'bg-[#1a6644] text-white shadow-[0_1px_3px_rgba(26,102,68,0.3)] hover:bg-[#14533a] dark:bg-[#1a6644] dark:text-white dark:hover:bg-[#14533a]'} disabled:cursor-not-allowed disabled:bg-[#b9b9b9] disabled:text-[#666] dark:disabled:bg-[#355246] dark:disabled:text-[#d7e4de]`}
                     >
@@ -450,7 +461,7 @@ function Events() {
                             <button
                               type="button"
                               onClick={() => handleRegister(event)}
-                              disabled={seatState.isFull && !seatState.isRegistered}
+                              disabled={registrationBusyId === event.id || (seatState.isFull && !seatState.isRegistered)}
                               aria-label={`${seatState.isRegistered ? 'Cancel registration for' : seatState.isFull ? 'Seats are full for' : 'Reserve a spot for'} ${event.title}`}
                               className={`rounded-md px-3 py-1.5 text-[0.68rem] font-semibold transition sm:px-4 sm:py-2 sm:text-[0.72rem] ${seatState.isRegistered ? 'bg-[#cfcfcf] text-[#4f4f4f] hover:bg-[#bdbdbd] dark:bg-[#4a4a4a] dark:text-[#f1f1f1] dark:hover:bg-[#5a5a5a]' : 'bg-[#1a6644] text-white hover:bg-[#14533a] dark:bg-[#1a6644] dark:hover:bg-[#14533a]'} disabled:cursor-not-allowed disabled:bg-[#b9b9b9] disabled:text-[#666] dark:disabled:bg-[#355246] dark:disabled:text-[#d7e4de]`}
                             >
@@ -602,6 +613,7 @@ function Events() {
                   <button
                     className="flex-1 rounded-lg border-0 bg-[#1a4a3a] px-4 py-[0.75rem] text-[0.9rem] font-semibold text-white hover:bg-[#2d7a4f]"
                     onClick={handleConfirmRegistration}
+                    disabled={registrationBusyId === selectedEvent?.id}
                   >
                     Confirm
                   </button>

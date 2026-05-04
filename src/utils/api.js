@@ -108,6 +108,18 @@ export function deleteEvent(id) {
   return request(`/events/${id}`, { method: 'DELETE', auth: true })
 }
 
+export function getMyEventRegistrations() {
+  return request('/events/registrations/me', { auth: true })
+}
+
+export function registerForEvent(id) {
+  return request(`/events/${id}/register`, { method: 'POST', auth: true })
+}
+
+export function cancelEventRegistration(id) {
+  return request(`/events/${id}/register`, { method: 'DELETE', auth: true })
+}
+
 // --- Favorites ---
 
 export function getFavorites() {

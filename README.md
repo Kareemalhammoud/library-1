@@ -49,6 +49,7 @@ The four primary entities and their relationships:
 Supporting entities are also modeled as MySQL tables with foreign keys:
 `reviews` (per-book ratings and comments), `favorites` (user-saved
 books), `reservations` (holds for unavailable books),
+`event_registrations` (per-user event reservations and seat counts),
 `study_room_bookings` (group study-room reservations), `help_requests`
 (Ask a Librarian messages), and `reading_progress` (per-user book
 progress).
@@ -225,6 +226,9 @@ Book response shape:
 |---|---|---|---|
 | GET | `/api/events` | — | List events. Optional query params: `category`, `format`, `month` (1–12), `search`, `featured=true`. Sorted by date ascending. |
 | GET | `/api/events/:id` | — | Single event by id. |
+| GET | `/api/events/registrations/me` | ✅ | List the current user's event registrations. Used by the Events and Event Detail pages to show the correct registered/cancel state. |
+| POST | `/api/events/:id/register` | ✅ | Register the current user for an event. Rejects duplicate registrations and full events with `409`; increments the event's `registered` count transactionally. |
+| DELETE | `/api/events/:id/register` | ✅ | Cancel the current user's registration for an event and decrement the event's `registered` count without going below zero. |
 | POST | `/api/events` | 🛡️ admin | Create an event. Required body: `title`, `date` (`YYYY-MM-DD`). Optional: `time`, `location`, `category`, `format`, `featured`, `image`, `description`, `speaker`, `seats`, `registered`. |
 | PUT | `/api/events/:id` | 🛡️ admin | Update an event. |
 | DELETE | `/api/events/:id` | 🛡️ admin | Delete an event. |

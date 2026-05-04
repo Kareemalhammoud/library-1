@@ -8,6 +8,26 @@ const EVENT_COLUMNS = `
   created_by AS createdBy, created_at AS createdAt
 `;
 
+let registrationsTableReady = false;
+
+async function ensureEventRegistrationsTable() {
+  if (registrationsTableReady) return;
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS event_registrations (
+      user_id       INT NOT NULL,
+      event_id      INT NOT NULL,
+      registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, event_id),
+      INDEX idx_event_registrations_event (event_id),
+      CONSTRAINT fk_event_registrations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_event_registrations_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+    )
+  `);
+
+  registrationsTableReady = true;
+}
+
 // MySQL returns a DATE column as a JS Date in the local timezone, which can
 // shift the day across midnight. The frontend wants "YYYY-MM-DD" strings, so
 // format it ourselves.
@@ -93,6 +113,163 @@ const getEventById = async (req, res) => {
   } catch (error) {
     console.error("Get event error:", error);
     res.status(500).json({ message: "Failed to load event" });
+  }
+};
+
+const getMyEventRegistrations = async (req, res) => {
+  try {
+    await ensureEventRegistrationsTable();
+
+    const [rows] = await pool.query(
+      `SELECT
+         er.event_id AS id,
+         e.title,
+         e.date,
+         e.time,
+         e.location,
+         er.registered_at AS registeredAt
+       FROM event_registrations er
+       JOIN events e ON e.id = er.event_id
+       WHERE er.user_id = ?
+       ORDER BY e.date ASC, e.id ASC`,
+      [req.user.id]
+    );
+
+    res.json(rows.map(formatEventRow));
+  } catch (error) {
+    console.error("Get event registrations error:", error);
+    res.status(500).json({ message: "Failed to load event registrations" });
+  }
+};
+
+const registerForEvent = async (req, res) => {
+  const eventId = Number.parseInt(req.params.id, 10);
+  if (!Number.isInteger(eventId)) {
+    return res.status(400).json({ message: "Invalid event id" });
+  }
+
+  let connection;
+  try {
+    await ensureEventRegistrationsTable();
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [events] = await connection.query(
+      "SELECT id, title, date, time, location, seats, registered FROM events WHERE id = ? FOR UPDATE",
+      [eventId]
+    );
+
+    if (events.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const event = events[0];
+
+    const [existing] = await connection.query(
+      "SELECT user_id FROM event_registrations WHERE user_id = ? AND event_id = ?",
+      [req.user.id, eventId]
+    );
+
+    if (existing.length > 0) {
+      await connection.rollback();
+      return res.status(409).json({ message: "You are already registered for this event" });
+    }
+
+    const seats = event.seats == null ? null : Number(event.seats);
+    const registered = Number(event.registered || 0);
+
+    if (seats !== null && registered >= seats) {
+      await connection.rollback();
+      return res.status(409).json({ message: "This event is full" });
+    }
+
+    await connection.query(
+      "INSERT INTO event_registrations (user_id, event_id) VALUES (?, ?)",
+      [req.user.id, eventId]
+    );
+
+    await connection.query(
+      "UPDATE events SET registered = COALESCE(registered, 0) + 1 WHERE id = ?",
+      [eventId]
+    );
+
+    await connection.commit();
+
+    const [rows] = await pool.query(
+      `SELECT ${EVENT_COLUMNS} FROM events WHERE id = ?`,
+      [eventId]
+    );
+
+    res.status(201).json({
+      message: "Registered for event",
+      event: formatEventRow(rows[0])
+    });
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error("Register for event error:", error);
+    res.status(500).json({ message: "Failed to register for event" });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const cancelEventRegistration = async (req, res) => {
+  const eventId = Number.parseInt(req.params.id, 10);
+  if (!Number.isInteger(eventId)) {
+    return res.status(400).json({ message: "Invalid event id" });
+  }
+
+  let connection;
+  try {
+    await ensureEventRegistrationsTable();
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [events] = await connection.query(
+      "SELECT id FROM events WHERE id = ? FOR UPDATE",
+      [eventId]
+    );
+
+    if (events.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const [result] = await connection.query(
+      "DELETE FROM event_registrations WHERE user_id = ? AND event_id = ?",
+      [req.user.id, eventId]
+    );
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: "Registration not found" });
+    }
+
+    await connection.query(
+      "UPDATE events SET registered = GREATEST(COALESCE(registered, 0) - 1, 0) WHERE id = ?",
+      [eventId]
+    );
+
+    await connection.commit();
+
+    const [rows] = await pool.query(
+      `SELECT ${EVENT_COLUMNS} FROM events WHERE id = ?`,
+      [eventId]
+    );
+
+    res.json({
+      message: "Event registration cancelled",
+      event: formatEventRow(rows[0])
+    });
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error("Cancel event registration error:", error);
+    res.status(500).json({ message: "Failed to cancel event registration" });
+  } finally {
+    if (connection) connection.release();
   }
 };
 
@@ -282,6 +459,9 @@ const deleteEvent = async (req, res) => {
 module.exports = {
   getAllEvents,
   getEventById,
+  getMyEventRegistrations,
+  registerForEvent,
+  cancelEventRegistration,
   createEvent,
   updateEvent,
   deleteEvent
