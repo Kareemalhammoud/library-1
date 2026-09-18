@@ -1,6 +1,4 @@
-const DEFAULT_ADMIN_EMAILS = 'admin@lau.edu,superadmin@lau.edu'
-
-export const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || DEFAULT_ADMIN_EMAILS)
+export const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
   .split(',')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean)

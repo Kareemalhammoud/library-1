@@ -1,17 +1,12 @@
-// Quick connection test for the Railway MySQL using whatever env is set.
-// Tries with and without SSL and reports which one worked.
+// Quick connection test using the same TLS policy as the application.
 
 const mysql = require("mysql2/promise");
 require("dotenv").config();
+const { databaseOptions } = require("../config/databaseOptions");
 
-const baseConfig = {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+const baseConfig = databaseOptions({
   connectTimeout: 10000,
-};
+});
 
 async function tryConnect(label, extra) {
   try {
@@ -26,7 +21,5 @@ async function tryConnect(label, extra) {
 
 (async () => {
   console.log("Testing host:", baseConfig.host, "port:", baseConfig.port);
-  await tryConnect("no-ssl", {});
-  await tryConnect("ssl-relaxed", { ssl: { rejectUnauthorized: false } });
-  await tryConnect("ssl-strict", { ssl: {} });
+  await tryConnect("configured", {});
 })();

@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom"
 import defaultPic from "../assets/default-profile.png"
 import { getStoredUser } from "../utils"
 import { getFavorites, removeFavorite, returnLoan } from "../utils/api"
+import { API_BASE_URL } from "../config/api"
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
-const DASHBOARD_URL = `${API_BASE}/dashboard`
+const DASHBOARD_URL = `${API_BASE_URL}/dashboard`
 
 function formatDate(value) {
 	if (!value) return "N/A"

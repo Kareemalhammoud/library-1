@@ -1,10 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const { rateLimit } = require("express-rate-limit");
 const swaggerUi = require("swagger-ui-express");
 const path = require("path");
 
 require("dotenv").config({ path: path.join(__dirname, ".env") });
+
+const { validateEnvironment } = require("./config/env");
+validateEnvironment();
 
 const pool = require("./config/db");
 const swaggerSpec = require("./swaggerSpec");
@@ -21,14 +25,43 @@ const readingProgressRoutes = require("./routes/readingProgressRoutes");
 const { getStudyRoomAvailability } = require("./controllers/servicesController");
 
 const app = express();
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Request logging. "dev" is concise and color-coded for local; "combined" is
 // the standard Apache log line — better for hosted log aggregation on Render.
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      const error = new Error("Origin is not allowed by CORS.");
+      error.statusCode = 403;
+      callback(error);
+    }
+  })
+);
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
+const authRateLimiter = rateLimit({
+  windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+  limit: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { message: "Too many authentication attempts. Try again later." }
+});
+
+app.use("/api/auth", authRateLimiter, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/books", booksRoutes);
@@ -46,19 +79,17 @@ app.get("/", (req, res) => {
   res.send("API is running");
 });
 
-app.get("/test-db", async (req, res) => {
+app.get(["/health", "/api/health"], (req, res) => {
+  res.json({ status: "ok", service: "library-api" });
+});
+
+app.get("/api/ready", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT 1 AS test");
-    res.json({
-      message: "Database connected successfully",
-      result: rows
-    });
+    await pool.query("SELECT 1 AS test");
+    res.json({ status: "ready", database: "connected" });
   } catch (error) {
     console.error("Database connection error:", error);
-    res.status(500).json({
-      message: "Database connection failed",
-      error: error.message
-    });
+    res.status(503).json({ status: "unavailable", database: "disconnected" });
   }
 });
 
@@ -79,6 +110,10 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

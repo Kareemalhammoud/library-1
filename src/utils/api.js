@@ -3,15 +3,7 @@
 // with a single try/catch. Used by the books and events pages to replace
 // the old static imports from src/data/*.
 
-const RAW_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_BASE ||
-  'http://localhost:5000/api'
-
-const BASE_URL = RAW_BASE_URL.replace(/\/$/, '').endsWith('/api')
-  ? RAW_BASE_URL.replace(/\/$/, '')
-  : `${RAW_BASE_URL.replace(/\/$/, '')}/api`
+import { API_BASE_URL } from '../config/api'
 
 async function request(path, { method = 'GET', body, auth = false } = {}) {
   const headers = {}
@@ -27,7 +19,7 @@ async function request(path, { method = 'GET', body, auth = false } = {}) {
     }
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),

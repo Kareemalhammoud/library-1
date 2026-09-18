@@ -1,8 +1,7 @@
 import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import FormInput from "../components/FormInput"
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+import { API_BASE_URL } from "../config/api"
 
 function Register() {
 
@@ -90,7 +89,7 @@ function Register() {
 		}
 
 		try {
-			const response = await fetch(`${API_BASE}/auth/register`, {
+			const response = await fetch(`${API_BASE_URL}/auth/register`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

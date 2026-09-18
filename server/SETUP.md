@@ -40,8 +40,12 @@ cp .env.example .env
 ```
 
 Open `server/.env` and fill in `DB_PASSWORD` (leave blank if root has no
-password) and `JWT_SECRET` (any long random string — e.g. run
-`openssl rand -base64 48`).
+password) and use `openssl rand -base64 48` to generate separate values
+for `JWT_SECRET` and, when `ADMIN_EMAILS` is set,
+`ADMIN_BOOTSTRAP_SECRET`. Set `CORS_ORIGINS` to the exact frontend
+origin. Managed databases should use `DB_SSL=true` and keep
+`DB_SSL_REJECT_UNAUTHORIZED=true` unless the provider explicitly
+documents a different requirement.
 
 ## 5. Install backend deps
 
@@ -68,7 +72,8 @@ npm run dev
 The API is now live on `http://localhost:5000`. Smoke-test it:
 
 ```bash
-curl http://localhost:5000/test-db           # { "message": "Database connected successfully", ... }
+curl http://localhost:5000/api/health        # process health, no database dependency
+curl http://localhost:5000/api/ready         # database readiness
 curl http://localhost:5000/api/books | head  # should print a JSON array of books
 curl http://localhost:5000/api/events        # should print a JSON array of events
 ```
