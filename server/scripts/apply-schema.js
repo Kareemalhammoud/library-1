@@ -5,6 +5,7 @@
 const fs = require("fs");
 const path = require("path");
 const mysql = require("mysql2/promise");
+const { databaseOptions } = require("../config/databaseOptions");
 
 require("dotenv").config();
 
@@ -14,15 +15,9 @@ async function main() {
     "utf8"
   );
 
-  const conn = await mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
+  const conn = await mysql.createConnection(databaseOptions({
     multipleStatements: true,
-  });
+  }));
 
   await conn.query(sql);
   await conn.end();

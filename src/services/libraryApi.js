@@ -1,12 +1,7 @@
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_BASE ||
-  import.meta.env.VITE_API_URL ||
-  'http://localhost:5000/api'
-).replace(/\/$/, '')
+import { API_ORIGIN } from '../config/api'
 
 export function isBackendConfigured() {
-  return Boolean(API_BASE_URL)
+  return Boolean(API_ORIGIN)
 }
 
 function getAuthHeaders() {
@@ -38,7 +33,7 @@ async function request(path, options = {}) {
     throw new Error('Backend API URL is not configured.')
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${API_ORIGIN}${path}`, {
     ...options,
     headers: {
       ...getAuthHeaders(),

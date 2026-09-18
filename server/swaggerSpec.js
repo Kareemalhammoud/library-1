@@ -1,4 +1,5 @@
 const PORT = process.env.PORT || 5000;
+const publicServerUrl = process.env.SERVER_PUBLIC_URL || `http://localhost:${PORT}`;
 
 const jsonContent = {
   content: {
@@ -62,12 +63,8 @@ module.exports = {
   },
   servers: [
     {
-      url: `http://localhost:${PORT}`,
-      description: "Local development server"
-    },
-    {
-      url: "https://library-api-46jn.onrender.com",
-      description: "Production Render backend"
+      url: publicServerUrl,
+      description: process.env.SERVER_PUBLIC_URL ? "Deployed server" : "Local development server"
     }
   ],
   tags: [

@@ -1,7 +1,6 @@
 // Populates the `books` and `events` tables from the arrays in
-// src/data/bookData.js and src/data/eventsData.js. Safe to re-run: it
-// clears the two tables first (and clears dependent tables first because
-// loans and registrations foreign-key into books/events). Run with:
+// src/data/bookData.js and src/data/eventsData.js. This replaces catalog
+// activity and is intentionally gated behind ALLOW_DEMO_SEED=true. Run with:
 // `npm run seed` from /server.
 
 const path = require("path");
@@ -133,10 +132,17 @@ async function seedEvents(events) {
 
 async function main() {
   try {
+    if (process.env.ALLOW_DEMO_SEED !== "true") {
+      throw new Error("Refusing to replace data unless ALLOW_DEMO_SEED=true.");
+    }
+
     const { books, events } = await loadFrontendData();
-    // Loans + reviews reference books, so they must go before we wipe books.
+    // Clear every table that references the demo catalog before replacing it.
     await pool.query("DELETE FROM loans");
     await pool.query("DELETE FROM reviews");
+    await pool.query("DELETE FROM favorites");
+    await pool.query("DELETE FROM reservations");
+    await pool.query("DELETE FROM reading_progress");
     await pool.query("DELETE FROM event_registrations");
     await seedBooks(books);
     await seedEvents(events);

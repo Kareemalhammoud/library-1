@@ -1,6 +1,13 @@
 const pool = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const {
+  isAdminEmail,
+  hasValidAdminBootstrapSecret
+} = require("../middleware/adminOnly");
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[.@$!%*?&]).{8,}$/;
 
 const toIsoDate = (value) => {
   if (!value) return null;
@@ -24,9 +31,26 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    const normalizedName = String(full_name).trim();
+    const normalizedEmail = String(email).trim().toLowerCase();
+    if (!normalizedName || !EMAIL_PATTERN.test(normalizedEmail)) {
+      return res.status(400).json({ message: "A valid name and email are required" });
+    }
+    if (!PASSWORD_PATTERN.test(String(password))) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters and include upper, lower, number, and symbol"
+      });
+    }
+    if (
+      isAdminEmail(normalizedEmail) &&
+      !hasValidAdminBootstrapSecret(req.get("x-admin-bootstrap-secret"))
+    ) {
+      return res.status(403).json({ message: "Admin account bootstrap is not authorized" });
+    }
+
     const [existingUsers] = await pool.query(
       "SELECT id FROM users WHERE email = ?",
-      [email]
+      [normalizedEmail]
     );
 
     if (existingUsers.length > 0) {
@@ -37,7 +61,7 @@ const register = async (req, res) => {
 
     const [result] = await pool.query(
       "INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)",
-      [full_name, email, hashedPassword]
+      [normalizedName, normalizedEmail, hashedPassword]
     );
 
     const [createdRows] = await pool.query(
@@ -74,9 +98,10 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
     const [users] = await pool.query(
       "SELECT * FROM users WHERE email = ?",
-      [email]
+      [normalizedEmail]
     );
 
     if (users.length === 0) {

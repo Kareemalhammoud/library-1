@@ -64,6 +64,11 @@ progress).
 | Backend API | https://library-api-46jn.onrender.com |
 | GitHub | https://github.com/Kareemalhammoud/library-1 |
 
+Deployment audit note: the frontend and backend process are reachable,
+but the deployed API currently returns `500` for `/api/books`. Treat the
+live application as blocked until its MySQL connection is restored and
+the main workflows are retested.
+
 The backend is on Render's free tier and spins down after periods of
 inactivity. The first request after a quiet period takes 30–60 seconds
 while the instance wakes up; subsequent requests are fast.
@@ -98,9 +103,20 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=lau_library
-JWT_SECRET=any-long-random-string
+DB_SSL=true
+DB_SSL_REJECT_UNAUTHORIZED=true
+JWT_SECRET=replace-with-at-least-32-random-characters
+ADMIN_EMAILS=approved-admin@example.com
+ADMIN_BOOTSTRAP_SECRET=replace-with-a-separate-32-character-secret
+NODE_ENV=production
 PORT=5000
+CORS_ORIGINS=https://your-frontend.example
+SERVER_PUBLIC_URL=https://your-api.example
 ```
+
+`AUTH_RATE_LIMIT_WINDOW_MS` and `AUTH_RATE_LIMIT_MAX` optionally tune
+the authentication rate limiter. Keep `ALLOW_DEMO_SEED=false` outside
+an empty preview database.
 
 A more detailed walkthrough — including notes on connecting to a
 managed cloud database — lives in
@@ -115,30 +131,34 @@ npm install --legacy-peer-deps          # peer conflict: Vite and Tailwind v4
 npm run dev                             # frontend on http://localhost:5173
 ```
 
-The frontend defaults to a backend at `http://localhost:5000` and needs
-no `.env` for local development. To point at a different backend (e.g.
-a deployed API), set `VITE_API_URL` (with the `/api` suffix) and
-`VITE_API_BASE` (without).
+Copy `.env.example` and set `VITE_API_URL` to the backend URL. The value
+may include `/api`; the frontend normalizes it and does not fall back to
+localhost when deployment configuration is missing.
 
-### Admin Account
+### Admin Account (Secure Bootstrap)
 
-Two admin emails are recognized by default — `admin@lau.edu` and
-`superadmin@lau.edu`. Register one of them after seeding to get an
-admin account:
+There are no default admin email addresses. Configure `ADMIN_EMAILS` on
+the backend and use a strong `ADMIN_BOOTSTRAP_SECRET` only while creating
+an approved admin account:
 
 ```bash
 curl -X POST http://localhost:5000/api/auth/register \
   -H 'Content-Type: application/json' \
-  -d '{"full_name":"LAU Admin","email":"admin@lau.edu","password":"Admin123!"}'
+  -H 'X-Admin-Bootstrap-Secret: replace-with-the-configured-secret' \
+  -d '{"full_name":"LAU Admin","email":"approved-admin@example.com","password":"use-a-unique-password"}'
 ```
 
 Then sign in at `/login`. Admins can add, edit, and delete books and
 events from the UI.
 
-The recognized list is configurable per environment via the
-`ADMIN_EMAILS` (backend) and `VITE_ADMIN_EMAILS` (frontend)
-comma-separated environment variables — no code changes needed to
-rotate or add admins.
+The approved list is configured with the backend `ADMIN_EMAILS`
+environment variable. `VITE_ADMIN_EMAILS` only controls frontend UI and
+is not an authorization boundary. Remove or rotate the bootstrap secret
+after provisioning the account.
+
+The demo seed command replaces catalog activity. Set
+`ALLOW_DEMO_SEED=true` only for an empty local or preview database, run
+`npm run seed`, then turn the flag off. Never enable it in production.
 
 ---
 
